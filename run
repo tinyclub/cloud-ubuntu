@@ -8,4 +8,4 @@ sudo docker run \
 	--name $CONTAINER_NAME --privileged -d -t \
 	-p 6080:6080 -p 3000:3000 -p 2222:22 \
 	-e UNIX_PWD=ubuntu -e VNC_PWD=ubuntu -e TTY_PWD=ubuntu \
-	-h localhost $CONTAINER_NAME
+	-h localhost $IMAGE_NAME
