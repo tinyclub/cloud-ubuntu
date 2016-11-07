@@ -27,7 +27,7 @@ People can build their own cloud environment with:
 
 To customize the key/cert, please rerun `gen_pem.sh`.
 
-## Usage:
+## Usage
 
     $ ./build                 # build it from scratch
     $ ./rm                    # remove the container before run a new one
@@ -37,19 +37,15 @@ The ssh/noVNC/tty.js login password can be set via the according environment
 variables in `./run`: `UNIX_PWD`, `VNC_PWD`, `TTY_PWD`. the default passwords
 are `ubuntu`.
 
-## Access
+## Services
 
-|---------|---------------|--------------|
-|Protocol | Internal port | External port|
-|ssh      | 22            | 2222         |
-|noVNC    | 6080          | 6080         |
-|tty.js   | 3000          | 3000         |
-|---------|---------------|--------------|
+| Protocol    |  Internal port  | External port|
+|------------:|----------------:|-------------:|
+|ssh          | 22              | 2222         |
+|noVNC        | 6080            | 6080         |
+|tty.js       | 3000            | 3000         |
 
-
-* SSH   : `ssh ubuntu@localhost -p 2222  # password=ubuntu`
-* tty.js: `https://localhost:3000        # username=ubuntu, password=ubuntu`
-* noVNC : `https://localhost:6080/vnc.html?password=ubuntu&autoconnect=1`
+## Login
 
     $ ./login-ssh
     $ ./login-tty.js
