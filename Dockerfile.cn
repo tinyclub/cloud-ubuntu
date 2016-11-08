@@ -22,6 +22,7 @@ RUN locale-gen --purge zh_CN.utf8
 
 EXPOSE 6080
 EXPOSE 3000
+EXPOSE 443
 EXPOSE 22
 
 WORKDIR /

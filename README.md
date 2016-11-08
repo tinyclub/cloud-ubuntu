@@ -1,15 +1,17 @@
 
 # Cloud Ubuntu
 
-This project aims to build a basic docker image with Ubuntu + ssh/tty.js/noVNC, it should be accessed easily from all over the world.
+This project aims to build a basic docker image with Ubuntu + ssh/tty.js/gateone/noVNC, it should be accessed easily from all over the world.
 
 * ssh, traditional ssh protocol, require ssh client, support graphic/console
 * noVNC, remote graphic desktop via web browser, platform independent
 * tty.js, remote tty console via web browser, platform independent
+* gateone, web ssh client, platform independent
 
 It is based on:
 
 * [tty.js](https://github.com/chjj/tty.js/)
+* [gateone](https://github.com/liftoff/GateOne)
 * [noVNC](https://github.com/kanaka/noVNC)
 * [websockify](https://github.com/kanaka/websockify)
 * [docker-ubuntu-vnc-desktop](https://github.com/fcwu/docker-ubuntu-vnc-desktop)
@@ -39,14 +41,16 @@ are `ubuntu`.
 
 ## Services
 
-| Protocol    |  Internal port  | External port|
-|------------:|----------------:|-------------:|
-|ssh          | 22              | 2222         |
-|noVNC        | 6080            | 6080         |
-|tty.js       | 3000            | 3000         |
+| Protocol     |  Internal port  | External port|
+|-------------:|----------------:|-------------:|
+|ssh           | 22              | 2222         |
+|gateone/webssh| 443             | 4433         |
+|noVNC         | 6080            | 6080         |
+|tty.js        | 3000            | 3000         |
 
 ## Login
 
     $ ./login-ssh
+    $ ./login-webssh
     $ ./login-tty.js
     $ ./login-novnc
