@@ -1,9 +1,18 @@
 # build
 
 TOP_DIR=$(cd $(dirname $0) && pwd)
+
+${TOP_DIR}/switch-name $*
+
+ORIG_NAME=$(< ${TOP_DIR}/name.orig)
 IMAGE_NAME=$(< ${TOP_DIR}/name)
 CONTAINER_NAME=$(basename $IMAGE_NAME)
 
 [ -n "$CACHE" -a "$CACHE" == "0"  ] && NO_CACHE="--no-cache"
 
-sudo docker build $CACHE_FLAG -t $IMAGE_NAME ${TOP_DIR}
+SUFFIX=orig
+[ "$ORIG_NAME" != "$IMAGE_NAME" ] && SUFFIX=${IMAGE_NAME##*-}
+
+ln -sf ${TOP_DIR}/Dockerfile.${SUFFIX} ${TOP_DIR}/Dockerfile
+
+sudo docker build $CACHE_FLAG -t $IMAGE_NAME ${TOP_DIR}/

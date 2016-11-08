@@ -1,0 +1,8 @@
+#!/bin/bash
+
+TOP_DIR=$(cd $(dirname $0) && pwd)
+
+SUFFIX=orig
+[ -n "$1" ] && SUFFIX=$1
+
+[ -f ${TOP_DIR}/name.$SUFFIX ] && ln -sf ${TOP_DIR}/name.$SUFFIX ${TOP_DIR}/name

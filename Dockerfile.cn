@@ -1,0 +1,29 @@
+FROM tinylab/cloud-ubuntu
+MAINTAINER Wu Zhangjin <wuzhangjin@gmail.com>
+
+ENV DEBIAN_FRONTEND noninteractive
+ENV HOME /home/ubuntu/
+
+RUN apt-get -y update
+
+# Core
+RUN apt-get install -y --force-yes --no-install-recommends \
+	language-pack-zh-hant language-pack-zh-hans \
+	fonts-arphic-bkai00mp fonts-arphic-bsmi00lp \
+	fonts-arphic-gbsn00lp fonts-arphic-gkai00mp \
+	fonts-arphic-ukai fonts-arphic-uming \
+	fonts-wqy-microhei fonts-wqy-zenhei \
+    && apt-get autoclean \
+    && apt-get autoremove \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN locale-gen --purge en_US.utf8
+RUN locale-gen --purge zh_CN.utf8
+
+EXPOSE 6080
+EXPOSE 3000
+EXPOSE 22
+
+WORKDIR /
+
+ENTRYPOINT ["/startup.sh"]

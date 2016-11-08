@@ -1,0 +1,7 @@
+#!/bin/bash
+
+TOP_DIR=$(cd $(dirname $0) && pwd)
+IMAGE_NAME=$(< ${TOP_DIR}/name)
+CONTAINER_NAME=$(basename $IMAGE_NAME)
+
+docker exec -i -t $CONTAINER_NAME /bin/bash
