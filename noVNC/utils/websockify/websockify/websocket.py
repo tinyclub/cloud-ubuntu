@@ -105,12 +105,16 @@ class WebSocketRequestHandler(SimpleHTTPRequestHandler):
         self.file_only = getattr(server, "file_only", False)
         self.traffic = getattr(server, "traffic", False)
         self.auto_pong = getattr(server, "auto_pong", False)
+        self.strict_mode = getattr(server, "strict_mode", True)
 
         self.logger = getattr(server, "logger", None)
         if self.logger is None:
             self.logger = WebSocketServer.get_logger()
 
         SimpleHTTPRequestHandler.__init__(self, req, addr, server)
+
+    def log_message(self, format, *args):
+        self.logger.info("%s - - [%s] %s" % (self.address_string(), self.log_date_time_string(), format % args))
 
     @staticmethod
     def unmask(buf, hlen, plen):
@@ -177,7 +181,7 @@ class WebSocketRequestHandler(SimpleHTTPRequestHandler):
         return header + buf, len(header), 0
 
     @staticmethod
-    def decode_hybi(buf, base64=False, logger=None):
+    def decode_hybi(buf, base64=False, logger=None, strict=True):
         """ Decode HyBi style WebSocket packets.
         Returns:
             {'fin'          : 0_or_1,
@@ -243,6 +247,10 @@ class WebSocketRequestHandler(SimpleHTTPRequestHandler):
                                                   f['length'])
         else:
             logger.debug("Unmasked frame: %s" % repr(buf))
+
+            if strict:
+                raise WebSocketRequestHandler.CClose(1002, "The client sent an unmasked frame.")
+
             f['payload'] = buf[(f['hlen'] + f['masked'] * 4):full_len]
 
         if base64 and f['opcode'] in [1, 2]:
@@ -351,7 +359,8 @@ class WebSocketRequestHandler(SimpleHTTPRequestHandler):
 
         while buf:
             frame = self.decode_hybi(buf, base64=self.base64,
-                                     logger=self.logger)
+                                     logger=self.logger,
+                                     strict=self.strict_mode)
             #self.msg("Received buf: %s, frame: %s", repr(buf), frame)
 
             if frame['payload'] == None:
@@ -468,8 +477,12 @@ class WebSocketRequestHandler(SimpleHTTPRequestHandler):
         """Upgrade a connection to Websocket, if requested. If this succeeds,
         new_websocket_client() will be called. Otherwise, False is returned.
         """
+
         if (self.headers.get('upgrade') and
             self.headers.get('upgrade').lower() == 'websocket'):
+
+            # ensure connection is authorized, and determine the target
+            self.validate_connection()
 
             if not self.do_websocket_handshake():
                 return False
@@ -543,6 +556,10 @@ class WebSocketRequestHandler(SimpleHTTPRequestHandler):
         """ Do something with a WebSockets client connection. """
         raise Exception("WebSocketRequestHandler.new_websocket_client() must be overloaded")
 
+    def validate_connection(self):
+        """ Ensure that the connection is a valid connection, and set the target. """
+        pass
+
     def do_HEAD(self):
         if self.only_upgrade:
             self.send_error(405, "Method Not Allowed")
@@ -591,7 +608,7 @@ class WebSocketServer(object):
             file_only=False,
             run_once=False, timeout=0, idle_timeout=0, traffic=False,
             tcp_keepalive=True, tcp_keepcnt=None, tcp_keepidle=None,
-            tcp_keepintvl=None, auto_pong=False):
+            tcp_keepintvl=None, auto_pong=False, strict_mode=True):
 
         # settings
         self.RequestHandlerClass = RequestHandlerClass
@@ -606,6 +623,7 @@ class WebSocketServer(object):
         self.idle_timeout   = idle_timeout
         self.traffic        = traffic
         self.file_only      = file_only
+        self.strict_mode    = strict_mode
 
         self.launch_time    = time.time()
         self.ws_connection  = False
@@ -705,8 +723,11 @@ class WebSocketServer(object):
             if  tcp_keepalive:
                 sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
                 if tcp_keepcnt:
-                    sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPCNT,
-                                    tcp_keepcnt)
+                    if hasattr(socket, 'TCP_KEEPCNT'):
+                        sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPCNT,
+                                        tcp_keepcnt)
+                    else:
+                        self.msg('tcp_keepcnt not available on your system')
                 if tcp_keepidle:
                     sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPIDLE,
                                     tcp_keepidle)
@@ -730,6 +751,10 @@ class WebSocketServer(object):
 
     @staticmethod
     def daemonize(keepfd=None, chdir='/'):
+        
+        if keepfd is None:
+            keepfd = []
+
         os.umask(0)
         if chdir:
             os.chdir(chdir)
@@ -752,7 +777,7 @@ class WebSocketServer(object):
         if maxfd == resource.RLIM_INFINITY: maxfd = 256
         for fd in reversed(range(maxfd)):
             try:
-                if fd != keepfd:
+                if fd not in keepfd:
                     os.close(fd)
             except OSError:
                 _, exc, _ = sys.exc_info()
@@ -782,7 +807,7 @@ class WebSocketServer(object):
         """
         ready = select.select([sock], [], [], 3)[0]
 
-        
+
         if not ready:
             raise self.EClose("ignoring socket not ready")
         # Peek, but do not read the data so that we have a opportunity
@@ -790,7 +815,7 @@ class WebSocketServer(object):
         handshake = sock.recv(1024, socket.MSG_PEEK)
         #self.msg("Handshake [%s]" % handshake)
 
-        if handshake == "":
+        if not handshake:
             raise self.EClose("ignoring empty handshake")
 
         elif handshake.startswith(s2b("<policy-file-request/>")):
@@ -873,11 +898,14 @@ class WebSocketServer(object):
         raise self.Terminate()
 
     def multiprocessing_SIGCHLD(self, sig, stack):
-        self.vmsg('Reaping zombies, active child count is %s', len(multiprocessing.active_children()))
+        # TODO: figure out a way to actually log this information without
+        #       calling `log` in the signal handlers
+        multiprocessing.active_children()
 
     def fallback_SIGCHLD(self, sig, stack):
         # Reap zombies when using os.fork() (python 2.4)
-        self.vmsg("Got SIGCHLD, reaping zombies")
+        # TODO: figure out a way to actually log this information without
+        #       calling `log` in the signal handlers
         try:
             result = os.waitpid(-1, os.WNOHANG)
             while result[0]:
@@ -887,16 +915,18 @@ class WebSocketServer(object):
             pass
 
     def do_SIGINT(self, sig, stack):
-        self.msg("Got SIGINT, exiting")
+        # TODO: figure out a way to actually log this information without
+        #       calling `log` in the signal handlers
         self.terminate()
 
     def do_SIGTERM(self, sig, stack):
-        self.msg("Got SIGTERM, exiting")
+        # TODO: figure out a way to actually log this information without
+        #       calling `log` in the signal handlers
         self.terminate()
 
     def top_new_client(self, startsock, address):
         """ Do something with a WebSockets client connection. """
-        # handler process        
+        # handler process
         client = None
         try:
             try:
@@ -919,6 +949,18 @@ class WebSocketServer(object):
                 # Original socket closed by caller
                 client.close()
 
+    def get_log_fd(self):
+        """
+        Get file descriptors for the loggers.
+        They should not be closed when the process is forked.
+        """
+        descriptors = []
+        for handler in self.logger.parent.handlers:
+            if isinstance(handler, logging.FileHandler):
+                descriptors.append(handler.stream.fileno())
+
+        return descriptors
+
     def start_server(self):
         """
         Daemonize if requested. Listen for for connections. Run
@@ -934,7 +976,9 @@ class WebSocketServer(object):
                             tcp_keepintvl=self.tcp_keepintvl)
 
         if self.daemon:
-            self.daemonize(keepfd=lsock.fileno(), chdir=self.web)
+            keepfd = self.get_log_fd()
+            keepfd.append(lsock.fileno())
+            self.daemonize(keepfd=keepfd, chdir=self.web)
 
         self.started()  # Some things need to happen after daemonizing
 
@@ -1038,8 +1082,17 @@ class WebSocketServer(object):
 
                     except (self.Terminate, SystemExit, KeyboardInterrupt):
                         self.msg("In exit")
+                        # terminate all child processes
+                        if multiprocessing and not self.run_once:
+                            children = multiprocessing.active_children()
+
+                            for child in children:
+                                self.msg("Terminating child %s" % child.pid)
+                                child.terminate()
+
                         break
                     except Exception:
+                        exc = sys.exc_info()[1]
                         self.msg("handler exception: %s", str(exc))
                         self.vmsg("exception", exc_info=True)
 

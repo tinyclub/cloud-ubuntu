@@ -11,13 +11,14 @@ as taken from http://docs.python.org/dev/library/ssl.html#certificates
 
 '''
 
-import signal, socket, optparse, time, os, sys, subprocess, logging
+import signal, socket, optparse, time, os, sys, subprocess, logging, errno
 try:    from socketserver import ForkingMixIn
 except: from SocketServer import ForkingMixIn
 try:    from http.server import HTTPServer
 except: from BaseHTTPServer import HTTPServer
-from select import select
+import select
 from websockify import websocket
+from websockify import auth_plugins as auth
 try:
     from urllib.parse import parse_qs, urlparse
 except:
@@ -37,15 +38,40 @@ Traffic Legend:
     <  - Client send
     <. - Client send partial
 """
+    
+    def send_auth_error(self, ex):
+        self.send_response(ex.code, ex.msg)
+        self.send_header('Content-Type', 'text/html')
+        for name, val in ex.headers.items():
+            self.send_header(name, val)
+        
+        self.end_headers()
+    
+    def validate_connection(self):
+        if self.server.token_plugin:
+            host, port = self.get_target(self.server.token_plugin, self.path)
+            if host == 'unix_socket':
+                self.server.unix_target = port
+
+            else:
+                self.server.target_host = host
+                self.server.target_port = port
+
+        if self.server.auth_plugin:
+            try:
+                self.server.auth_plugin.authenticate(
+                    headers=self.headers, target_host=self.server.target_host,
+                    target_port=self.server.target_port)
+            except auth.AuthenticationError:
+                ex = sys.exc_info()[1]
+                self.send_auth_error(ex)
+                raise
 
     def new_websocket_client(self):
         """
         Called after a new WebSocket connection has been established.
         """
-        # Checks if we receive a token, and look
-        # for a valid target for it then
-        if self.server.token_plugin:
-            (self.server.target_host, self.server.target_port) = self.get_target(self.server.token_plugin, self.path)
+        # Checking for a token is done in validate_connection()
 
         # Connect to the target
         if self.server.wrap_cmd:
@@ -63,6 +89,10 @@ Traffic Legend:
         tsock = websocket.WebSocketServer.socket(self.server.target_host,
                                                  self.server.target_port,
                 connect=True, use_ssl=self.server.ssl_target, unix_socket=self.server.unix_target)
+
+        self.request.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 1)
+        if not self.server.wrap_cmd and not self.server.unix_target:
+            tsock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 1)
 
         self.print_traffic(self.traffic_legend)
 
@@ -128,7 +158,20 @@ Traffic Legend:
 
             if tqueue: wlist.append(target)
             if cqueue or c_pend: wlist.append(self.request)
-            ins, outs, excepts = select(rlist, wlist, [], 1)
+            try:
+                ins, outs, excepts = select.select(rlist, wlist, [], 1)
+            except (select.error, OSError):
+                exc = sys.exc_info()[1]
+                if hasattr(exc, 'errno'):
+                    err = exc.errno
+                else:
+                    err = exc[0]
+
+                if err != errno.EINTR:
+                    raise
+                else:
+                    continue
+
             if excepts: raise Exception("Socket exception")
 
             if self.request in outs:
@@ -194,21 +237,8 @@ class WebSocketProxy(websocket.WebSocketServer):
         self.ssl_target     = kwargs.pop('ssl_target', None)
         self.heartbeat      = kwargs.pop('heartbeat', None)
 
-        token_plugin = kwargs.pop('token_plugin', None)
-        token_source = kwargs.pop('token_source', None)
-
-        if token_plugin is not None:
-            if '.' not in token_plugin:
-                token_plugin = 'websockify.token_plugins.%s' % token_plugin
-
-            token_plugin_module, token_plugin_cls = token_plugin.rsplit('.', 1)
-
-            __import__(token_plugin_module)
-            token_plugin_cls = getattr(sys.modules[token_plugin_module], token_plugin_cls)
-
-            self.token_plugin = token_plugin_cls(token_source)
-        else:
-            self.token_plugin = None
+        self.token_plugin = kwargs.pop('token_plugin', None)
+        self.auth_plugin = kwargs.pop('auth_plugin', None)
 
         # Last 3 timestamps command was run
         self.wrap_times    = [0, 0, 0]
@@ -381,18 +411,41 @@ def websockify_init():
     parser.add_option("--token-source", default=None, metavar="ARG",
                       help="an argument to be passed to the token plugin"
                            "on instantiation")
+    parser.add_option("--auth-plugin", default=None, metavar="PLUGIN",
+                      help="use the given Python class to determine if "
+                           "a connection is allowed")
+    parser.add_option("--auth-source", default=None, metavar="ARG",
+                      help="an argument to be passed to the auth plugin"
+                           "on instantiation")
     parser.add_option("--auto-pong", action="store_true",
             help="Automatically respond to ping frames with a pong")
     parser.add_option("--heartbeat", type=int, default=0,
             help="send a ping to the client every HEARTBEAT seconds")
+    parser.add_option("--log-file", metavar="FILE",
+            dest="log_file",
+            help="File where logs will be saved")
+
 
     (opts, args) = parser.parse_args()
+
+    if opts.log_file:
+        opts.log_file = os.path.abspath(opts.log_file)
+        handler = logging.FileHandler(opts.log_file)
+        handler.setLevel(logging.DEBUG)
+        handler.setFormatter(logging.Formatter("%(message)s"))
+        logging.getLogger(WebSocketProxy.log_prefix).addHandler(handler)
+
+    del opts.log_file
 
     if opts.verbose:
         logging.getLogger(WebSocketProxy.log_prefix).setLevel(logging.DEBUG)
 
     if opts.token_source and not opts.token_plugin:
         parser.error("You must use --token-plugin to use --token-source")
+
+    if opts.auth_source and not opts.auth_plugin:
+        parser.error("You must use --auth-plugin to use --auth-source")
+
 
     # Transform to absolute path as daemon may chdir
     if opts.target_cfg:
@@ -442,6 +495,33 @@ def websockify_init():
         try:    opts.target_port = int(opts.target_port)
         except: parser.error("Error parsing target port")
 
+    if opts.token_plugin is not None:
+        if '.' not in opts.token_plugin:
+            opts.token_plugin = (
+                'websockify.token_plugins.%s' % opts.token_plugin)
+
+        token_plugin_module, token_plugin_cls = opts.token_plugin.rsplit('.', 1)
+
+        __import__(token_plugin_module)
+        token_plugin_cls = getattr(sys.modules[token_plugin_module], token_plugin_cls)
+
+        opts.token_plugin = token_plugin_cls(opts.token_source)
+
+    del opts.token_source
+
+    if opts.auth_plugin is not None:
+        if '.' not in opts.auth_plugin:
+            opts.auth_plugin = 'websockify.auth_plugins.%s' % opts.auth_plugin
+
+        auth_plugin_module, auth_plugin_cls = opts.auth_plugin.rsplit('.', 1)
+
+        __import__(auth_plugin_module)
+        auth_plugin_cls = getattr(sys.modules[auth_plugin_module], auth_plugin_cls)
+
+        opts.auth_plugin = auth_plugin_cls(opts.auth_source)
+
+    del opts.auth_source
+
     # Create and start the WebSockets proxy
     libserver = opts.libserver
     del opts.libserver
@@ -470,10 +550,11 @@ class LibProxyServer(ForkingMixIn, HTTPServer):
         self.unix_target    = kwargs.pop('unix_target', None)
         self.ssl_target     = kwargs.pop('ssl_target', None)
         self.token_plugin   = kwargs.pop('token_plugin', None)
-        self.token_source   = kwargs.pop('token_source', None)
+        self.auth_plugin    = kwargs.pop('auth_plugin', None)
         self.heartbeat      = kwargs.pop('heartbeat', None)
 
         self.token_plugin = None
+        self.auth_plugin = None
         self.daemon = False
 
         # Server configuration
