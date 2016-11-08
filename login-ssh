@@ -1,1 +1,3 @@
+#!/bin/bash
+
 ssh ubuntu@localhost -p 2222

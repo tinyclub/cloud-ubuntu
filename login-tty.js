@@ -1,3 +1,5 @@
+#!/bin/bash
+
 echo "Username: ubuntu" 
 echo "Password: ubuntu" 
 
