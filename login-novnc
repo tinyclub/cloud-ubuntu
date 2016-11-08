@@ -1,1 +1,9 @@
-(firefox "https://localhost:6080/vnc.html?password=ubuntu&autoconnect=1&encrypt=1" 2>&1>/dev/null &) 2>&1>/dev/null
+#!/bin/bash
+
+if [ -n "HTTPS" -a "$HTTPS" == "1" ]; then
+    URL="https://localhost:6080/vnc.html?password=ubuntu&autoconnect=1&encrypt=1"
+else
+    URL="http://localhost:6080/vnc.html?password=ubuntu&autoconnect=1&encrypt=0"
+fi
+
+(firefox $URL 2>&1>/dev/null &) 2>&1>/dev/null
