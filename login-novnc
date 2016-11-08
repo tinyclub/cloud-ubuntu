@@ -1,1 +1,1 @@
-(firefox "https://localhost:6080/vnc.html?password=ubuntu&autoconnect=1" 2>&1>/dev/null &) 2>&1>/dev/null
+(firefox "https://localhost:6080/vnc.html?password=ubuntu&autoconnect=1&encrypt=1" 2>&1>/dev/null &) 2>&1>/dev/null
