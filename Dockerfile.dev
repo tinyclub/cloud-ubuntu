@@ -1,0 +1,51 @@
+FROM tinylab/cloud-ubuntu
+MAINTAINER Wu Zhangjin <wuzhangjin@gmail.com>
+
+ENV DEBIAN_FRONTEND noninteractive
+ENV HOME /home/ubuntu/
+
+RUN apt-get -y update
+
+# Core
+RUN apt-get install -y --force-yes --no-install-recommends \
+	git ca-certificates \
+	make gcc gdb binutils cscope exuberant-ctags \
+	graphviz cflow \
+    && apt-get autoclean -y \
+    && apt-get autoremove -y \
+    && rm -rf /var/cache/apt/archives/*.deb
+
+RUN apt-get install -y --force-yes --no-install-recommends \
+	xz-utils wget unzip bc \
+    && apt-get autoclean -y \
+    && apt-get autoremove -y \
+    && rm -rf /var/cache/apt/archives/*.deb
+
+RUN apt-get install -y --force-yes --no-install-recommends \
+	nodejs npm \
+    && apt-get autoclean -y \
+    && apt-get autoremove -y \
+    && rm -rf /var/cache/apt/archives/*.deb
+
+ADD ruby-switch /
+RUN apt-get install -y --force-yes --no-install-recommends \
+	ruby2.0 \
+    && /ruby-switch 2.0 \
+    && rm /ruby-switch \
+    && gem sources -r http://rubygems.org/ \
+    && gem sources -r https://rubygems.org/ \
+    && gem sources -a https://gems.ruby-china.org/ \
+    && gem install showterm \
+    && apt-get autoclean -y \
+    && apt-get autoremove -y \
+    && rm -rf /var/cache/apt/archives/*.deb
+
+RUN rm -rf /var/lib/apt/lists/*
+
+EXPOSE 6080
+EXPOSE 443
+EXPOSE 22
+
+WORKDIR /
+
+ENTRYPOINT ["/startup.sh"]
