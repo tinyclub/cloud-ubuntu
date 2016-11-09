@@ -7,5 +7,5 @@ CONTAINER_NAME=$(basename $IMAGE_NAME)
 sudo docker run \
 	--name $CONTAINER_NAME --privileged -d -t \
 	-p 6080:6080 -p 3000:3000 -p 2222:22 -p 4433:443 \
-	-e UNIX_PWD=ubuntu -e VNC_PWD=ubuntu -e TTY_PWD=ubuntu \
+	-e UNIX_PWD=ubuntu -e VNC_PWD=ubuntu \
 	-h localhost $IMAGE_NAME

@@ -26,10 +26,6 @@ service rsyslog start
 service ssh restart
 service fail2ban start
 
-# Set tty.js user/password
-[ -z "$TTY_PWD" ] && TTY_PWD=ubuntu
-sed -i -e "s/TTY_PWD/$TTY_PWD/g" /tty.js/config.json
-
 /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf
 
 for f in /etc/startup.aux/*.sh

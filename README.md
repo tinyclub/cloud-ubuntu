@@ -1,16 +1,14 @@
 
 # Cloud Ubuntu
 
-This project aims to build a basic docker image with Ubuntu + ssh/tty.js/gateone/noVNC, it should be accessed easily from all over the world.
+This project aims to build a basic docker image with Ubuntu + ssh/gateone/noVNC, it should be accessed easily from all over the world.
 
 * ssh, traditional ssh protocol, require ssh client, support graphic/console
 * noVNC, remote graphic desktop via web browser, platform independent
-* tty.js, remote tty console via web browser, platform independent
 * gateone, web ssh client, platform independent
 
 It is based on:
 
-* [tty.js](https://github.com/chjj/tty.js/)
 * [gateone](https://github.com/liftoff/GateOne)
 * [noVNC](https://github.com/kanaka/noVNC)
 * [websockify](https://github.com/kanaka/websockify)
@@ -20,7 +18,6 @@ It is based on:
 It is functional, scalable, minimal but with necessary security enhancement:
 
 * fail2ban for ssh login failure limitation.
-* https for tty.js: ttyjs/server.{key,crt} from `gen_pem.sh`
 * https for noVNC: noVNC/utils/self.pem from `gen_pem.sh`
 
 People can build their own cloud environment with:
@@ -35,8 +32,8 @@ To customize the key/cert, please rerun `gen_pem.sh`.
     $ ./rm                    # remove the container before run a new one
     $ ./run                   # run a new container
 
-The ssh/noVNC/tty.js login password can be set via the according environment
-variables in `./run`: `UNIX_PWD`, `VNC_PWD`, `TTY_PWD`. the default passwords
+The ssh/noVNC/gateone login password can be set via the according environment
+variables in `./run`: `UNIX_PWD`, `VNC_PWD`,  the default users and passwords
 are `ubuntu`.
 
 ## Services
@@ -46,11 +43,9 @@ are `ubuntu`.
 |ssh           | 22              | 2222         |
 |gateone/webssh| 443             | 4433         |
 |noVNC         | 6080            | 6080         |
-|tty.js        | 3000            | 3000         |
 
 ## Login
 
     $ ./login-ssh
     $ ./login-webssh
-    $ ./login-tty.js
     $ ./login-novnc

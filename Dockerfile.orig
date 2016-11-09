@@ -12,13 +12,12 @@ RUN apt-get -y update
 RUN apt-get install -y --force-yes --no-install-recommends \
 	supervisor \
 	software-properties-common \
-	lxde x11vnc xvfb \
-	openssh-server \
 	pwgen sudo \
 	vim net-tools \
+	lxde x11vnc xvfb \
+	openssh-server \
 	rsyslog fail2ban iptables \
 	python-numpy \
-	nodejs \
 	python-pip \
     && apt-get autoclean \
     && apt-get autoremove \
@@ -42,10 +41,8 @@ RUN mkdir -p /etc/supervisor/conf.d
 COPY supervisord.conf /etc/supervisor/supervisord.conf
 
 ADD noVNC /noVNC/
-ADD tty.js /tty.js/
 
 EXPOSE 6080
-EXPOSE 3000
 EXPOSE 443
 EXPOSE 22
 
