@@ -32,9 +32,6 @@ RUN apt-get install -y --force-yes --no-install-recommends \
 	ruby2.0 \
     && /ruby-switch 2.0 \
     && rm /ruby-switch \
-    && gem sources -r http://rubygems.org/ \
-    && gem sources -r https://rubygems.org/ \
-    && gem sources -a https://gems.ruby-china.org/ \
     && gem install showterm \
     && apt-get autoclean -y \
     && apt-get autoremove -y \
