@@ -12,35 +12,50 @@ RUN apt-get -y update
 RUN apt-get install -y --force-yes --no-install-recommends \
 	supervisor \
 	software-properties-common \
-	pwgen sudo \
-	vim net-tools \
+	pwgen vim net-tools \
+	ttf-ubuntu-font-family \
+    && apt-get autoclean -y \
+    && apt-get autoremove -y \
+    && rm -rf /var/cache/apt/archives/*.deb
+
+RUN apt-get install -y --force-yes --no-install-recommends \
 	lxde x11vnc xvfb \
+	python-numpy \
 	openssh-server \
 	rsyslog fail2ban iptables \
-	python-numpy \
-	python-pip \
-    && apt-get autoclean \
-    && apt-get autoremove \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get autoclean -y \
+    && apt-get autoremove -y \
+    && rm -rf /var/cache/apt/archives/*.deb
 
 # Web SSH
-RUN pip install -i http://pypi.douban.com/simple gateone
-RUN mkdir -p /etc/gateone/ssl/
+RUN apt-get install -y --force-yes --no-install-recommends python-pip \
+    && pip install -i http://pypi.douban.com/simple gateone \
+    && mkdir -p /etc/gateone/ssl/ \
+    && apt-get autoclean -y \
+    && apt-get autoremove -y \
+    && rm -rf /var/cache/apt/archives/*.deb
+
+RUN apt-get install -y --force-yes --no-install-recommends chromium-browser \
+    && apt-get autoclean -y \
+    && apt-get autoremove -y \
+    && rm -rf /var/cache/apt/archives/*.deb
+
+RUN rm -rf /var/lib/apt/lists/*
 
 # Fixup of rsyslog for fail2ban support
 RUN sed -i -e "s/RepeatedMsgReduction on/RepeatedMsgReduction off/g" /etc/rsyslog.conf
 
 ADD desktop /usr/share/desktop/
 
-RUN mkdir /etc/startup.aux/
-RUN echo "#Dummy" > /etc/startup.aux/00.sh
-RUN chmod +x /etc/startup.aux/00.sh
-ADD startup.sh /
-
 RUN mkdir -p /etc/supervisor/conf.d
 COPY supervisord.conf /etc/supervisor/supervisord.conf
 
 ADD noVNC /noVNC/
+
+RUN mkdir /etc/startup.aux/ \
+    && echo "#Dummy" > /etc/startup.aux/00.sh \
+    && chmod +x /etc/startup.aux/00.sh
+ADD startup.sh /
 
 EXPOSE 6080
 EXPOSE 443
