@@ -1,7 +1,5 @@
 #!/bin/bash
 
-mkdir /var/run/sshd
-
 id -u ubuntu &>/dev/null || useradd --create-home --shell /bin/bash --user-group --groups adm,sudo ubuntu
 
 [ -z "$UNIX_PWD" ] && UNIX_PWD=ubuntu
@@ -20,11 +18,6 @@ sudo -u ubuntu -i bash -c "mkdir -p /home/ubuntu/.config/pcmanfm/LXDE/ \
 
 # /tmp
 mount -t tmpfs none /tmp
-
-# Must follow the below order to let fail2ban work normally
-service rsyslog start
-service ssh restart
-service fail2ban start
 
 /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf
 
