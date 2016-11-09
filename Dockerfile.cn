@@ -24,9 +24,7 @@ RUN locale-gen --purge en_US.utf8 \
     && locale-gen --purge zh_CN.utf8 \
     && dpkg-reconfigure locales
 
-EXPOSE 6080
-EXPOSE 443
-EXPOSE 22
+EXPOSE 6080 443 22
 
 WORKDIR /
 
