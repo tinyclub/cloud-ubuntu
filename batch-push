@@ -1,0 +1,13 @@
+#!/bin/bash
+
+TOP_DIR=$(cd $(dirname $0) && pwd)
+    
+echo -e "\n\n========== Pushing tinyclub/cloud-ubuntu ==========\n\n"
+docker push tinylab/cloud-ubuntu
+
+for i in cn cn_input dev dev_cn dev_cn_input
+do
+    echo -e "\n\n========== Pushing tinyclub/cloud-ubuntu of $i ==========\n\n"
+
+    docker push tinylab/cloud-ubuntu-$i
+done
