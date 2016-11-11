@@ -9,7 +9,8 @@ RUN apt-get -y update
 # Core
 RUN apt-get install -y --force-yes --no-install-recommends \
 	git ca-certificates \
-	make gcc gdb binutils cscope exuberant-ctags \
+	make gcc gdb binutils build-essential \
+	cscope exuberant-ctags libc6-dev \
 	graphviz cflow \
     && apt-get autoclean -y \
     && apt-get autoremove -y \
@@ -26,7 +27,9 @@ RUN apt-get install -y --force-yes --no-install-recommends \
 	ruby2.0 \
     && /ruby-switch 2.0 \
     && rm /ruby-switch \
-    && gem install showterm \
+    && gem install --clear-sources showterm \
+    && gem cleanup \
+    && rm -rf /home/ubuntu/.gem \
     && apt-get autoclean -y \
     && apt-get autoremove -y \
     && rm -rf /var/cache/apt/archives/*.deb
