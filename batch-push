@@ -1,7 +1,7 @@
 #!/bin/bash
 
 TOP_DIR=$(cd $(dirname $0) && pwd)
-    
+
 echo -e "\n\n========== Pushing tinyclub/cloud-ubuntu ==========\n\n"
 docker push tinylab/cloud-ubuntu
 

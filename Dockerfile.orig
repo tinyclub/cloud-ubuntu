@@ -4,7 +4,7 @@ MAINTAINER Wu Zhangjin <wuzhangjin@gmail.com>
 ENV DEBIAN_FRONTEND noninteractive
 ENV HOME /home/ubuntu/
 
-# Setup our Ubuntu sources (ADD breaks caching)
+# Setup our Ubuntu sources
 ADD sources.list /etc/apt/sources.list
 RUN apt-get -y update
 
@@ -48,6 +48,7 @@ RUN rm -rf /var/lib/apt/lists/*
 RUN sed -i -e "s/RepeatedMsgReduction on/RepeatedMsgReduction off/g" /etc/rsyslog.conf
 
 ADD desktop /usr/share/desktop/
+ADD profiles/env.sh /etc/profile.d/
 
 RUN mkdir -p /etc/supervisor/conf.d
 COPY supervisord.conf /etc/supervisor/supervisord.conf
