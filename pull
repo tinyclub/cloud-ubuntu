@@ -1,7 +1,7 @@
 # pull
 
 TOP_DIR=$(cd $(dirname $0) && pwd)
-IMAGE_NAME=$(< ${TOP_DIR}/name)
-CONTAINER_NAME=$(basename $IMAGE_NAME)
 
-sudo docker pull $IMAGE_NAME
+source ${TOP_DIR}/config $*
+
+docker pull $IMAGE_NAME

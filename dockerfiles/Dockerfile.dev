@@ -22,7 +22,7 @@ RUN apt-get install -y --force-yes --no-install-recommends \
     && apt-get autoremove -y \
     && rm -rf /var/cache/apt/archives/*.deb
 
-ADD ruby-switch /
+ADD tools/dev/ruby-switch /
 RUN apt-get install -y --force-yes --no-install-recommends \
 	ruby2.0 \
     && /ruby-switch 2.0 \

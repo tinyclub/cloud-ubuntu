@@ -1,7 +1,7 @@
-# rm
+# push
 
 TOP_DIR=$(cd $(dirname $0) && pwd)
 
 source ${TOP_DIR}/config $*
 
-docker rm -f $CONTAINER_NAME
+docker push $IMAGE_NAME

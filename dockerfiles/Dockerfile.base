@@ -5,7 +5,7 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV HOME /home/ubuntu/
 
 # Setup our Ubuntu sources
-ADD sources.list /etc/apt/sources.list
+ADD apt/base/sources.list /etc/apt/sources.list
 RUN apt-get -y update
 
 # Core
@@ -47,18 +47,17 @@ RUN rm -rf /var/lib/apt/lists/*
 # Fixup of rsyslog for fail2ban support
 RUN sed -i -e "s/RepeatedMsgReduction on/RepeatedMsgReduction off/g" /etc/rsyslog.conf
 
-ADD desktop /usr/share/desktop/
-ADD profiles/env.sh /etc/profile.d/
+ADD desktop/base /usr/share/desktop/
+ADD profiles/base/env.sh /etc/profile.d/
 
 RUN mkdir -p /etc/supervisor/conf.d
-COPY supervisord.conf /etc/supervisor/supervisord.conf
+COPY supervisor/base/supervisord.conf /etc/supervisor/supervisord.conf
 
 ADD noVNC /noVNC/
 
-RUN mkdir /etc/startup.aux/ \
-    && echo "#Dummy" > /etc/startup.aux/00.sh \
-    && chmod +x /etc/startup.aux/00.sh
-ADD startup.sh /
+RUN mkdir /etc/startup.aux/
+ADD startups/base/00.sh /etc/startup.aux/
+ADD startups/base/startup.sh /
 
 EXPOSE 6080 443 22
 

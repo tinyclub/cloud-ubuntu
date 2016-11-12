@@ -46,6 +46,7 @@ are `ubuntu`.
 
 ## Login
 
-    $ ./login-ssh
-    $ ./login-webssh
-    $ ./login-novnc
+    $ ./login/bash
+    $ ./login/ssh
+    $ ./login/webssh
+    $ ./login/vnc

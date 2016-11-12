@@ -16,9 +16,9 @@ sudo -u ubuntu -i bash -c "cp -r /usr/share/desktop/.config /home/ubuntu/"
 # /tmp
 mount -t tmpfs none /tmp
 
-/usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf
-
 for f in /etc/startup.aux/*.sh
 do
     . $f
 done
+
+/usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf

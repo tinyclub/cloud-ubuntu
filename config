@@ -1,0 +1,29 @@
+#!/bin/bash
+
+FEATURE=base
+FEATUREFILE=${TOP_DIR}/feature
+
+if [ -n "$1" ]; then
+    FEATURE=$1
+    DOCKERFILE=${TOP_DIR}/dockerfiles/Dockerfile.${FEATURE}
+    if [ -f $DOCKERFILE ]; then
+        echo $FEATURE > $FEATUREFILE
+    else
+        FEATURE=base
+    fi
+else
+    [ -f $FEATUREFILE ] && FEATURE=$(< $FEATUREFILE)
+    [ -z "$FEATURE" ] && FEATURE=base
+
+    DOCKERFILE=${TOP_DIR}/dockerfiles/Dockerfile.${FEATURE}
+fi
+
+CORE_NAME=$(< ${TOP_DIR}/name)
+
+if [ "$FEATURE" == "base" ]; then
+    IMAGE_NAME=${CORE_NAME}
+else
+    IMAGE_NAME=${CORE_NAME}-${FEATURE}
+fi
+
+CONTAINER_NAME=$(basename $IMAGE_NAME)

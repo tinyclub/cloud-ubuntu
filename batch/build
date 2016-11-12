@@ -1,8 +1,8 @@
 #!/bin/bash
 
-TOP_DIR=$(cd $(dirname $0) && pwd)
+TOP_DIR=$(cd $(dirname $0) && pwd)/../
 
-for i in orig cn cn_input dev dev_cn dev_cn_input
+for i in `ls ${TOP_DIR}/dockerfiles/ | sed -e "s/Dockerfile.//g"`
 do
     echo -e "\n\n========== Building tinyclub/cloud-ubuntu of $i ==========\n\n"
 

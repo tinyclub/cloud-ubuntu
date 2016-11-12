@@ -1,0 +1,7 @@
+#!/bin/bash
+
+TOP_DIR=$(cd $(dirname $0) && pwd)/../
+
+source ${TOP_DIR}/config $*
+
+docker exec -i -t $CONTAINER_NAME /bin/bash

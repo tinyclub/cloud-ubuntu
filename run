@@ -1,10 +1,10 @@
 # run
 
 TOP_DIR=$(cd $(dirname $0) && pwd)
-IMAGE_NAME=$(< ${TOP_DIR}/name)
-CONTAINER_NAME=$(basename $IMAGE_NAME)
 
-sudo docker run \
+source ${TOP_DIR}/config $*
+
+docker run \
 	--name $CONTAINER_NAME --privileged -d -t \
 	-p 6080:6080 -p 2222:22 -p 4433:443 \
 	-e UNIX_PWD=ubuntu -e VNC_PWD=ubuntu \
