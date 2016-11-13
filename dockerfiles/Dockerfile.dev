@@ -9,15 +9,20 @@ RUN apt-get -y update
 # Core
 RUN apt-get install -y --force-yes --no-install-recommends \
 	git ca-certificates \
-	make gcc gdb binutils build-essential \
+	make autoconf automake \
+	gcc gdb gdbserver binutils \
 	cscope exuberant-ctags libc6-dev \
 	graphviz cflow \
+	coreutils bsdutils debianutils e2fsprogs \
+	ncurses-base perl-base findutils util-linux \
+	diffutils patch rsync \
     && apt-get autoclean -y \
     && apt-get autoremove -y \
     && rm -rf /var/cache/apt/archives/*.deb
 
 RUN apt-get install -y --force-yes --no-install-recommends \
-	xz-utils wget unzip bc \
+	xz-utils lzop gzip zip unzip tar \
+	wget bc sed gawk \
     && apt-get autoclean -y \
     && apt-get autoremove -y \
     && rm -rf /var/cache/apt/archives/*.deb
