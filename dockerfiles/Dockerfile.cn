@@ -24,8 +24,7 @@ RUN locale-gen --purge en_US.utf8 \
     && locale-gen --purge zh_CN.utf8 \
     && dpkg-reconfigure locales
 
-ADD desktop/cn/.config/ /usr/share/desktop/.config/
-ADD profiles/cn/locales.sh /etc/profile.d/
+ADD system/cn/ /
 
 EXPOSE 6080 443 22
 

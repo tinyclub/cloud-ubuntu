@@ -5,7 +5,7 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV HOME /home/ubuntu/
 
 # Setup our Ubuntu sources
-ADD apt/base/sources.list /etc/apt/sources.list
+ADD system/base/etc/apt/sources.list /etc/apt/sources.list
 RUN apt-get -y update
 
 # Core
@@ -44,20 +44,8 @@ RUN apt-get install -y --force-yes --no-install-recommends chromium-browser \
 
 RUN rm -rf /var/lib/apt/lists/*
 
-# Fixup of rsyslog for fail2ban support
-RUN sed -i -e "s/RepeatedMsgReduction on/RepeatedMsgReduction off/g" /etc/rsyslog.conf
-
-ADD desktop/base /usr/share/desktop/
-ADD profiles/base/env.sh /etc/profile.d/
-
-RUN mkdir -p /etc/supervisor/conf.d
-COPY supervisor/base/supervisord.conf /etc/supervisor/supervisord.conf
-
+ADD system/base/ /
 ADD noVNC /noVNC/
-
-RUN mkdir /etc/startup.aux/
-ADD startups/base/00.sh /etc/startup.aux/
-ADD startups/base/startup.sh /
 
 EXPOSE 6080 443 22
 

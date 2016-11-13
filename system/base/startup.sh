@@ -11,7 +11,7 @@ id -u ubuntu &>/dev/null || useradd --create-home --shell /bin/bash --user-group
 [ ! -d /home/ubuntu/.vnc ] && sudo -u ubuntu mkdir -p /home/ubuntu/.vnc
 sudo -u ubuntu /usr/bin/x11vnc -storepasswd $VNC_PWD  /home/ubuntu/.vnc/passwd
 
-sudo -u ubuntu -i bash -c "cp -r /usr/share/desktop/.config /home/ubuntu/"
+sudo -u ubuntu -i bash -c "cp -r /usr/share/desktop/home/{.[^.]*,*} /home/ubuntu/"
 
 # /tmp
 mount -t tmpfs none /tmp
