@@ -7,4 +7,5 @@ do
     echo -e "\n\n========== Building tinyclub/cloud-ubuntu of $i ==========\n\n"
 
     ${TOP_DIR}/build $i
+    [ $? -ne 0 ] && exit 1
 done
