@@ -32,6 +32,9 @@ RUN apt-get install -y --force-yes --no-install-recommends \
 	ruby2.0 \
     && /ruby-switch 2.0 \
     && rm /ruby-switch \
+    && gem sources --remove https://rubygems.org/ \
+    && gem sources --remove http://rubygems.org/ \
+    && gem sources --add https://mirrors.ustc.edu.cn/rubygems/ \
     && gem install --clear-sources showterm \
     && gem cleanup \
     && rm -rf /home/ubuntu/.gem \
