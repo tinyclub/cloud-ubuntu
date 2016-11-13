@@ -50,3 +50,12 @@ are `ubuntu`.
     $ ./login/ssh
     $ ./login/webssh
     $ ./login/vnc
+
+## Building
+
+To speedup your building, please focus on such files:
+
+* system/base/etc/resolv.conf: customize your own DNS server
+* system/base/etc/apt/sources.list: customize your own ubuntu mirror site
+* dockerfiles/Dockerfile.base: customize your own pip index mirror
+* dockerfiles/Dockerfile.dev: customize your own gem sources
