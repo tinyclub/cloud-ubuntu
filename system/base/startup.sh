@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Who creates me?
+rm -rf /home/ubuntu
+
 id -u ubuntu &>/dev/null || useradd --create-home --shell /bin/bash --user-group --groups adm,sudo ubuntu
 
 [ -z "$UNIX_PWD" ] && UNIX_PWD=ubuntu
