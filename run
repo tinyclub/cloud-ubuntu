@@ -4,8 +4,14 @@ TOP_DIR=$(cd $(dirname $0) && pwd)
 
 source ${TOP_DIR}/config $*
 
+[ -z "$HOST_NAME" ] && HOST_NAME=localhost
+[ -z "$UNIX_PWD" ] && UNIX_PWD=ubuntu
+[ -z "$VNC_PWD" ] && VNC_PWD=ubuntu
+[ -z "$PORT_MAP" ] && PORT_MAP=" -p 6080:6080 -p 2222:22 -p 4433:443 "
+[ -z "$ENV_VARS" ] && ENV_VARS=" -e UNIX_PWD=$UNIX_PWD -e VNC_PWD=$VNC_PWD "
+[ -z "$EXTRA_ARGS" ] && EXTRA_ARGS=""
+
 docker run \
 	--name $CONTAINER_NAME --privileged -d -t \
-	-p 6080:6080 -p 2222:22 -p 4433:443 \
-	-e UNIX_PWD=ubuntu -e VNC_PWD=ubuntu \
-	-h localhost $IMAGE_NAME
+	$PORT_MAP $ENV_VARS $EXTRA_ARGS \
+	-h $HOST_NAME $IMAGE_NAME
