@@ -2,4 +2,7 @@
 
 URL=https://localhost:4433
 
-(chromium-browser $URL 2>&1>/dev/null &) 2>&1>/dev/null
+
+# FIXME: chromium-browser doesn't support Chinese input for gateone now
+# Only firefox works.
+(firefox $URL 2>&1>/dev/null &) 2>&1>/dev/null
