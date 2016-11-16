@@ -4,7 +4,7 @@ MAINTAINER Wu Zhangjin <wuzhangjin@gmail.com>
 ENV DEBIAN_FRONTEND noninteractive
 ENV HOME /home/ubuntu/
 
-ADD system/proxy/ /
+ADD system/proxy_server/ /
 
 EXPOSE 80
 
