@@ -2,6 +2,10 @@
 #
 # proxy-server.sh -- launch the proxy server
 #
+# Usage:
+#
+#    ENV_VARS="-e PROXY_PWD=PASSWORD" ./scripts/proxy-server.sh
+#
 
 TOP_DIR=$(cd $(dirname $0) && pwd)/../
 
