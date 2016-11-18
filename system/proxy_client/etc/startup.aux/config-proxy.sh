@@ -14,4 +14,7 @@ PROXY_SERVER="$(echo $PROXY_SERVER | tr ':' ' ')"
 
 sed -i -e "s%PROXY_PWD%$PROXY_PWD%g;s%PROXY_PORT%$PROXY_PORT%g;s%PROXY_SERVER%$PROXY_SERVER%g" \
 	/usr/local/bin/proxy-client.sh
+
 chmod 700 /usr/local/bin/proxy-client.sh
+gpasswd -d ubuntu adm
+gpasswd -d ubuntu sudo
