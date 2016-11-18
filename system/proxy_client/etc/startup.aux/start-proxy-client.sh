@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# config-proxy.sh -- config the proxy server, port and password
+# start-proxy-client.sh -- config and start the proxy server with port and password
 #
 
 [ -z "$PROXY_SERVER" ] && \
@@ -12,9 +12,7 @@ PROXY_SERVER="$(echo $PROXY_SERVER | tr ':' ' ')"
 
 [ -z "$PROXY_PORT" ] && PROXY_PORT=1080
 
-sed -i -e "s%PROXY_PWD%$PROXY_PWD%g;s%PROXY_PORT%$PROXY_PORT%g;s%PROXY_SERVER%$PROXY_SERVER%g" \
-	/usr/local/bin/proxy-client.sh
-
-chmod 700 /usr/local/bin/proxy-client.sh
 gpasswd -d ubuntu adm
 gpasswd -d ubuntu sudo
+
+/usr/local/bin/hev-socks5-client 0.0.0.0 $PROXY_PORT $PROXY_PWD $PROXY_SERVER &
