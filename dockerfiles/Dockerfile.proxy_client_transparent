@@ -1,0 +1,13 @@
+FROM tinylab/cloud-ubuntu
+MAINTAINER Wu Zhangjin <wuzhangjin@gmail.com>
+
+ENV DEBIAN_FRONTEND noninteractive
+ENV HOME /home/ubuntu/
+
+ADD system/proxy_client_transparent/ /
+
+EXPOSE 8080 1080 80
+
+WORKDIR /
+
+ENTRYPOINT ["/startup.sh"]
