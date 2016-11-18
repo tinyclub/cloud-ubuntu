@@ -1,0 +1,13 @@
+FROM tinylab/cloud-ubuntu
+MAINTAINER Wu Zhangjin <wuzhangjin@gmail.com>
+
+ENV DEBIAN_FRONTEND noninteractive
+ENV HOME /home/ubuntu/
+
+ADD system/proxy_relay/ /
+
+EXPOSE 8080
+
+WORKDIR /
+
+ENTRYPOINT ["/startup.sh"]
