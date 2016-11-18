@@ -3,6 +3,8 @@
 # start-proxy-client.sh -- config and start the proxy server with port and password
 #
 
+TOP_DIR=$(cd $(dirname $0) && pwd)/../../
+
 [ -z "$PROXY_SERVER" ] && \
     echo "Please run docker with ENV_VARS='-e PROXY_SERVER=IP:PORT'" && exit 1
 PROXY_SERVER="$(echo $PROXY_SERVER | tr ':' ' ')"
@@ -15,4 +17,4 @@ PROXY_SERVER="$(echo $PROXY_SERVER | tr ':' ' ')"
 gpasswd -d ubuntu adm
 gpasswd -d ubuntu sudo
 
-/usr/local/bin/hev-socks5-client 0.0.0.0 $PROXY_PORT $PROXY_PWD $PROXY_SERVER &
+${TOP_DIR}/usr/local/bin/hev-socks5-client 0.0.0.0 $PROXY_PORT $PROXY_PWD $PROXY_SERVER &
