@@ -17,4 +17,4 @@ sudo gpasswd -d ubuntu adm
 sudo gpasswd -d ubuntu sudo
 
 PROXY_SERVER="$(echo $PROXY_SERVER | tr ':' ' ')"
-${TOP_DIR}/usr/local/bin/hev-socks5-client 0.0.0.0 $PROXY_PORT $PROXY_PWD $PROXY_SERVER &
+HPROXY_PASS=$PROXY_PWD ${TOP_DIR}/usr/local/bin/hev-socks5-client 0.0.0.0 $PROXY_PORT $PROXY_SERVER &
