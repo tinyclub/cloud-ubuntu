@@ -3,7 +3,7 @@
 # pwgen.sh -- set a password for proxy server
 #
 
-TOP_DIR=$(cd $(dirname $0) && pwd)/../../
+TOP_DIR=$(cd $(dirname $0) && pwd)/../..
 
 [ -z "$PROXY_PWD" ] && PROXY_PWD=`pwgen -c -n -s -1 15`
 [ -z "$PROXY_DNS" ] && PROXY_DNS=8.8.8.8
