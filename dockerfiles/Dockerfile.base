@@ -46,7 +46,16 @@ RUN apt-get install -y --force-yes --no-install-recommends chromium-browser \
     && apt-get autoremove -y \
     && rm -rf /var/cache/apt/archives/*.deb
 
-RUN rm -rf /var/lib/apt/lists/*
+RUN apt-get install -y --force-yes --no-install-recommends gcc python-dev nginx \
+    && apt-get autoclean -y \
+    && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /var/cache/apt/archives/*.deb
+
+ADD system/base/web/requirements.txt /web-requirements.txt
+RUN pip install setuptools wheel \
+    && pip install -r /web-requirements.txt \
+    && rm /web-requirements.txt
 
 ADD system/base/ /
 ADD noVNC /noVNC/
