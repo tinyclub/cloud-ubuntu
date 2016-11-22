@@ -16,9 +16,9 @@ TOP_DIR=$(cd $(dirname $0) && pwd)/../..
 PROXY_SERVER_IP=${PROXY_SERVER%:*}
 PROXY_SERVER_PORT=${PROXY_SERVER#*:}
 
-HPROXY_PASS=$PROXY_PWD ${TOP_DIR}/usr/local/bin/hev-socks5-client 127.0.0.1 $PROXY_PORT $PROXY_SERVER_IP $PROXY_SERVER_PORT &
+HPROXY_PASS=$PROXY_PWD ${TOP_DIR}/usr/local/bin/hev-socks5-client 0.0.0.0 $PROXY_PORT $PROXY_SERVER_IP $PROXY_SERVER_PORT &
 
-${TOP_DIR}/usr/local/bin/hev-socks5-tproxy 0.0.0.0 10800 0.0.0.0 53 127.0.0.1 $PROXY_PORT &
+${TOP_DIR}/usr/local/bin/hev-socks5-tproxy 0.0.0.0 10800 0.0.0.0 53 0.0.0.0 $PROXY_PORT &
 
 sudo iptables-restore ${TOP_DIR}/etc/iptables/tproxy.rules
 sudo iptables -t nat -I OUTPUT -d $PROXY_SERVER_IP/32 -p tcp --dport $PROXY_SERVER_PORT -j RETURN
