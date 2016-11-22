@@ -4,7 +4,7 @@
 #
 # Usage:
 #
-#    ENV_VARS="-e PROXY_PWD=PASSWORD" ./scripts/proxy-server.sh
+#    ENV_ARGS="-e PROXY_PWD=PASSWORD" ./scripts/proxy-server.sh
 #
 
 TOP_DIR=$(cd $(dirname $0) && pwd)/../
