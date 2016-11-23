@@ -1,9 +1,11 @@
 #!/bin/bash
 
+[ -z "$PORT" ] && PORT=6080
+
 if [ -n "HTTPS" -a "$HTTPS" == "0" ]; then
-    URL="http://localhost:6080/vnc.html?password=ubuntu&autoconnect=1&encrypt=0"
+    URL="http://localhost:$PORT/vnc.html?password=ubuntu&autoconnect=1&encrypt=0"
 else
-    URL="https://localhost:6080/vnc.html?password=ubuntu&autoconnect=1&encrypt=1"
+    URL="https://localhost:$PORT/vnc.html?password=ubuntu&autoconnect=1&encrypt=1"
 fi
 
 (chromium-browser $URL 2>&1>/dev/null &) 2>&1>/dev/null

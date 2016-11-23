@@ -1,6 +1,8 @@
 #!/bin/bash
 
-URL=https://localhost:4433
+[ -z "$PORT" ] && PORT=4433
+
+URL=https://localhost:$PORT
 
 
 # FIXME: chromium-browser doesn't support Chinese input for gateone now
