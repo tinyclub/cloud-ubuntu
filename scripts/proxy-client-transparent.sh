@@ -4,7 +4,7 @@
 #
 # Usage:
 #
-#    EXTRA_ARGS="-p 1080:1080 -e PROXY_SERVER=IP:PORT -e PROXY_PWD=PASSWORD [-e PROXY_PORT=1080]" ./scripts/proxy-client.sh
+#    EXTRA_ARGS="-p 1080:1080 -e PROXY_SERVER=IP:PORT -e PROXY_PWD=PASSWORD [-e PROXY_PORT=1080]" ./scripts/proxy-client-transparent.sh
 #
 # Note: To use this proxy in web browser of host, please set socks v5 proxy: localhost:1080, and enable "Remote DNS".
 #
