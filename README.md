@@ -40,14 +40,16 @@ To run multiple containers, please customize `PORT_MAP` for different
 containers:
 
     $ PORT_MAP="-p 6081:6080 -p 2223:22 -p 4434:443" ./run
+    Or
+    $ PORT_OFFSET=1 ./run
 
 ## Services
 
-| Protocol     |  Internal port  | External port|
-|-------------:|----------------:|-------------:|
-|ssh           | 22              | 2222         |
-|gateone/webssh| 443             | 4433         |
-|noVNC         | 6080            | 6080         |
+| Protocol     |  Internal port  | Default External port|
+|-------------:|----------------:|---------------------:|
+|ssh           | 22              | 2222                 |
+|gateone/webssh| 443             | 4433                 |
+|noVNC         | 6080            | 6080                 |
 
 ## Login
 
