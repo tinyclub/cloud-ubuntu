@@ -11,4 +11,4 @@ JEKYLL_SRC=/home/ubuntu/jekyll-bootstrap/
 
 [ ! -d $JEKYLL_LOCAL/.git ] && git clone $JEKYLL_GIT $JEKYLL_LOCAL
 
-EXTRA_ARGS="-v $JEKYLL_LOCAL:$JEKYLL_SRC" ./run jekyll
+EXTRA_ARGS="-p 8080:80 -v $JEKYLL_LOCAL:$JEKYLL_SRC" ./run jekyll
