@@ -23,7 +23,7 @@ RUN gem install --clear-sources iconv jekyll jekyll-paginate jekyll-sitemap \
 
 ADD system/jekyll/ /
 
-EXPOSE 6080 443 80 22
+EXPOSE 8080 6080 443 22
 
 WORKDIR /
 
