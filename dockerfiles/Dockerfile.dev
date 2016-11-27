@@ -27,11 +27,11 @@ RUN apt-get install -y --force-yes --no-install-recommends \
     && apt-get autoremove -y \
     && rm -rf /var/cache/apt/archives/*.deb
 
-ADD tools/dev/ruby-switch /
+ADD system/dev/ /
+
 RUN apt-get install -y --force-yes --no-install-recommends \
 	ruby2.0 \
-    && /ruby-switch 2.0 \
-    && rm /ruby-switch \
+    && ruby-switch 2.0 \
     && gem install --clear-sources showterm \
     && gem cleanup \
     && rm -rf /home/ubuntu/.gem \
