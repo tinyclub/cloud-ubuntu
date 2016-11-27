@@ -39,10 +39,6 @@ RUN apt-get install -y --force-yes --no-install-recommends \
     && apt-get autoremove -y \
     && rm -rf /var/cache/apt/archives/*.deb
 
-# RUN bash -c 'echo deb http://www.emdebian.org/debian/ wheezy main > /etc/apt/sources.list.d/emdebian.list'
-RUN bash -c 'echo deb http://mirrors.ustc.edu.cn/emdebian/toolchains/ wheezy main > /etc/apt/sources.list.d/emdebian.list'
-RUN apt-get -y update
-
 RUN apt-get install -y --force-yes --no-install-recommends \
 	gcc-powerpc-linux-gnu gcc-powerpc64le-linux-gnu openbios-ppc \
 	gcc-arm-linux-gnueabi gcc-aarch64-linux-gnu \
@@ -66,6 +62,10 @@ RUN dpkg -i /libgmp3c2_4.3.2+dfsg-2ubuntu1_amd64.deb \
     && rm -f /libgmp3c2_4.3.2+dfsg-2ubuntu1_amd64.deb \
     && rm -f /libmpc2_0.9-4_amd64.deb \
     && rm -rf /var/cache/apt/archives/*.deb
+
+# RUN bash -c 'echo deb http://www.emdebian.org/debian/ wheezy main > /etc/apt/sources.list.d/emdebian.list'
+RUN bash -c 'echo deb http://mirrors.ustc.edu.cn/emdebian/toolchains/ wheezy main > /etc/apt/sources.list.d/emdebian.list'
+RUN apt-get -y update
 
 RUN apt-get install -y --force-yes --no-install-recommends \
 	gcc-4.3-arm-linux-gnueabi \
