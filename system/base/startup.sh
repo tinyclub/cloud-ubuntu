@@ -2,6 +2,8 @@
 
 id -u ubuntu &>/dev/null || useradd --create-home --shell /bin/bash --user-group --groups adm,sudo ubuntu
 
+[ -d /home/ubuntu ] && chown ubuntu:ubuntu -R /home/ubuntu/
+
 [ -z "$UNIX_PWD" ] && UNIX_PWD=ubuntu
 
 /bin/echo "ubuntu:$UNIX_PWD" | /usr/sbin/chpasswd
