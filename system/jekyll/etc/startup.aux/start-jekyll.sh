@@ -11,4 +11,4 @@
 [ -z "$UNIX_USER" ] && UNIX_USER=ubuntu
 
 cd $JEKYLL_SRC
-sudo -u $UNIX_USER /usr/local/bin/jekyll s -w --future --limit_posts 10 -s $JEKYLL_SRC -P $JEKYLL_PORT -H $JEKYLL_HOST
+sudo -u $UNIX_USER /usr/local/bin/jekyll s -B -w --future --limit_posts 10 -s $JEKYLL_SRC -P $JEKYLL_PORT -H $JEKYLL_HOST
