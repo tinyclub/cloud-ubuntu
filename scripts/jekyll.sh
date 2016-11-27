@@ -6,8 +6,10 @@
 TOP_DIR=$(cd $(dirname $0) && pwd)/../
 
 [ -z "$JEKYLL_GIT" ] && JEKYLL_GIT=https://github.com/plusjade/jekyll-bootstrap/
-[ -z "$JEKYLL_LOCAL" ] && JEKYLL_LOCAL=${TOP_DIR}/jekyll-bootstrap/
-[ -z "$JEKYLL_SRC" ] && JEKYLL_SRC=/home/ubuntu/jekyll-bootstrap/
+REPO_NAME=`basename $JEKYLL_GIT`
+
+[ -z "$JEKYLL_LOCAL" ] && JEKYLL_LOCAL=${TOP_DIR}/$REPO_NAME/
+[ -z "$JEKYLL_SRC" ] && JEKYLL_SRC=/home/ubuntu/$REPO_NAME/
 [ -z "$JEKYLL_PORT" ] && JEKYLL_PORT=8080
 [ -z "$JEKYLL_HOST" ] && JEKYLL_HOST=`ifconfig eth0 | grep "inet addr" | sed -e "s/ *inet addr:\([0-9\.]*\) .*/\1/g"`
 
