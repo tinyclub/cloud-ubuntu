@@ -1,0 +1,30 @@
+FROM tinylab/cloud-ubuntu-dev_cn_input
+MAINTAINER Wu Zhangjin <wuzhangjin@gmail.com>
+
+ENV DEBIAN_FRONTEND noninteractive
+ENV HOME /home/ubuntu/
+
+RUN sed -i -e "s%mirrors.linode.com%cn.archive.ubuntu.com%g" /etc/apt/sources.list
+
+RUN apt-get -y update
+
+RUN apt-get install -y --force-yes --no-install-recommends \
+	ruby2.0-dev \
+    && apt-get autoclean -y \
+    && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /var/cache/apt/archives/*.deb
+
+RUN sed -i -e "s%cn.archive.ubuntu.com%mirrors.linode.com%g" /etc/apt/sources.list
+
+RUN gem install --clear-sources iconv jekyll jekyll-paginate \
+    && gem cleanup \
+    && rm -rf /home/ubuntu/.gem
+
+ADD system/jekyll/ /
+
+EXPOSE 6080 443 80 22
+
+WORKDIR /
+
+ENTRYPOINT ["/startup.sh"]
