@@ -4,7 +4,7 @@ MAINTAINER Wu Zhangjin <wuzhangjin@gmail.com>
 ENV DEBIAN_FRONTEND noninteractive
 ENV HOME /home/ubuntu/
 
-RUN sed -i -e "s%mirrors.linode.com%cn.archive.ubuntu.com%g" /etc/apt/sources.list
+# RUN sed -i -e "s%mirrors.linode.com%cn.archive.ubuntu.com%g" /etc/apt/sources.list
 
 RUN apt-get -y update
 
@@ -15,7 +15,7 @@ RUN apt-get install -y --force-yes --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /var/cache/apt/archives/*.deb
 
-RUN sed -i -e "s%cn.archive.ubuntu.com%mirrors.linode.com%g" /etc/apt/sources.list
+# RUN sed -i -e "s%cn.archive.ubuntu.com%mirrors.linode.com%g" /etc/apt/sources.list
 
 RUN gem install --clear-sources iconv jekyll jekyll-paginate \
     && gem cleanup \
