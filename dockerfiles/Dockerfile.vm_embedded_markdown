@@ -21,11 +21,11 @@ RUN apt-get install -y --force-yes --no-install-recommends \
     && apt-get autoremove -y \
     && rm -rf /var/cache/apt/archives/*.deb
 
-RUN apt-get install -y --force-yes --no-install-recommends \
-	texlive-latex-recommended \
-    && apt-get autoclean -y \
-    && apt-get autoremove -y \
-    && rm -rf /var/cache/apt/archives/*.deb
+# RUN apt-get install -y --force-yes --no-install-recommends \
+#	texlive-latex-recommended \
+#    && apt-get autoclean -y \
+#    && apt-get autoremove -y \
+#    && rm -rf /var/cache/apt/archives/*.deb
 
 RUN apt-get install -y --force-yes --no-install-recommends \
 	texlive-latex-extra \
@@ -39,11 +39,11 @@ RUN apt-get install -y --force-yes --no-install-recommends \
     && apt-get autoremove -y \
     && rm -rf /var/cache/apt/archives/*.deb
 
-RUN apt-get install -y --force-yes --no-install-recommends \
-	texlive-fonts-extra \
-    && apt-get autoclean -y \
-    && apt-get autoremove -y \
-    && rm -rf /var/cache/apt/archives/*.deb
+# RUN apt-get install -y --force-yes --no-install-recommends \
+#	texlive-fonts-extra \
+#    && apt-get autoclean -y \
+#    && apt-get autoremove -y \
+#    && rm -rf /var/cache/apt/archives/*.deb
 
 RUN apt-get install -y --force-yes --no-install-recommends \
 	lmodern \
