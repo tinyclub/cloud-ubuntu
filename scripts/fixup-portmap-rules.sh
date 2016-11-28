@@ -4,7 +4,7 @@
 #
 
 # Generate from docker ps -a...
-ports=`docker ps -a --format="{{.Ports}}" | tr ' ' '>' | tr ',' '\n' | sed -e "s%.*>\([0-9]*\)/.*%\1%g" | sort -g -u | uniq | tr '\n' ' '`
+ports=`docker ps -a --format=">{{.Ports}}" | tr ' ' '>' | tr ',' '\n' | sed -e "s%.*>\([0-9]*\)/tcp.*%\1%g" | sort -g -u | uniq | tr '\n' ' '`
 [ -z "$ports" ] && ports="1080 6080 443 22"
 
 # Generate from --bip of dockerd
