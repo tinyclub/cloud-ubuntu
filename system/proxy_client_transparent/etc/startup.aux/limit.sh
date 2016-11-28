@@ -5,7 +5,7 @@
 
 [ -z "$PROXY_CONNS" ] && PROXY_CONNS=50
 [ -z "$PROXY_HTTP_CONNS" ] && PROXY_HTTP_CONNS=$PROXY_CONNS
-[ -z "$PROXY_SPEED" ] && PROXY_SPEED=100kbps
+[ -z "$PROXY_SPEED" ] && PROXY_SPEED=1000
 [ -z "$PROXY_DOWN_SPEED" ] && PROXY_DOWN_SPEED=$PROXY_SPEED
 [ -z "$PROXY_UP_SPEED" ] && PROXY_UP_SPEED=$PROXY_SPEED
 
@@ -26,22 +26,34 @@ iptables -I FORWARD -p tcp --syn --dport 80 -m connlimit --connlimit-above $PROX
 iptables -I INPUT -p tcp --syn --dport 80 -m connlimit --connlimit-above $PROXY_HTTP_CONNS -j REJECT
 
 # Speed limitation
-tc qdisc del dev eth0 root
+iptables -A FORWARD -m limit --limit $PROXY_SPEED/s -j ACCEPT
+iptables -A FORWARD -j DROP
 
-# download speed
-tc qdisc add dev eth0 root handle 10: htb default 256
-tc class add dev eth0 parent 10: classid 10:1 htb rate 100mbit ceil 100mbit
-tc class add dev eth0 parent 10:1 classid 10:10 htb rate $PROXY_DOWN_SPEED ceil $PROXY_DOWN_SPEED prio 1
-tc qdisc add dev eth0 parent 10:10 handle 101: sfq perturb 10
-tc filter add dev eth0 parent 10: protocol ip prio 10 handle 1 fw classid 10:10
+iptables -A INPUT -p tcp ! --sport 6080 ! --dport 6080 -m limit --limit $PROXY_UP_SPEED/s -j ACCEPT
+iptables -A INPUT -p tcp ! --sport 6080 ! --dport 6080 -j DROP
 
-iptables -t mangle -A POSTROUTING -j MARK --set-mark 1
+iptables -A OUTPUT -p tcp ! --sport 6080 ! --dport 6080 -m limit --limit $PROXY_DOWN_SPEED/s -j ACCEPT
+iptables -A OUTPUT -p tcp ! --sport 6080 ! --dport 6080 -j DROP
 
-# upload speed
-tc qdisc add dev eth0 root handle 20: htb default 256
-tc class add dev eth0 parent 20: classid 20:1 htb rate 100mbit ceil 100mbit
-tc class add dev eth0 parent 20:1 classid 20:10 htb rate $PROXY_UP_SPEED ceil $PROXY_UP_SPEED prio 1
-tc qdisc add dev eth0 parent 20:10 handle 201: sfq perturb 10
-tc filter add dev eth0 parent 20: protocol ip prio 100 handle 2 fw classid 20:10
-
-iptables -t mangle -A PREROUTING -j MARK --set-mark 2
+# Speed limitation
+#tc qdisc del dev eth0 root
+#
+## download speed
+#tc qdisc add dev eth0 root handle 10: htb default 256
+#tc class add dev eth0 parent 10: classid 10:1 htb rate 100mbit ceil 100mbit
+#tc class add dev eth0 parent 10:1 classid 10:10 htb rate $PROXY_DOWN_SPEED ceil $PROXY_DOWN_SPEED prio 1
+#tc qdisc add dev eth0 parent 10:10 handle 101: sfq perturb 10
+#tc filter add dev eth0 parent 10: protocol ip prio 10 handle 1 fw classid 10:10
+#
+#iptables -t mangle -A POSTROUTING -j MARK --set-mark 1
+#
+## upload speed
+#tc qdisc del dev eth0 root
+#
+#tc qdisc add dev eth0 root handle 20: htb default 256
+#tc class add dev eth0 parent 20: classid 20:1 htb rate 100mbit ceil 100mbit
+#tc class add dev eth0 parent 20:1 classid 20:10 htb rate $PROXY_UP_SPEED ceil $PROXY_UP_SPEED prio 1
+#tc qdisc add dev eth0 parent 20:10 handle 201: sfq perturb 10
+#tc filter add dev eth0 parent 20: protocol ip prio 100 handle 2 fw classid 20:10
+#
+#iptables -t mangle -A PREROUTING -j MARK --set-mark 2
