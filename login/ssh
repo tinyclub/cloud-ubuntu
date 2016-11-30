@@ -1,6 +1,9 @@
 #!/bin/bash
 
+TOP_DIR=$(cd $(dirname $0) && pwd)/..
 
-[ -z "$PORT" ] && PORT=2222
+source ${TOP_DIR}/config $*
+
+[ -z "$PORT" ] && PORT=$LOCAL_SSH_PORT
 
 ssh ubuntu@localhost -p $PORT

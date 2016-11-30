@@ -36,13 +36,6 @@ The ssh/noVNC/gateone login password can be set via the according environment
 variables in `./run`: `UNIX_PWD`, `VNC_PWD`,  the default users and passwords
 are `ubuntu`.
 
-To run multiple containers, please customize `PORT_MAP` for different
-containers:
-
-    $ PORT_MAP="-p 6081:6080 -p 2223:22 -p 4434:443" ./run
-    Or
-    $ PORT_OFFSET=1 ./run
-
 ## Services
 
 | Protocol     |  Internal port  | Default External port|
@@ -57,12 +50,6 @@ containers:
     $ ./login/ssh
     $ ./login/webssh
     $ ./login/vnc
-
-Login with customized ports (must align with the `PORT_MAP` setting):
-
-    $ PORT=6081 ./login/vnc
-    $ PORT=2223 ./login/ssh
-    $ PORT=4434 ./login/webssh
 
 ## Building
 

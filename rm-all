@@ -1,0 +1,6 @@
+#!/bin/bash
+#
+# rm-all -- remove all docker labs
+#
+
+docker ps -a --format='{{.ID}}' | xargs -i docker rm -f {} 2>&1

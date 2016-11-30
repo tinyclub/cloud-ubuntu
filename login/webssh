@@ -1,6 +1,10 @@
 #!/bin/bash
 
-[ -z "$PORT" ] && PORT=4433
+TOP_DIR=$(cd $(dirname $0) && pwd)/..
+
+source ${TOP_DIR}/config $*
+
+[ -z "$PORT" ] && PORT=$LOCAL_WEBSSH_PORT
 
 URL=https://localhost:$PORT
 
