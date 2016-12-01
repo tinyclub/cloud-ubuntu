@@ -49,7 +49,7 @@ if [ -n "$RUN" -a "$RUN"=="1" ]; then
 
         CONTAINER_NAME=$(basename $IMAGE_NAME)-${LOCAL_VNC_PORT}
         exist=`docker ps -q --filter=name=$CONTAINER_NAME | wc -l`
-        [ $exist -eq 1 ] && $RETRY_COUNT=2 && continue
+        [ $exist -eq 1 ] && RETRY_COUNT=2 && continue
 
         RETRY_COUNT=1
         for port in $ports; do [ $LOCAL_VNC_PORT -eq $port ] && RETRY_COUNT=2 && break; done
