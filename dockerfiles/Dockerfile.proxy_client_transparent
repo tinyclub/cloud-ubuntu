@@ -1,4 +1,4 @@
-FROM tinylab/cloud-ubuntu
+FROM tinylab/cloud-ubuntu-proxy_client
 MAINTAINER Wu Zhangjin <wuzhangjin@gmail.com>
 
 ENV DEBIAN_FRONTEND noninteractive
