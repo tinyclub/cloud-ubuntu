@@ -9,6 +9,6 @@
 
 TOP_DIR=$(cd $(dirname $0) && pwd)/../
 
-[ -z "$PORT_MAP" ] && PORT_MAP="-p 80:80"
+[ -z "$PROXY_PORT" ] && PROXY_PORT=80
 
-PORT_MAP="$PORT_MAP" HOST_NAME=localhost EXTRA_ARGS="$EXTRA_ARGS --cpuset-cpus=0 --memory=96M" ${TOP_DIR}/run proxy_server
+PORT_MAP="-p $PROXY_PORT:$PROXY_PORT" HOST_NAME=localhost EXTRA_ARGS="$EXTRA_ARGS --cpuset-cpus=0 --memory=96M -e PROXY_PORT=$PROXY_PORT" ${TOP_DIR}/run proxy_server
