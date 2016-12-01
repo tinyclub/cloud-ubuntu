@@ -46,7 +46,11 @@ if [ -n "$RUN" -a "$RUN"=="1" ]; then
     
         ports=`docker ps -a --format="{{.Ports}}" | tr ',' '\n' | grep ":" | cut -d':' -f2 | cut -d'-' -f1 | sort -u | tr '\n' ' '`
         # [ -n "$ports" ] && echo "LOG: OLD PORTS: $ports"
-    
+
+        CONTAINER_NAME=$(basename $IMAGE_NAME)-${LOCAL_VNC_PORT}
+        exist=`docker ps -q --filter=name=$CONTAINER_NAME | wc -l`
+        [ $exist -eq 1 ] && $RETRY_COUNT=2 && continue
+
         RETRY_COUNT=1
         for port in $ports; do [ $LOCAL_VNC_PORT -eq $port ] && RETRY_COUNT=2 && break; done
     
@@ -54,7 +58,6 @@ if [ -n "$RUN" -a "$RUN"=="1" ]; then
         # echo "LOG: Retry $RETRY_COUNT to get a unique port"
     done
 
-    CONTAINER_NAME=$(basename $IMAGE_NAME)-${LOCAL_VNC_PORT}
     echo $CONTAINER_NAME > $CONTAINERFILE
 else
     [ -f $CONTAINERFILE ] && CONTAINER_NAME=$(< $CONTAINERFILE)
