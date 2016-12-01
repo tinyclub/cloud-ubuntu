@@ -4,11 +4,16 @@
 #
 # Usage:
 #
-#    EXTRA_ARGS="-p 1080:1080 -e PROXY_SERVER=IP:PORT -e PROXY_PWD=PASSWORD [-e PROXY_PORT=1080]" ./scripts/proxy-client.sh
+#    PROXY_SERVER=IP:PORT PROXY_PWD=PASSWORD PROXY_PORT=1080 [MAP_PORT=1] ./scripts/proxy-client.sh
 #
 # Note: To use this proxy in web browser, please set socks v5 proxy: localhost:1080, and enable "Remote DNS".
 #
 
 TOP_DIR=$(cd $(dirname $0) && pwd)/../
 
-${TOP_DIR}/run proxy_client
+[ -z "$PROXY_PORT" ] && PROXY_PORT=1080
+EXTRA_ARGS="$EXTRA_ARGS -e PROXY_PORT=$PROXY_PORT"
+
+[ -n "$MAP_PORT" ] && EXTRA_ARGS="$EXTRA_ARGS -p $PROXY_PORT:$PROXY_PORT"
+
+EXTRA_ARGS="$EXTRA_ARGS -e PROXY_SERVER=$PROXY_SERVER -e PROXY_PWD=$PROXY_PWD" ${TOP_DIR}/run proxy_client
