@@ -12,6 +12,8 @@
 [ -z "$PROXY_PING_LIMIT" ] && PROXY_PING_LIMIT=$PROXY_LIMIT
 [ -z "$PROXY_CONNS_LIMIT" ] && PROXY_CONNS_LIMIT=$PROXY_LIMIT
 [ -z "$PROXY_SPEED_LIMIT" ] && PROXY_SPEED_LIMIT=$PROXY_LIMIT
+[ -z "$PROXY_DOWN_LIMIT" ] && PROXY_DOWN_LIMIT=$PROXY_LIMIT
+[ -z "$PROXY_UP_LIMIT" ] && PROXY_UP_LIMIT=$PROXY_LIMIT
 
 # Drop ping packages
 if [ $PROXY_PING_LIMIT -eq 1 ]; then
@@ -38,11 +40,15 @@ if [ $PROXY_SPEED_LIMIT -eq 1 ]; then
 	iptables -A FORWARD -m limit --limit $PROXY_SPEED/s -j ACCEPT
 	iptables -A FORWARD -j DROP
 
+if [ $PROXY_UP_LIMIT -eq 1 ]; then
 	iptables -A INPUT -p tcp ! --sport 6080 ! --dport 6080 -m limit --limit $PROXY_UP_SPEED/s -j ACCEPT
 	iptables -A INPUT -p tcp ! --sport 6080 ! --dport 6080 -j DROP
+fi
 
+if [ $PROXY_DOWN_LIMIT -eq 1 ]; then
 	iptables -A OUTPUT -p tcp ! --sport 6080 ! --dport 6080 -m limit --limit $PROXY_DOWN_SPEED/s -j ACCEPT
 	iptables -A OUTPUT -p tcp ! --sport 6080 ! --dport 6080 -j DROP
+fi
 
 	# Speed limitation
 	#tc qdisc del dev eth0 root
