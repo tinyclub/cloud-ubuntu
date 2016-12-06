@@ -21,6 +21,12 @@ RUN apt-get install -y --force-yes --no-install-recommends \
     && rm -rf /var/cache/apt/archives/*.deb
 
 RUN apt-get install -y --force-yes --no-install-recommends \
+	lib32stdc++6 lib32z1 libc6-i386 \
+    && apt-get autoclean -y \
+    && apt-get autoremove -y \
+    && rm -rf /var/cache/apt/archives/*.deb
+
+RUN apt-get install -y --force-yes --no-install-recommends \
 	xz-utils lzop gzip zip unzip tar \
 	wget bc sed gawk \
     && apt-get autoclean -y \
