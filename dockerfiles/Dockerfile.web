@@ -28,7 +28,7 @@ RUN pip install setuptools wheel \
 
 ADD system/web/ /
 
-EXPOSE 5900 22
+EXPOSE 6080 5900 443 22
 
 WORKDIR /
 
