@@ -12,7 +12,7 @@ TOP_DIR=$(cd $(dirname $0) && pwd)/../
 [ -z "$PROXY_PORT" ] && PROXY_PORT=80
 # Available encrypt cmds: sha1sum, sha224sum, cksum, sha256sum, sha512sum, md5sum, sha384sum, sum
 [ -z "$ENCRYPT_CMD" ] && ENCRYPT_CMD="cat"
-[ -n "$PROXY_PWD" ] && PROXY_PWD=`echo $PROXY_PWD | $ENCRYPT_CMD | cut -d' ' -f1`
+[ -n "$PROXY_PWD" ] && PROXY_PWD=`echo -n $PROXY_PWD | $ENCRYPT_CMD | cut -d' ' -f1`
 [ -n "$PROXY_PWD" ] && EXTRA_ARGS="$EXTRA_ARGS -e PROXY_PWD=$PROXY_PWD"
 
 echo EXTRA_ARGS="$EXTRA_ARGS -e PROXY_PORT=$PROXY_PORT"

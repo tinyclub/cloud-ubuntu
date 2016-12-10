@@ -25,6 +25,6 @@ EXTRA_ARGS="$EXTRA_ARGS -e PROXY_PORT=$PROXY_PORT"
 
 # Available encrypt cmds: sha1sum, sha224sum, cksum, sha256sum, sha512sum, md5sum, sha384sum, sum
 [ -z "$ENCRYPT_CMD" ] && ENCRYPT_CMD="cat"
-[ -n "$PROXY_PWD" ] && PROXY_PWD=`echo $PROXY_PWD | $ENCRYPT_CMD | cut -d' ' -f1`
+[ -n "$PROXY_PWD" ] && PROXY_PWD=`echo -n $PROXY_PWD | $ENCRYPT_CMD | cut -d' ' -f1`
 
 EXTRA_ARGS="$EXTRA_ARGS --dns 127.0.0.1 -e PROXY_SERVER=$PROXY_SERVER -e PROXY_PWD=$PROXY_PWD" ${TOP_DIR}/run proxy_client_transparent
