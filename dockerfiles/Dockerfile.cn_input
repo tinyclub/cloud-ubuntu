@@ -18,7 +18,7 @@ RUN rm -rf /var/lib/apt/lists/*
 
 ADD system/cn_input/ /
 
-EXPOSE 6080 443 22
+EXPOSE 5900 22
 
 WORKDIR /
 

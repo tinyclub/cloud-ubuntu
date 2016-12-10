@@ -6,7 +6,7 @@ ENV HOME /home/ubuntu/
 
 ADD system/tproxy_client/ /
 
-EXPOSE 6080 443 22
+EXPOSE 5900 22
 
 WORKDIR /
 

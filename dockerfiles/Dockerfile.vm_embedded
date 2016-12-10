@@ -154,7 +154,7 @@ RUN rm -rf /var/lib/apt/lists/*
 
 # RUN sed -i -e "s%cn.archive.ubuntu.com%mirrors.linode.com%g" /etc/apt/sources.list
 
-EXPOSE 6080 443 22
+EXPOSE 5900 22
 
 WORKDIR /
 

@@ -26,7 +26,7 @@ RUN locale-gen --purge en_US.utf8 \
 
 ADD system/cn/ /
 
-EXPOSE 6080 443 22
+EXPOSE 5900 22
 
 WORKDIR /
 
