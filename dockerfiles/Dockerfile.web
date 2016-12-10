@@ -21,7 +21,7 @@ RUN apt-get install -y --force-yes --no-install-recommends gcc python-dev nginx 
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /var/cache/apt/archives/*.deb
 
-ADD system/novnc/web/requirements.txt /web-requirements.txt
+ADD system/web/web/requirements.txt /web-requirements.txt
 RUN pip install setuptools wheel \
     && pip install -r /web-requirements.txt \
     && rm /web-requirements.txt
