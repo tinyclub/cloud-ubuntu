@@ -45,8 +45,14 @@ RUN apt-get install -y --force-yes --no-install-recommends \
     && apt-get autoremove -y \
     && rm -rf /var/cache/apt/archives/*.deb
 
-RUN rm -rf /var/lib/apt/lists/*
-RUN rm -rf /home/ubuntu/
+RUN apt-get install -y --force-yes --no-install-recommends \
+	vim \
+	chromium-browser \
+    && apt-get autoclean -y \
+    && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /home/ubuntu/ \
+    && rm -rf /var/cache/apt/archives/*.deb
 
 EXPOSE 5900 22
 

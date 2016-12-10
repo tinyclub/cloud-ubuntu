@@ -16,6 +16,7 @@ RUN apt-get install -y --force-yes --no-install-recommends python-pip dtach \
 
 # Web VNC
 RUN apt-get install -y --force-yes --no-install-recommends gcc python-dev nginx \
+	python-numpy \
     && apt-get autoclean -y \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/* \

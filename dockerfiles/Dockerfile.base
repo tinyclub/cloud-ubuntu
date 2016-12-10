@@ -16,7 +16,7 @@ RUN apt-get -y update
 RUN apt-get install -y --force-yes --no-install-recommends \
 	supervisor \
 	software-properties-common \
-	pwgen vim net-tools \
+	pwgen net-tools \
 	ttf-ubuntu-font-family \
     && apt-get autoclean -y \
     && apt-get autoremove -y \
@@ -24,16 +24,10 @@ RUN apt-get install -y --force-yes --no-install-recommends \
 
 RUN apt-get install -y --force-yes --no-install-recommends \
 	lxde x11vnc xvfb \
-	python-numpy \
 	openssh-server \
 	rsyslog fail2ban iptables \
     && mkdir /var/run/sshd \
     && sudo -u syslog touch /var/log/auth.log \
-    && apt-get autoclean -y \
-    && apt-get autoremove -y \
-    && rm -rf /var/cache/apt/archives/*.deb
-
-RUN apt-get install -y --force-yes --no-install-recommends chromium-browser \
     && apt-get autoclean -y \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/* \
