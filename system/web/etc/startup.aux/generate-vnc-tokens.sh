@@ -15,7 +15,7 @@ map=/vnc-tokens.txt
 net=$(echo $DEFAULT_GW | cut -d'.' -f1-3)
 
 for i in `seq 1 255`; do
-    ip_port=$net.$i:$port
+    ip=$net.$i
     #token=$i; echo "$token: $ip_port"
-    token=$(echo -n $ip_port | $ENCRYPT_CMD | cut -d' ' -f1); echo "$token: $ip_port"
+    token=$(echo -n $ip | $ENCRYPT_CMD | cut -d' ' -f1); echo "$token: $ip:$port"
 done | tee $map
