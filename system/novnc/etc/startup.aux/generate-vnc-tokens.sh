@@ -17,5 +17,5 @@ net=$(echo $DEFAULT_GW | cut -d'.' -f1-3)
 for i in `seq 1 255`; do
     ip_port=$net.$i:$port
     #token=$i; echo "$token: $ip_port"
-    token=$(echo $ip_port | $ENCRYPT_CMD | cut -d' ' -f1 | tr -d '\n'); echo "$token: $ip_port"
+    token=$(echo -n $ip_port | $ENCRYPT_CMD | cut -d' ' -f1); echo "$token: $ip_port"
 done | tee $map
