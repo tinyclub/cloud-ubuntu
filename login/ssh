@@ -4,6 +4,7 @@ TOP_DIR=$(cd $(dirname $0) && pwd)/..
 
 source ${TOP_DIR}/config $*
 
-[ -z "$PORT" ] && PORT=$LOCAL_SSH_PORT
+[ -z "$HOST" ] && HOST=`docker inspect --format '{{ .NetworkSettings.IPAddress }}' $CONTAINER_NAME`
+[ -z "$PORT" ] && PORT=$SSH_PORT
 
-ssh ubuntu@localhost -p $PORT
+ssh ubuntu@$HOST -p $PORT

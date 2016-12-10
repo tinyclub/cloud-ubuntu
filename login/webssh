@@ -4,9 +4,10 @@ TOP_DIR=$(cd $(dirname $0) && pwd)/..
 
 source ${TOP_DIR}/config $*
 
+[ -z "$HOST" ] && HOST=`docker inspect --format '{{ .NetworkSettings.IPAddress }}' $CONTAINER_NAME`
 [ -z "$PORT" ] && PORT=$LOCAL_WEBSSH_PORT
 
-URL=https://localhost:$PORT
+URL="https://localhost:$PORT/?hostip=$HOST&port=$SSH_PORT"
 
 
 # FIXME: chromium-browser doesn't support Chinese input for gateone now
