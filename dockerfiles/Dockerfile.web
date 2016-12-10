@@ -4,6 +4,8 @@ MAINTAINER Wu Zhangjin <wuzhangjin@gmail.com>
 ENV DEBIAN_FRONTEND noninteractive
 ENV HOME /home/ubuntu/
 
+RUN apt-get -y update
+
 # Web SSH
 RUN apt-get install -y --force-yes --no-install-recommends python-pip dtach \
     && pip install gateone \
