@@ -1,0 +1,33 @@
+FROM tinylab/cloud-ubuntu
+MAINTAINER Wu Zhangjin <wuzhangjin@gmail.com>
+
+ENV DEBIAN_FRONTEND noninteractive
+ENV HOME /home/ubuntu/
+
+# Web SSH
+RUN apt-get install -y --force-yes --no-install-recommends python-pip dtach \
+    && pip install gateone \
+    && mkdir -p /etc/gateone/ssl/ \
+    && apt-get autoclean -y \
+    && apt-get autoremove -y \
+    && rm -rf /var/cache/apt/archives/*.deb
+
+# Web VNC
+RUN apt-get install -y --force-yes --no-install-recommends gcc python-dev nginx \
+    && apt-get autoclean -y \
+    && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /var/cache/apt/archives/*.deb
+
+ADD system/novnc/web/requirements.txt /web-requirements.txt
+RUN pip install setuptools wheel \
+    && pip install -r /web-requirements.txt \
+    && rm /web-requirements.txt
+
+ADD system/web/ /
+
+EXPOSE 6080 443 22
+
+WORKDIR /
+
+ENTRYPOINT ["/startup.sh"]
