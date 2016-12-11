@@ -841,7 +841,7 @@ def main():
             try:
                 netaddr=ifaddresses('eth0').setdefault(AF_INET,[{'addr':'No IP addr'}])[0]['addr'][0:6]
             except:
-                netaddr=ifaddresses('br0').setdefault(AF_INET,[{'addr':'No IP addr'}])[0]['addr'][0:6]
+	        netaddr='10.66.33'
 
             if host.find(netaddr) < 0:
 		url = None
