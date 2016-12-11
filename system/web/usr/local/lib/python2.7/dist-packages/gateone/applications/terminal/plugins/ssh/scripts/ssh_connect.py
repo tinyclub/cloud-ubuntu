@@ -844,7 +844,8 @@ def main():
                 netaddr=ifaddresses('br0').setdefault(AF_INET,[{'addr':'No IP addr'}])[0]['addr'][0:6]
 
             if host.find(netaddr) < 0:
-                validated = False
+		url = None
+		raw_input(invalid_hostname_err)
             elif valid_hostname(host, allow_underscore=True):
 		validated = True
 	    else:
