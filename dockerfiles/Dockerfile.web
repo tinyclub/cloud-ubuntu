@@ -22,7 +22,6 @@ RUN apt-get install -y --force-yes --no-install-recommends \
 # Web SSH
 RUN apt-get install -y --force-yes --no-install-recommends python-pip dtach \
 	openssh-client \
-    && pip install netifaces \
     && pip install gateone \
     && mkdir -p /etc/gateone/ssl/ \
     && apt-get autoclean -y \
@@ -41,6 +40,9 @@ ADD system/web/web/requirements.txt /web-requirements.txt
 RUN pip install setuptools wheel \
     && pip install -r /web-requirements.txt \
     && rm /web-requirements.txt
+
+# For gateone invalid ip check
+RUN pip install netifaces
 
 ADD system/web/ /
 
