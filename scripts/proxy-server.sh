@@ -15,7 +15,7 @@ TOP_DIR=$(cd $(dirname $0) && pwd)/../
 [ -n "$PROXY_PWD" ] && PROXY_PWD=`echo -n $PROXY_PWD | $ENCRYPT_CMD | cut -d' ' -f1`
 [ -n "$PROXY_PWD" ] && EXTRA_ARGS="$EXTRA_ARGS -e PROXY_PWD=$PROXY_PWD"
 
-echo EXTRA_ARGS="$EXTRA_ARGS -e PROXY_PORT=$PROXY_PORT"
+EXTRA_ARGS="$EXTRA_ARGS -e PROXY_PORT=$PROXY_PORT"
 
 PORT_MAP="-p $PROXY_PORT:$PROXY_PORT" \
     HOST_NAME=localhost \
