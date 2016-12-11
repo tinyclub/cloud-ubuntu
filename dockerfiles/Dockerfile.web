@@ -22,6 +22,7 @@ RUN apt-get install -y --force-yes --no-install-recommends \
 # Web SSH
 RUN apt-get install -y --force-yes --no-install-recommends python-pip dtach \
 	openssh-client \
+    && pip install netifaces \
     && pip install gateone \
     && mkdir -p /etc/gateone/ssl/ \
     && apt-get autoclean -y \
