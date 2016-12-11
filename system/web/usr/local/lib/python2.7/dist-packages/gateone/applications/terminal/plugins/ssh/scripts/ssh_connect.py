@@ -164,16 +164,6 @@ def valid_ip(ipaddr):
     (from http://stackoverflow.com/questions/319279/how-to-validate-ip-address-in-python)
     """
     import socket
-    from netifaces import interfaces, ifaddresses, AF_INET
-
-    try:
-	netaddr=ifaddresses('eth0').setdefault(AF_INET,[{'addr':'No IP addr'}])[0]['addr'][0:6]
-    except:
-	netaddr=ifaddresses('br0').setdefault(AF_INET,[{'addr':'No IP addr'}])[0]['addr'][0:6]
-
-    if ipaddr.find(netaddr) < 0:
-	return False
-
     if ':' in ipaddr: # IPv6 address
 	try:
 	    socket.inet_pton(socket.AF_INET6, ipaddr)
@@ -845,7 +835,17 @@ def main():
 		# Always assume SSH unless given a telnet:// URL
 		protocol = 'ssh'
 		host = url
-	    if valid_hostname(host, allow_underscore=True):
+
+            from netifaces import interfaces, ifaddresses, AF_INET
+
+            try:
+                netaddr=ifaddresses('eth0').setdefault(AF_INET,[{'addr':'No IP addr'}])[0]['addr'][0:6]
+            except:
+                netaddr=ifaddresses('br0').setdefault(AF_INET,[{'addr':'No IP addr'}])[0]['addr'][0:6]
+
+            if host.find(netaddr) < 0:
+                validated = False
+            elif valid_hostname(host, allow_underscore=True):
 		validated = True
 	    else:
 		# Double-check: It might be an IPv6 address
