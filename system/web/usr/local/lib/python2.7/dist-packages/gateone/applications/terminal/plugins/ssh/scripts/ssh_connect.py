@@ -311,6 +311,9 @@ def openssh_connect(
 	# This is so people won't have to worry about user management when
 	# running one-Gate One-per-server...
 	"-oNoHostAuthenticationForLocalhost=yes",
+        # This ensure's that the 'The authenticity of host 'hostname' can't be established'
+        "-oUserKnownHostsFile=/dev/null",
+        "-oStrictHostKeyChecking=no",
 	# This ensure's that the executing user's identity won't be used:
 	"-oIdentitiesOnly=yes",
 	# This ensures the other end can tell we're a Gate One terminal and
