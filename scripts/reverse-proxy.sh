@@ -15,7 +15,7 @@ TOP_DIR=$(cd $(dirname $0) && pwd)/../
 [ -z "$REMOTE_SSH_PORT" ] && REMOTE_SSH_PORT=2001
 [ -z "$REMOTE_VNC_PORT" ] && REMOTE_VNC_PORT=5001
 
-EXTRA_ARGS="-e SSH_SERVER=$SSH_SERVER -e SSH_PASS=$SSH_PASS -e LOCAL_ADDR=$LOCAL_ADDR" \
+EXTRA_ARGS="-e SSH_SERVER=$SSH_SERVER -e SSH_PASS=$SSH_PASS -e LOCAL_ADDR=$LOCAL_ADDR -e REMOTE_SSH_PORT=$REMOTE_SSH_PORT -e REMOTE_VNC_PORT=$REMOTE_VNC_PORT" \
    ${TOP_DIR}/run reverse_proxy
 
 # Note: The above for containers, the following for local system
