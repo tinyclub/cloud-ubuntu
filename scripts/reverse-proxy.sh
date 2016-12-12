@@ -2,6 +2,10 @@
 #
 # reverse-proxy.sh -- run the reverse proxy container to allow some local ports be accessible from internet
 #
+# Usage:
+#
+#    $ SSH_SERVER=a.b.c.d SSH_PASS=yyy [LOCAL_ADDR=d.c.b.a] [BATCH=10] ./scripts/reverse-proxy.sh
+#
 
 TOP_DIR=$(cd $(dirname $0) && pwd)/../
 
