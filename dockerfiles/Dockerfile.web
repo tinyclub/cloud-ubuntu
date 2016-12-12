@@ -1,23 +1,10 @@
-FROM ubuntu:14.04.5
+FROM tinylab/cloud-ubuntu
 MAINTAINER Wu Zhangjin <wuzhangjin@gmail.com>
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV HOME /home/ubuntu/
 
-# Configure the fast DNS resolv server
-ADD system/base/etc/apt/sources.list /etc/apt/sources.list
-RUN /usr/sbin/service networking restart
-
-# Setup our Ubuntu sources
-ADD system/base/etc/resolv.conf /etc/resolv.conf
 RUN apt-get -y update
-
-# Core
-RUN apt-get install -y --force-yes --no-install-recommends \
-	supervisor \
-    && apt-get autoclean -y \
-    && apt-get autoremove -y \
-    && rm -rf /var/cache/apt/archives/*.deb
 
 # Web SSH
 RUN apt-get install -y --force-yes --no-install-recommends python-pip dtach \
