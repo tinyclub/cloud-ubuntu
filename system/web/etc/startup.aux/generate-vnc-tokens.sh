@@ -10,7 +10,7 @@
 [ -z "$DEFAULT_GW" ] && DEFAULT_GW=$(route -n | grep "^0.0.0.0" | tr -s ' ' | cut -d' ' -f2)
 [ -z "$ENCRYPT_CMD" ] && ENCRYPT_CMD=md5sum
 
-ipaddr=`ifconfig | grep "inet addr" | sed -e "s/ *inet addr:\([0-9\.]*\) .*/\1/g"`
+ipaddr=`ifconfig | grep "inet addr" | sed -e "s/ *inet addr:\([0-9\.]*\) .*/\1/g" | head -1`
 
 port=5900
 net=$(echo $DEFAULT_GW | cut -d'.' -f1-3)
