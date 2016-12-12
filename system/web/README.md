@@ -13,10 +13,10 @@ Example: https://localhost:6080/vnc.html?token=xxxx&password=yyyy&autoconnect=1&
 * Lan: 10.66.33.4
 
 Lan, novnc:
-    $ ssh -N -R 5001:10.66.33.4:5900 ubuntu@10.66.33.2
+    $ ssh -nNT -oUserKnownHostsFile=/dev/null -oStrictHostKeyChecking=no -R 5001:10.66.33.4:5900 ubuntu@10.66.33.2
 
 Lan, ssh:
-    $ ssh -N -R 2001:10.66.33.4:22 ubuntu@10.66.33.2
+    $ ssh -nNT -oUserKnownHostsFile=/dev/null -oStrictHostKeyChecking=no -R 2001:10.66.33.4:22 ubuntu@10.66.33.2
 
 Internet, novnc:
     https://localhost:6080/vnc.html?token=md5sum of 5001&password=yyyy&autoconnect=1&encrypt=1
