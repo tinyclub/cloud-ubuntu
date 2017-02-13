@@ -291,7 +291,7 @@
 		    tmp = totalframes;
 		fidx.textContent = tmp + " . " + parseInt(tmp * 100 / totalframes) + "%";
 
-		if (mode === 'realtime') {
+		if (mode === 'realtime' && foffset > 1000) {
 		    ftime.textContent = format_time(foffset);
 		} else {
 		    frame = VNC_frame_data[frame_idx];
