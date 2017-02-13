@@ -25,7 +25,7 @@
 	    #middle_playbar { float: left; }
 	    #right_playbar { float: right; }
 	    #startBtn { width: 45px; margin-left: 1px; margin-right: 1px }
-	    #trackBar { width: 95%; margin-left: 1px; margin-right: 1px; }
+	    #trackBar { width: 98%; margin-left: 1px; margin-right: 1px; }
 	    #minusBtn, #plusBtn, #beginBtn, #endBtn {
 		color: #777; display: none; margin-left: 1px; margin-right: 1px;
 		width: 30px;
@@ -799,7 +799,7 @@
 		var w = vnc_canvas.style.width;
 		var h = vnc_canvas.style.height;
 
-		var middle_play_bar_width = vnc_canvas.offsetWidth - left_play_bar.offsetWidth - right_play_bar.offsetWidth;
+		var middle_play_bar_width = vnc_canvas.offsetWidth - left_play_bar.offsetWidth - right_play_bar.offsetWidth - 2;
 
 		if (middle_play_bar_width < 50)
 		    return;
