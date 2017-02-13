@@ -377,7 +377,7 @@
 		//gradient.addColorStop("0.5","red");
 		//gradient.addColorStop("1.0","blue");
 		//style = gradient;
-		style = "#fff";
+		style = "#a00";
 	    }
 
             if (!x)
@@ -389,11 +389,13 @@
 	    }
 
 	    if (!transparent)
-		transparent = 0.5;
+		transparent = 0.8;
+
+	    var font_height = parseInt(font);
 
 	    ctx.globalAlpha = transparent;
-	    ctx.fillStyle = "#000";
-	    ctx.fillRect(0, y/2, w, Math.round(parseInt(font) * 3 / 2));
+	    ctx.fillStyle = "#fff";
+	    ctx.fillRect(0, y - font_height, w, Math.floor(font_height + font_height/2));
 
 	    ctx.font = font;
 	    ctx.textAlign = align;
@@ -750,7 +752,7 @@
 
 	function __draw_finish() {
 	    restore_canvas("Finished.");
-	    __draw_text(vnc_canvas_backup, "by Falcon of TinyLab.org", "35px Verdana", "center", "#fff", 200);
+	    __draw_text(vnc_canvas_backup, "by Falcon of TinyLab.org", "35px Verdana", "center", "#00a", 200);
 
 	    vnc_canvas.style.display = 'none';
 	    vnc_canvas_backup.style.display = 'inline-block';
@@ -779,7 +781,7 @@
 		screen_width = Math.round(screen_height * screen_ratio);
 
 	    if (rfb && rfb._display) {
-		rfb._display.autoscale(screen_width, screen_height, 1);
+		rfb._display.autoscale(screen_width, screen_height);
 
                 var w = vnc_canvas.style.width;
                 var width = parseInt(w);
