@@ -800,6 +800,9 @@
 	    if (!(full_frame_found) || (frame_idx < full_frame_idx))
 		return;
 
+	    if (frame_idx >= frame_idx_max)
+		return;
+
 	    if (!(skipframes > frame_idx))
 		__stop();
 	}
@@ -855,8 +858,10 @@
 	}
 
 	function __draw_finish() {
-	    restore_canvas("Finished.");
-	    __draw_text(vnc_canvas_backup, "by Falcon of TinyLab.org", "35px Verdana", "center", "#00a", 200);
+	    restore_canvas("Session: [ " + fname  + " ] Finished.");
+
+	    __draw_text(vnc_canvas_backup, "Tiny noVNC Player", "35px Verdana", "center", "#00a", Math.round(vnc_canvas_backup.height/3));
+	    __draw_text(vnc_canvas_backup, "Powered by http://TinyLab.org", "35px Verdana", "center", "#00a", Math.round(vnc_canvas_backup.height/2));
 
 	    vnc_canvas.style.display = 'none';
 	    vnc_canvas_backup.style.display = 'inline-block';
