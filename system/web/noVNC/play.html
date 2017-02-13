@@ -248,7 +248,7 @@
 
 
 	function draw_frameinfo() {
-	    var y = Math.round(vnc_canvas_backup.height/3) + 50;
+	    var y = Math.round(vnc_canvas_backup.height/3) + 45;
 	    var x = Math.round(vnc_canvas_backup.width/3);
 
 	    if (frame_author)
@@ -278,7 +278,7 @@
 
 	    y = Math.round(vnc_canvas_backup.height/6);
 	    __draw_text(vnc_canvas_backup, "Session: [ " + frame_title.substring(0,20) + " ] " + str,
-		"60px Verdana", "center", "#a00", y, 0, 0.8, 1, "#fff");
+		"50px Verdana", "center", "#a00", y, 0, 0.8, 1, "#fff");
 
 	    draw_frameinfo();
 
@@ -501,7 +501,7 @@
 	    h = canvas.height;
 
 	    if (!font)
-		font = "60px Verdana";
+		font = "50px Verdana";
 
 	    if (!align)
 		align = "center";
