@@ -246,7 +246,7 @@
 
 	function __draw_welcome() {
 	    __draw_bg(vnc_canvas_backup, "#000");
-	    __draw_text(vnc_canvas_backup, "Session: [ " + fname + " ]", "60px Verdana", "center", "#a00", Math.round(vnc_canvas_backup.height/6));
+	    __draw_text(vnc_canvas_backup, "Session: [ " + fname.substring(0,20) + " ]", "60px Verdana", "center", "#a00", Math.round(vnc_canvas_backup.height/6));
 	    __draw_text(vnc_canvas_backup, "Tiny noVNC Player", "35px Verdana", "center", "#00a", Math.round(vnc_canvas_backup.height/3));
 	    __draw_text(vnc_canvas_backup, "Powered by http://TinyLab.org", "35px Verdana", "center", "#00a", Math.round(vnc_canvas_backup.height/2));
 	}
@@ -858,7 +858,7 @@
 	}
 
 	function __draw_finish() {
-	    restore_canvas("Session: [ " + fname  + " ] Finished.");
+	    restore_canvas("Session: [ " + fname.substring(0,20)  + " ] Finished.");
 
 	    __draw_text(vnc_canvas_backup, "Tiny noVNC Player", "35px Verdana", "center", "#00a", Math.round(vnc_canvas_backup.height/3));
 	    __draw_text(vnc_canvas_backup, "Powered by http://TinyLab.org", "35px Verdana", "center", "#00a", Math.round(vnc_canvas_backup.height/2));
