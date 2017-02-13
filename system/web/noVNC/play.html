@@ -14,6 +14,7 @@
 	    #VNC_records { display: none; width: 100%; }
 	    iframe { text-align: center; width: 98%; height: 180px; }
 
+	    #VNC_screen { display: inline-block; }
 	    #VNC_canvas { display: none; }
 	    #VNC_canvas_backup { display: inline-block; }
 
@@ -21,7 +22,7 @@
 	    #iterations { width: 30px; }
 
 	    #VNC_playbar { display: none; text-align: center; }
-	    #left_playbar { float: left; }
+	    #left_playbar { float: left; padding-left: 2px }
 	    #middle_playbar { float: left; }
 	    #right_playbar { float: right; }
 	    #startBtn { width: 45px; margin-left: 1px; margin-right: 1px }
@@ -91,8 +92,7 @@
 	    <input id="endBtn" type='button' value='>>' onclick="track_click('end');" title="Ctrl/Shift/Alt + Down, Goto the End">
 	  </div>
 	</div>
-
-
+	<br>
 	<div id="VNC_screen" ontouchstart='track_stop(1)' onmousedown='track_stop(1)' ontouchmove='track_move(1)' onmousemove='track_move(1)' ontouchend='track_start(1)' onmouseup='track_start(1)'>
 	    <canvas id="VNC_canvas" width="100%">
 		Canvas not supported.
@@ -145,6 +145,7 @@
 	var frame_title, frame_author, frame_time, frame_tags, frame_desc;
 	var screen_width_input, screen_width, screen_height, screen_ratio;
 
+	var vnc_screen = document.getElementById('VNC_screen');
 	var vnc_canvas = document.getElementById('VNC_canvas');
 	var vnc_canvas_backup = document.getElementById('VNC_canvas_backup');
 	var default_canvas_height = 20;
@@ -943,6 +944,7 @@
 		play_bar.style.display = 'inline-block';
 		var middle_play_bar_width = parseInt(w) - left_play_bar.offsetWidth - right_play_bar.offsetWidth;
 		middle_play_bar.style.width = middle_play_bar_width + "px";
+		vnc_screen.style.width = w;
 	    }
 	}
 
