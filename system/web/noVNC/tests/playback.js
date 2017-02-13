@@ -10,7 +10,7 @@
 
 
 var rfb, mode, test_state, frame_idx, frame_length,
-    iteration, iterations, istart_time, encoding, toffset, delay,
+    iteration, iterations, encoding, delay, foffset,
     screen_width, screen_height,
 
     // Pre-declarations for jslint
@@ -111,7 +111,6 @@ next_iteration = function () {
 
     ___speedup();
 
-    istart_time = (new Date()).getTime();
     rfb.connect('test', 0, "bogus");
 
     queue_next_packet();
@@ -133,8 +132,10 @@ end_iteration = function () {
     }
 };
 
+var prev_foffset = 0;
+
 queue_next_packet = function () {
-    var frame, foffset;
+    var frame;
 
     ___update_stats(iteration, frame_idx);
     if (test_state !== 'running') { return; }
@@ -163,9 +164,7 @@ queue_next_packet = function () {
     if ((mode == 'fullspeed') && (skipframes > 0) && (frame_idx >= skipframes)) {
 	___stop();
 
-	foffset = frame.slice(1, frame.indexOf('{', 1));
-	toffset = foffset - 100;
-	istart_time = (new Date()).getTime() - toffset;
+	prev_foffset = frame.slice(1, frame.indexOf('{', 1));
 
 	if (rfb._flushing) {
 	    rfb._display.set_onFlush(function () {
@@ -179,11 +178,13 @@ queue_next_packet = function () {
 
     if (mode === 'realtime') {
         foffset = frame.slice(1, frame.indexOf('{', 1));
-        toffset = (new Date()).getTime() - istart_time;
-        delay = foffset - toffset;
+        delay = foffset - prev_foffset;
+        //console.info("prev_foffset: " + prev_foffset + " foffset: " + foffset + " delay: " + (foffset - prev_foffset));
+
         if (delay < 1) {
             delay = 1;
         }
+        prev_foffset = foffset;
 
         if (___running())
             setTimeout(do_packet, delay);

@@ -27,6 +27,7 @@
 		color: #777; display: none; margin-left: 2px; margin-right: 2px;
 		width: 30px;
 	    }
+	    #frame_time, #total_time { min-width: 45px; }
 
 	    #infoBar { display: none; }
 	    #messages { font-size: 9; margin: 0 auto; }
@@ -72,7 +73,9 @@
 	    <input id="beginBtn" type='button' value='<<' onclick="track_click('begin');" title="Ctrl/Shift/Alt + Up, Goto the Begin">
 	    <input id="minusBtn" type='button' value='<' onclick="track_click('minus');" title="Ctrl/Shift/Alt + Left, Backfoward frames">
 
+            <span id="frame_time" title="Current time"></span>
 	    <input id="trackBar" type="range" min="0" max="10" step="1" value="0" title="Drag or Click to the target frame" ontouchstart='track_stop();' onmousedown='track_stop();' ontouchmove='track_move();' onmousemove='track_move();' ontouchend='track_start();' onmouseup='track_start();' />
+            <span id="total_time" title="Total time"></span>
 
 	    <input id="plusBtn" type='button' value='>' onclick="track_click('plus');" title="Ctrl/Shift/Alt + Right, Fastforward 10 frames">
 	    <input id="endBtn" type='button' value='>>' onclick="track_click('end');" title="Ctrl/Shift/Alt + Down, Goto the End">
@@ -140,6 +143,8 @@
 	var vnc_ctrl_status = document.getElementById('VNC_control_status');
 	var iter = document.getElementById('iteration');
 	var fidx = document.getElementById('frame_idx');
+	var ftime = document.getElementById('frame_time');
+	var ttime = document.getElementById('total_time');
 	var session = document.getElementById('session');
 
 	var vnc_records = document.getElementById('VNC_records');
@@ -195,6 +200,27 @@
 	    }
 	}
 
+	function format_time(ms) {
+	    var s, m, h;
+
+	    s = Math.floor(ms / 1000);
+
+	    h = Math.floor(s / 3600);
+	    m = h > 0 ? Math.floor((s - h * 3600)/60) : Math.floor(s / 60);
+	    s = m > 0 ? Math.floor((s - h * 3600 - m * 60)) : s;
+
+	    if (h < 10)
+	        h = '0' + h;
+
+	    if (m < 10)
+	        m = '0' + m;
+
+	    if (s < 10)
+	        s = '0' + s;
+
+	    return h + ":" + m + ":" + s;
+	}
+
 	function ___update_stats(iteration, frame_idx) {
 	    iter.textContent = iteration;
 	    if (fname) {
@@ -202,6 +228,7 @@
 		if (frame_idx > frame_idx_max)
 		    tmp = totalframes;
 		fidx.textContent = tmp + " . " + parseInt(tmp * 100 / totalframes) + "%";
+		ftime.textContent = format_time(foffset);
 	    }
 
 	    if ((frame_idx > skipframes) && ___running())
@@ -427,7 +454,6 @@
 		window.setImmediate(do_packet);
 	    } else {
 		setTimeout(do_packet, delay);
-		istart_time = (new Date()).getTime() - toffset;
 	    }
 
 	    play_stats = playStats.RUNNING;
@@ -533,13 +559,24 @@
 		}
 
 		if (!___running()) {
-		    track_bar.value = Number(track_bar.value) + offset;
+		    var frame, idx = Number(track_bar.value) + offset;
+		    track_bar.value = idx;
+		    skipframes = idx + 1;
 
-		    skipframes = Number(track_bar.value) + 1;
+		    frame = VNC_frame_data[idx];
+		    if (frame) {
+			idx = frame.indexOf('{', 1);
+			if (idx > -1) {
+			    ftime.textContent = format_time(frame.slice(1, idx));
+			    ftime.style.color = '#f00';
+			}
+		    }
+
 		    if (skipframes > frame_idx_max)
 			jumpto.textContent = totalframes;
 		    else
 			jumpto.textContent = Number(skipframes) + 1;
+		    jumpto.style.color = '#00f';
 		}
 	    }
 	}
@@ -549,6 +586,11 @@
 		return;
 
 	    track_move();
+
+	    if (ftime.style.color !== '#000') {
+		ftime.style.color = '#000';
+		jumpto.style.color = '#000';
+	    }
 
 	    if (track_bar_stats !== trackBarStats.MOVE) {
 		track_bar_stats = trackBarStats.UP;
@@ -741,7 +783,7 @@
 
                 var w = vnc_canvas.style.width;
                 var width = parseInt(w);
-                var track_bar_width = width - 35 - 80 - 120;
+                var track_bar_width = width - 35 - 80 - 120 - 90;
                 if (track_bar_width < 100)
                     return;
 
@@ -765,7 +807,7 @@
 
 	    screen_width = WebUtil.getQueryVar('width', 0);
 	    screen_height = WebUtil.getQueryVar('height', 0);
-	    screen_ratio = WebUtil.getQueryVar('ratio', Math.round(4/3));
+	    screen_ratio = WebUtil.getQueryVar('ratio', Math.round(16/9));
 
 	    screen_width_input = screen_width;
 
@@ -785,15 +827,26 @@
 		info_bar.style.display = 'block';
 
 	    if (fname) {
+		var frame, i, idx;
+
 		message("VNC_frame_data.length: " + VNC_frame_data.length);
 		if (typeof(VNC_frame_title) !== "undefined")
 		    session.title = VNC_frame_title;
-		frame_idx_max = VNC_frame_data.length - 1;
+		frame_idx_max = VNC_frame_data.length - 2;
+
+		i = VNC_frame_data.length;
+		do {
+		    i -= 1;
+		    frame = VNC_frame_data[i];
+		    idx = frame.indexOf('{', 1);
+		} while (idx < 0);
+
+		ttime.textContent = format_time(frame.slice(1, idx));
 
 		track_bar.max = frame_idx_max;
 		prev_track_value = frame_idx_max;
-		totalframes = VNC_frame_data.length;
-		size.textContent = VNC_frame_data.length;
+		totalframes = VNC_frame_data.length - 1;
+		size.textContent = VNC_frame_data.length - 1;
 
 		track_bar.style.display = "inline-block";
 
