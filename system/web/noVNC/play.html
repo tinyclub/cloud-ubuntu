@@ -252,6 +252,13 @@
 
 	    if (frame_idx === frame_idx_max)
 		backup_canvas();
+
+	    if (rfb && rfb._display && vnc_canvas) {
+		var w = vnc_canvas.width;
+		var h = vnc_canvas.height;
+	        var imgdata = vnc_canvas.getContext('2d').getImageData(w-1, h-1, w, h);
+		console.info("frame: " + frame_idx + " imgdata: " + imgdata.data[0]);
+	    }
 	}
 
 	function ___running() {
@@ -802,13 +809,13 @@
 		var w = vnc_canvas.style.width;
 		var h = vnc_canvas.style.height;
 
-		var middle_play_bar_width = vnc_canvas.offsetWidth - left_play_bar.offsetWidth - right_play_bar.offsetWidth - 2;
+		var middle_play_bar_width = vnc_canvas.offsetWidth - left_play_bar.offsetWidth - right_play_bar.offsetWidth;
 
 		if (middle_play_bar_width < 50)
 		    return;
 
 		middle_play_bar.style.width = middle_play_bar_width + "px";
-		play_bar.style.width = w;
+		//play_bar.style.width = w;
 		play_bar.style.display = 'inline-block';
 
 		vnc_canvas_backup.style.width = w;
