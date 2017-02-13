@@ -14,8 +14,8 @@
 	    #VNC_records { display: none; width: 100%; }
 	    iframe { text-align: center; width: 98%; height: 180px; }
 
-	    #VNC_canvas { display: inline-block; }
-	    #VNC_canvas_backup { display: none; }
+	    #VNC_canvas { display: none; }
+	    #VNC_canvas_backup { display: inline-block; }
 
 	    #session { font-size: 115%; vertical-align: top }
 	    #iterations { width: 30px; }
@@ -94,10 +94,10 @@
 
 
 	<div id="VNC_screen" ontouchstart='track_stop(1)' onmousedown='track_stop(1)' ontouchmove='track_move(1)' onmousemove='track_move(1)' ontouchend='track_start(1)' onmouseup='track_start(1)'>
-	    <canvas id="VNC_canvas" width="100%" height="20px">
+	    <canvas id="VNC_canvas" width="100%">
 		Canvas not supported.
 	    </canvas>
-	    <canvas id="VNC_canvas_backup" width="100%" height="20px">
+	    <canvas id="VNC_canvas_backup" width="100%">
 		Canvas not supported.
 	    </canvas>
 	    <div id="VNC_status_bar" class="VNC_status_bar">
@@ -146,6 +146,9 @@
 
 	var vnc_canvas = document.getElementById('VNC_canvas');
 	var vnc_canvas_backup = document.getElementById('VNC_canvas_backup');
+	var default_canvas_height = 20;
+	vnc_canvas.height = default_canvas_height;
+	vnc_canvas_backup.height = default_canvas_height;
 
 	var vnc_title = document.getElementById('VNC_title');
 
@@ -207,7 +210,7 @@
 
 	function message(str) {
 	    if (messageon) {
-		console.log(str);
+		console.info(str);
 		cell.textContent += str + "\n";
 		cell.scrollTop = cell.scrollHeight;
 	    }
@@ -237,14 +240,35 @@
 	    return h + ":" + m + ":" + s;
 	}
 
+	var prev_canvas_height = default_canvas_height;
+	var full_frame_found = 0;
+	var full_frame_idx = 0;
+
+	function __draw_welcome() {
+	    __draw_bg(vnc_canvas_backup, "#000");
+	    __draw_text(vnc_canvas_backup, "Session: [ " + fname + " ]", "60px Verdana", "center", "#a00", Math.round(vnc_canvas_backup.height/6));
+	    __draw_text(vnc_canvas_backup, "Tiny noVNC Player", "35px Verdana", "center", "#00a", Math.round(vnc_canvas_backup.height/3));
+	    __draw_text(vnc_canvas_backup, "Powered by http://TinyLab.org", "35px Verdana", "center", "#00a", Math.round(vnc_canvas_backup.height/2));
+	}
+
 	function ___update_stats(iteration, frame_idx) {
 	    iter.textContent = iteration;
 	    if (fname) {
-		var tmp = frame_idx + 1;
+		var frame, tmp = frame_idx + 1;
 		if (frame_idx > frame_idx_max)
 		    tmp = totalframes;
 		fidx.textContent = tmp + " . " + parseInt(tmp * 100 / totalframes) + "%";
-		ftime.textContent = format_time(foffset);
+
+		if (mode === 'realtime') {
+		    ftime.textContent = format_time(foffset);
+		} else {
+		    frame = VNC_frame_data[frame_idx];
+		    if (frame) {
+			var idx = frame.indexOf('{', 1);
+			if (idx > -1)
+			    ftime.textContent = format_time(frame.slice(1, idx));
+		    }
+		}
 	    }
 
 	    if ((frame_idx > skipframes) && ___running())
@@ -253,11 +277,29 @@
 	    if (frame_idx === frame_idx_max)
 		backup_canvas();
 
-	    if (rfb && rfb._display && vnc_canvas) {
-		var w = vnc_canvas.width;
-		var h = vnc_canvas.height;
-	        var imgdata = vnc_canvas.getContext('2d').getImageData(w-1, h-1, w, h);
-		console.info("frame: " + frame_idx + " imgdata: " + imgdata.data[0]);
+	    if (rfb && rfb._display && vnc_canvas && vnc_canvas.height !== default_canvas_height) {
+		if (prev_canvas_height === default_canvas_height) {
+		   //console.info("draw the welcome page.");
+
+		    __stop();
+		    __draw_welcome();
+
+		   prev_canvas_height = vnc_canvas.height;
+		}
+
+		if (!full_frame_found) {
+		    var w = vnc_canvas.width;
+		    var h = vnc_canvas.height;
+	            var imgdata = vnc_canvas.getContext('2d').getImageData(w-1, h-1, w, h);
+		    // console.info("w: " + w + " h: " + h + " frame: " + frame_idx + " imgdata: " + imgdata.data[0]);
+		    if (imgdata.data[0] !== 0) {
+			full_frame_found = 1;
+			full_frame_idx = frame_idx;
+		        vnc_canvas_backup.style.display = 'none';
+		        vnc_canvas.style.display = 'inline-block';
+			track_bar.min = frame_idx;
+		    }
+		}
 	    }
 	}
 
@@ -337,9 +379,9 @@
 	    next_iteration();
 	}
 
-	function __stop() {
+	function __stop(str) {
 	    backup_canvas();
-	    restore_canvas("Fast Forwarding ...");
+	    restore_canvas(str);
 
 	    play_stats = playStats.STOPPED;
 
@@ -372,11 +414,43 @@
 	}
 
 	function restore_canvas(str) {
+	    if (!str)
+		return;
+
+	    if (!(full_frame_found) || (frame_idx < full_frame_idx))
+		return;
+
 	    var ctx = vnc_canvas_backup.getContext('2d');
 	    if (canvas_imgdata !== '') {
 		ctx.putImageData(canvas_imgdata, 0, 0);
 		backup_draw_text(str)
 	    }
+	}
+
+	function __draw_bg(canvas, style, transparent) {
+	    if (canvas === vnc_canvas_backup)
+		ctx = vnc_canvas_backup.getContext('2d');
+	    else
+		ctx = rfb._display.get_context();
+
+	    w = canvas.width;
+	    h = canvas.height;
+
+	    if (!style) {
+		//var gradient=ctx.createLinearGradient(0, 0, w, 0);
+		//gradient.addColorStop("0","green");
+		//gradient.addColorStop("0.5","red");
+		//gradient.addColorStop("1.0","blue");
+		//style = gradient;
+		style = "#a00";
+	    }
+
+	    if (!transparent)
+		transparent = 1.0;
+
+	    ctx.globalAlpha = transparent;
+	    ctx.fillStyle = style;
+	    ctx.fillRect(0, 0, w, h);
 	}
 
 	function __draw_text(canvas, str, font, align, style, y, x, transparent) {
@@ -633,6 +707,8 @@
 	    start();
 	}
 
+	var begin_frame = 0;
+
 	function track_click(button) {
 	    var tmp;
 
@@ -641,6 +717,8 @@
 
 	    skipframes = 0;
 	    jumpto.textContent = 0;
+	    if (full_frame_found)
+		begin_frame = full_frame_idx;
 
 	    track_stop();
 
@@ -648,8 +726,8 @@
 
 	    switch(button) {
 		case 'begin':
-		    if (tmp > 0)
-			track_bar.value = 0;
+		    if (tmp > begin_frame)
+			track_bar.value = begin_frame;
 		    else {
 			__resume();
 			return;
@@ -666,7 +744,7 @@
 		    end_btn.disabled = true;
 		    break;
 		case 'minus':
-		    if (tmp === 0) {
+		    if (tmp <= begin_frame) {
 			__resume();
 			return;
 		    }
@@ -691,10 +769,10 @@
 		    while (prev_track_value <= tmp)
 			tmp = tmp - 10;
 
-		    if (tmp > 0)
+		    if (tmp > begin_frame)
 			track_bar.value = tmp;
 		    else
-			track_bar.value = 0;
+			track_bar.value = begin_frame;
 		    minus_btn.disabled = true;
 		    break;
 		case 'plus':
@@ -719,6 +797,9 @@
 	}
 
 	window.onblur = function() {
+	    if (!(full_frame_found) || (frame_idx < full_frame_idx))
+		return;
+
 	    if (!(skipframes > frame_idx))
 		__stop();
 	}
@@ -809,19 +890,19 @@
 		var w = vnc_canvas.style.width;
 		var h = vnc_canvas.style.height;
 
-		var middle_play_bar_width = vnc_canvas.offsetWidth - left_play_bar.offsetWidth - right_play_bar.offsetWidth;
-
-		if (middle_play_bar_width < 50)
+		// wait for rfb initialization
+		if (vnc_canvas.height <= default_canvas_height)
 		    return;
-
-		middle_play_bar.style.width = middle_play_bar_width + "px";
-		//play_bar.style.width = w;
-		play_bar.style.display = 'inline-block';
 
 		vnc_canvas_backup.style.width = w;
 		vnc_canvas_backup.style.height = h;
 
 		vnc_records.style.width = w;
+
+		//play_bar.style.width = w;
+		play_bar.style.display = 'inline-block';
+		var middle_play_bar_width = parseInt(w) - left_play_bar.offsetWidth - right_play_bar.offsetWidth;
+		middle_play_bar.style.width = middle_play_bar_width + "px";
 	    }
 	}
 
