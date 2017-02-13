@@ -273,14 +273,17 @@
 
 	}
 
-	function __draw_welcome() {
+	function draw_frame(str) {
 	    __draw_bg(vnc_canvas_backup, "#000");
 
-	    __draw_text(vnc_canvas_backup, "Session: [ " + frame_title.substring(0,20) + " ]", "60px Verdana", "center", "#a00", Math.round(vnc_canvas_backup.height/6));
+	    __draw_text(vnc_canvas_backup, "Session: [ " + frame_title.substring(0,20) + " ] " + str, "60px Verdana", "center", "#a00", Math.round(vnc_canvas_backup.height/6), 0, 0, 0);
 
 	    draw_frameinfo();
 
-	    __draw_text(vnc_canvas_backup, "Tiny noVNC Player, Powered by http://TinyLab.org", "30px Verdana", "center", "#00a", Math.round(vnc_canvas_backup.height/2));
+	    __draw_text(vnc_canvas_backup, "Tiny noVNC Player, Powered by http://TinyLab.org", "20px Verdana", "center", "#00a", Math.round(vnc_canvas_backup.height/2));
+
+	    vnc_canvas.style.display = 'none';
+	    vnc_canvas_backup.style.display = 'inline-block';
 	}
 
 	function ___update_stats(iteration, frame_idx) {
@@ -314,7 +317,7 @@
 		   //console.info("draw the welcome page.");
 
 		    __stop();
-		    __draw_welcome();
+		    draw_frame("Ready.");
 
 		   prev_canvas_height = vnc_canvas.height;
 		}
@@ -894,22 +897,13 @@
 	    show_others();
 	}
 
-	function __draw_finish() {
-	    restore_canvas("Session: [ " + frame_title.substring(0,20)  + " ] Finished.");
-
-	    __draw_text(vnc_canvas_backup, "Tiny noVNC Player, Powered by http://TinyLab.org, @lzufalcon", "30px Verdana", "center", "#00a", Math.round(vnc_canvas_backup.height/2));
-
-	    vnc_canvas.style.display = 'none';
-	    vnc_canvas_backup.style.display = 'inline-block';
-	}
-
 	function ___finish() {
 	    if ((mode == 'fullspeed') && (skipframes > 0))
 		mode = 'realtime';
 
 	    finish();
 	    __resume();
-	    __draw_finish();
+	    draw_frame("Finished.");
 	}
 
 	function update_screensize() {
