@@ -6,7 +6,7 @@
 	<style type="text/css">
 	    body { background-color:#eee; font-size:12px; font-family:'Tahoma', 'Verdana'; text-align:center }
 	    body,a,input,span { vertical-align:middle }
-	    div { white-space:nowrap; overflow-x:auto; }
+	    div { overflow:hidden; white-space:nowrap; }
 
 	    div a { text-decoration: none; outline: none; }
 	    h1 a { text-decoration: none; outline: none; color:#000 }
@@ -20,11 +20,14 @@
 	    #session { font-size: 115%; vertical-align: top }
 	    #iterations { width: 30px; }
 
-	    #VNC_playbar { display: none; }
-	    #startBtn { width: 80px; margin-left: 2px; margin-right: 2px }
-	    #trackBar { width: 100%; margin-left: 2px; margin-right: 2px; }
-	    #minusBtn,#plusBtn,#beginBtn,#endBtn {
-		color: #777; display: none; margin-left: 2px; margin-right: 2px;
+	    #VNC_playbar { display: none; text-align: center; }
+	    #left_playbar { float: left; }
+	    #middle_playbar { float: left; }
+	    #right_playbar { float: right; }
+	    #startBtn { width: 60px; margin-left: 1px; margin-right: 1px }
+	    #trackBar { width: 96%; margin-left: 1px; margin-right: 1px; }
+	    #minusBtn, #plusBtn, #beginBtn, #endBtn {
+		color: #777; display: none; margin-left: 1px; margin-right: 1px;
 		width: 30px;
 	    }
 	    #frame_time, #total_time { min-width: 45px; }
@@ -42,13 +45,13 @@
 	  <div id="VNC_control_status">
 
 	     <a href="#VNC_playbar"><span id="session" title="Goto the session video"></span></a>&nbsp;&nbsp;
-             <span id="loop" title="Total iterations"></span><a> . </a>
-             <span id="iteration" title="Current iteration"></span><a> . </a>
-             <span id="size" title="Total frames"></span><a> . </a>
-             <span id="skipframes" title="Frames to skip"></span><a> . </a>
-             <span id="frame_idx" title="Current frame and percentage"></span>
-             &nbsp;&nbsp;<a href="#" onclick="show_records();">#sessions</a>
-             &nbsp;<a href="#" onclick="full_screen();">#fullscreen</a>
+	     <span id="loop" title="Total iterations"></span><a> . </a>
+	     <span id="iteration" title="Current iteration"></span><a> . </a>
+	     <span id="size" title="Total frames"></span><a> . </a>
+	     <span id="skipframes" title="Frames to skip"></span><a> . </a>
+	     <span id="frame_idx" title="Current frame and percentage"></span>
+	     &nbsp;&nbsp;<a href="#" onclick="show_records();">#sessions</a>
+	     &nbsp;<a href="#" onclick="full_screen();">#fullscreen</a>
 
 	  </div><br>
 
@@ -68,18 +71,25 @@
 
 	<div id="VNC_playbar">
 
+	  <div id="left_playbar">
 	    <input id='startBtn' type='button' value='=>' onclick="start(1);" title="Press Enter, Start/Stop/Continue" disabled>
 
 	    <input id="beginBtn" type='button' value='<<' onclick="track_click('begin');" title="Ctrl/Shift/Alt + Up, Goto the Begin">
 	    <input id="minusBtn" type='button' value='<' onclick="track_click('minus');" title="Ctrl/Shift/Alt + Left, Backfoward frames">
 
-            <span id="frame_time" title="Current time"></span>
+	    <span id="frame_time" title="Current time"></span>
+	  </div>
+
+	  <div id="middle_playbar">
 	    <input id="trackBar" type="range" min="0" max="10" step="1" value="0" title="Drag or Click to the target frame" ontouchstart='track_stop();' onmousedown='track_stop();' ontouchmove='track_move();' onmousemove='track_move();' ontouchend='track_start();' onmouseup='track_start();' />
-            <span id="total_time" title="Total time"></span>
+	  </div>
+
+	  <div id="right_playbar">
+	    <span id="total_time" title="Total time"></span>
 
 	    <input id="plusBtn" type='button' value='>' onclick="track_click('plus');" title="Ctrl/Shift/Alt + Right, Fastforward 10 frames">
 	    <input id="endBtn" type='button' value='>>' onclick="track_click('end');" title="Ctrl/Shift/Alt + Down, Goto the End">
-
+	  </div>
 	</div>
 
 
@@ -151,6 +161,9 @@
 	var vnc_status = document.getElementById('VNC_status');
 
 	var play_bar = document.getElementById('VNC_playbar');
+	var left_play_bar = document.getElementById('left_playbar');
+	var right_play_bar = document.getElementById('right_playbar');
+	var middle_play_bar = document.getElementById('middle_playbar');
 	var track_bar = document.getElementById('trackBar');
 	var start_btn = document.getElementById('startBtn');
 	var begin_btn = document.getElementById('beginBtn');
@@ -169,8 +182,8 @@
 	var mode1 = document.getElementById('mode1');
 	var mode2 = document.getElementById('mode2');
 
-        var last_x = 0;
-        var last_y = 0;
+	var last_x = 0;
+	var last_y = 0;
 
 	play_stats = playStats.INIT;
 	prev_track_value = 0;
@@ -210,13 +223,13 @@
 	    s = m > 0 ? Math.floor((s - h * 3600 - m * 60)) : s;
 
 	    if (h < 10)
-	        h = '0' + h;
+		h = '0' + h;
 
 	    if (m < 10)
-	        m = '0' + m;
+		m = '0' + m;
 
 	    if (s < 10)
-	        s = '0' + s;
+		s = '0' + s;
 
 	    return h + ":" + m + ":" + s;
 	}
@@ -242,26 +255,26 @@
 	    return (play_stats === playStats.RUNNING)
 	}
 
-        function show_others() {
-            vnc_title.style.display = 'block';
-            vnc_ctrl.style.display = 'block';
-        }
+	function show_others() {
+	    vnc_title.style.display = 'block';
+	    vnc_ctrl.style.display = 'block';
+	}
 
-        function full_screen() {
-            fullscreen = 1;
-            hide_others();
-        }
+	function full_screen() {
+	    fullscreen = 1;
+	    hide_others();
+	}
 
-        function hide_others() {
-            vnc_title.style.display = 'none';
-            vnc_ctrl.style.display = 'none';
-        }
+	function hide_others() {
+	    vnc_title.style.display = 'none';
+	    vnc_ctrl.style.display = 'none';
+	}
 
 	fullscreen = WebUtil.getQueryVar('f', 0);
-        if (fullscreen === 0)
+	if (fullscreen === 0)
 	    fullscreen = WebUtil.getQueryVar('fullscreen', 0);
-        if (fullscreen)
-            hide_others();
+	if (fullscreen)
+	    hide_others();
 
 	fname = WebUtil.getQueryVar('data', null);
 	if (fname) {
@@ -334,8 +347,8 @@
 
 	function backup_canvas() {
 	    //console.info("backup canvas");
-            if (!(rfb && rfb._display))
-                return;
+	    if (!(rfb && rfb._display))
+		return;
 
 	    update_screensize();
 
@@ -348,12 +361,12 @@
 	    canvas_imgdata = vnc_canvas.getContext('2d').getImageData(0, 0, w, h);
 	}
 
-        function restore_canvas(str) {
+	function restore_canvas(str) {
 	    var ctx = vnc_canvas_backup.getContext('2d');
 	    if (canvas_imgdata !== '') {
 		ctx.putImageData(canvas_imgdata, 0, 0);
-	        backup_draw_text(str)
-            }
+		backup_draw_text(str)
+	    }
 	}
 
 	function __draw_text(canvas, str, font, align, style, y, x, transparent) {
@@ -369,7 +382,7 @@
 		font = "50px Verdana";
 
 	    if (!align)
-	        align = "center";
+		align = "center";
 
 	    if (!style) {
 		//var gradient=ctx.createLinearGradient(0, 0, w, 0);
@@ -380,8 +393,8 @@
 		style = "#a00";
 	    }
 
-            if (!x)
-	        x = parseInt(w / 2);
+	    if (!x)
+		x = parseInt(w / 2);
 
 	    if (!y) {
 		//var y = parseInt(h / 6);
@@ -483,8 +496,8 @@
 
 	    if (stats !== playStats.RUNNING) {
 		vnc_status.style.display = 'none';
-                if (fullscreen)
-                    hide_others();
+		if (fullscreen)
+		    hide_others();
 		if (stats === playStats.STOPPED)
 		    __continue();
 		else
@@ -508,18 +521,18 @@
 	    if (fname && (frame_idx < frame_idx_max) && ___running())
 		__stop();
 
-            if (touch) {
-                var event = window.event;
+	    if (touch) {
+		var event = window.event;
 		event.preventDefault();
 		if (event.touches) {
-                    last_x = event.touches[0].clientX;
-                    last_y = event.touches[0].clientY;
+		    last_x = event.touches[0].clientX;
+		    last_y = event.touches[0].clientY;
 		} else {
 		    last_x = event.clientX;
 		    last_y = event.clientY;
 		}
 		// console.log("x is " + last_x + " y is " + last_y);
-            }
+	    }
 
 	    prev_track_value = Number(track_bar.value);
 	    // console.log("prev track value is " + prev_track_value);
@@ -544,7 +557,7 @@
 			}
 			if (x != last_x) {
 			    moved = 1;
-                            offset = Math.round((x - last_x) * track_bar.max / parseInt(track_bar.style.width));
+			    offset = Math.round((x - last_x) * track_bar.max / track_bar.offsetWidth);
 			    // console.log("x is " + x + " y is " + y + " moved is " + moved);
 			    last_x = x;
 			}
@@ -747,7 +760,7 @@
 	    start_btn.value = "=>";
 	    //vnc_status.textContent = "Finished";
 	    //vnc_status.style.display = 'inline-block';
-            show_others();
+	    show_others();
 	}
 
 	function __draw_finish() {
@@ -781,18 +794,19 @@
 		screen_width = Math.round(screen_height * screen_ratio);
 
 	    if (rfb && rfb._display) {
-		rfb._display.autoscale(screen_width, screen_height);
+		rfb._display.autoscale(screen_width, screen_height, 1);
 
-                var w = vnc_canvas.style.width;
-                var width = parseInt(w);
-                var track_bar_width = width - 35 - 80 - 120 - 90;
-                if (track_bar_width < 100)
-                    return;
+		var w = vnc_canvas.style.width;
+		var h = vnc_canvas.style.height;
 
-		track_bar.style.width = track_bar_width + "px";
+		var middle_play_bar_width = vnc_canvas.offsetWidth - left_play_bar.offsetWidth - right_play_bar.offsetWidth;
+
+		if (middle_play_bar_width < 50)
+		    return;
+
+		middle_play_bar.style.width = middle_play_bar_width + "px";
+		play_bar.style.width = w;
 		play_bar.style.display = 'inline-block';
-
-                var h = vnc_canvas.style.height;
 
 		vnc_canvas_backup.style.width = w;
 		vnc_canvas_backup.style.height = h;
@@ -844,6 +858,7 @@
 		} while (idx < 0);
 
 		ttime.textContent = format_time(frame.slice(1, idx));
+		ftime.textContent = '00:00:00';
 
 		track_bar.max = frame_idx_max;
 		prev_track_value = frame_idx_max;
