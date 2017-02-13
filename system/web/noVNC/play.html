@@ -30,7 +30,7 @@
 		color: #777; display: none; margin-left: 1px; margin-right: 1px;
 		width: 30px;
 	    }
-	    #frame_time, #total_time { min-width: 45px; }
+	    #current_time, #total_time { min-width: 45px; }
 
 	    #infoBar { display: none; }
 	    #messages { font-size: 9; margin: 0 auto; }
@@ -77,7 +77,7 @@
 	    <input id="beginBtn" type='button' value='<<' onclick="track_click('begin');" title="Ctrl/Shift/Alt + Up, Goto the Begin">
 	    <input id="minusBtn" type='button' value='<' onclick="track_click('minus');" title="Ctrl/Shift/Alt + Left, Backfoward frames">
 
-	    <span id="frame_time" title="Current time"></span>
+	    <span id="current_time" title="Current time"></span>
 	  </div>
 
 	  <div id="middle_playbar">
@@ -142,6 +142,7 @@
 	var prev_track_value;
 
 	var fname, start_time, play_stats, frame_idx_max, totalframes, skipframes, messageon, canvas_imgdata;
+	var frame_title, frame_author, frame_time, frame_tags, frame_desc;
 	var screen_width_input, screen_width, screen_height, screen_ratio;
 
 	var vnc_canvas = document.getElementById('VNC_canvas');
@@ -156,7 +157,7 @@
 	var vnc_ctrl_status = document.getElementById('VNC_control_status');
 	var iter = document.getElementById('iteration');
 	var fidx = document.getElementById('frame_idx');
-	var ftime = document.getElementById('frame_time');
+	var ftime = document.getElementById('current_time');
 	var ttime = document.getElementById('total_time');
 	var session = document.getElementById('session');
 
@@ -244,11 +245,41 @@
 	var full_frame_found = 0;
 	var full_frame_idx = 0;
 
+
+	function draw_frameinfo() {
+	    var y = Math.round(vnc_canvas_backup.height/4);
+	    var x = Math.round(vnc_canvas_backup.width/3);
+
+	    if (frame_author)
+	        __draw_text(vnc_canvas_backup, "Author: " + frame_author.substring(0, 30), "20px Verdana", "left", "#fff", y, x, 1, 0);
+
+	    if (frame_time) {
+	        y += 25;
+	        __draw_text(vnc_canvas_backup, "Create: " + frame_time, "20px Verdana", "left", "#fff", y, x, 1, 0);
+	    }
+
+	    y += 25;
+	    __draw_text(vnc_canvas_backup, "Length: " + ttime.textContent, "20px Verdana", "left", "#fff", y, x, 1, 0);
+
+	    if (frame_tags) {
+	        y += 25;
+	        __draw_text(vnc_canvas_backup, "Tags: " + frame_tags.substring(0, 30), "20px Verdana", "left", "#fff", y, x, 1, 0);
+	    }
+	    if (frame_desc) {
+	        y += 25;
+	        __draw_text(vnc_canvas_backup, "Desc: " + frame_desc.substr(0, 30), "20px Verdana", "left", "#fff", y, x, 1, 0);
+	    }
+
+	}
+
 	function __draw_welcome() {
 	    __draw_bg(vnc_canvas_backup, "#000");
-	    __draw_text(vnc_canvas_backup, "Session: [ " + fname.substring(0,20) + " ]", "60px Verdana", "center", "#a00", Math.round(vnc_canvas_backup.height/6));
-	    __draw_text(vnc_canvas_backup, "Tiny noVNC Player", "35px Verdana", "center", "#00a", Math.round(vnc_canvas_backup.height/3));
-	    __draw_text(vnc_canvas_backup, "Powered by http://TinyLab.org", "35px Verdana", "center", "#00a", Math.round(vnc_canvas_backup.height/2));
+
+	    __draw_text(vnc_canvas_backup, "Session: [ " + frame_title.substring(0,20) + " ]", "60px Verdana", "center", "#a00", Math.round(vnc_canvas_backup.height/6));
+
+	    draw_frameinfo();
+
+	    __draw_text(vnc_canvas_backup, "Tiny noVNC Player, Powered by http://TinyLab.org", "30px Verdana", "center", "#00a", Math.round(vnc_canvas_backup.height/2));
 	}
 
 	function ___update_stats(iteration, frame_idx) {
@@ -453,7 +484,7 @@
 	    ctx.fillRect(0, 0, w, h);
 	}
 
-	function __draw_text(canvas, str, font, align, style, y, x, transparent) {
+	function __draw_text(canvas, str, font, align, style, y, x, transparent, bg) {
 	    if (canvas === vnc_canvas_backup)
 		ctx = vnc_canvas_backup.getContext('2d');
 	    else
@@ -490,9 +521,14 @@
 
 	    var font_height = parseInt(font);
 
-	    ctx.globalAlpha = transparent;
-	    ctx.fillStyle = "#fff";
-	    ctx.fillRect(0, y - font_height, w, Math.floor(font_height + font_height/2));
+	    if (bg !== 0)
+		bg = 1;
+
+	    if (bg) {
+		ctx.globalAlpha = transparent;
+		ctx.fillStyle = "#fff";
+		ctx.fillRect(0, y - font_height, w, Math.floor(font_height + font_height/2));
+	    }
 
 	    ctx.font = font;
 	    ctx.textAlign = align;
@@ -858,10 +894,9 @@
 	}
 
 	function __draw_finish() {
-	    restore_canvas("Session: [ " + fname.substring(0,20)  + " ] Finished.");
+	    restore_canvas("Session: [ " + frame_title.substring(0,20)  + " ] Finished.");
 
-	    __draw_text(vnc_canvas_backup, "Tiny noVNC Player", "35px Verdana", "center", "#00a", Math.round(vnc_canvas_backup.height/3));
-	    __draw_text(vnc_canvas_backup, "Powered by http://TinyLab.org", "35px Verdana", "center", "#00a", Math.round(vnc_canvas_backup.height/2));
+	    __draw_text(vnc_canvas_backup, "Tiny noVNC Player, Powered by http://TinyLab.org, @lzufalcon", "30px Verdana", "center", "#00a", Math.round(vnc_canvas_backup.height/2));
 
 	    vnc_canvas.style.display = 'none';
 	    vnc_canvas_backup.style.display = 'inline-block';
@@ -911,6 +946,30 @@
 	    }
 	}
 
+	function update_frameinfo() {
+	    frame_title = fname;
+	    frame_author = 'Unknown';
+	    frame_time = 'Unknown';
+	    frame_tags = 'Unknown';
+	    frame_desc = 'Unknown';
+
+	    if (typeof(VNC_frame_title) !== "undefined") {
+		frame_title = VNC_frame_title;
+	    }
+	    if (typeof(VNC_frame_author) !== "undefined") {
+		frame_author = VNC_frame_author;
+	    }
+	    if (typeof(VNC_frame_time) !== "undefined") {
+		frame_time = VNC_frame_time;
+	    }
+	    if (typeof(VNC_frame_tags) !== "undefined") {
+		frame_tags = VNC_frame_tags;
+	    }
+	    if (typeof(VNC_frame_desc) !== "undefined") {
+		frame_desc = VNC_frame_desc;
+	    }
+	}
+
 	window.onscriptsload = function () {
 	    iterations = WebUtil.getQueryVar('iterations', 1);
 	    skipframes = WebUtil.getQueryVar('skipframes', 0);
@@ -941,9 +1000,14 @@
 	    if (fname) {
 		var frame, i, idx;
 
+		update_frameinfo();
+
 		message("VNC_frame_data.length: " + VNC_frame_data.length);
-		if (typeof(VNC_frame_title) !== "undefined")
+		if (typeof(VNC_frame_title) !== "undefined") {
 		    session.title = VNC_frame_title;
+		    session.textContent = "#" + VNC_frame_title;
+		}
+
 		frame_idx_max = VNC_frame_data.length - 2;
 
 		i = VNC_frame_data.length;
