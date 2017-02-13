@@ -642,7 +642,7 @@
 	    if (fname && (frame_idx < frame_idx_max) && ___running())
 		__stop();
 
-	    if (touch) {
+	    if (touch && window.event) {
 		var event = window.event;
 		event.preventDefault();
 		if (event.touches) {
@@ -667,7 +667,7 @@
 		var moved = 0;
 		var offset = 0;
 
-		if (touch) {
+		if (touch && window.event) {
 			var event = window.event;
 			if (event.touches) {
 			    var x = event.touches[0].clientX;
