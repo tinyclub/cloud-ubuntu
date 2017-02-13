@@ -248,7 +248,7 @@
 
 
 	function draw_frameinfo() {
-	    var y = Math.round(vnc_canvas_backup.height/6) + 80;
+	    var y = Math.round(vnc_canvas_backup.height/3) + 50;
 	    var x = Math.round(vnc_canvas_backup.width/3);
 
 	    if (frame_author)
@@ -274,13 +274,17 @@
 	}
 
 	function draw_frame(str) {
-	    __draw_bg(vnc_canvas_backup, "#000");
+	    __draw_bg(vnc_canvas_backup);
 
-	    __draw_text(vnc_canvas_backup, "Session: [ " + frame_title.substring(0,20) + " ] " + str, "60px Verdana", "center", "#a00", Math.round(vnc_canvas_backup.height/6), 0, 0, 0);
+	    y = Math.round(vnc_canvas_backup.height/6);
+	    __draw_text(vnc_canvas_backup, "Session: [ " + frame_title.substring(0,20) + " ] " + str,
+		"60px Verdana", "center", "#a00", y, 0, 0.8, 1, "#fff");
 
 	    draw_frameinfo();
 
-	    __draw_text(vnc_canvas_backup, "Tiny noVNC Player, Powered by http://TinyLab.org", "20px Verdana", "center", "#00a", Math.round(vnc_canvas_backup.height/2));
+	    y = Math.round(vnc_canvas_backup.height*3/4);
+	    __draw_text(vnc_canvas_backup, "Tiny noVNC Player",
+		"20px Verdana", "center", "#00a", y, 0, 0.8, 1, "#fff");
 
 	    vnc_canvas.style.display = 'none';
 	    vnc_canvas_backup.style.display = 'inline-block';
@@ -472,23 +476,22 @@
 	    h = canvas.height;
 
 	    if (!style) {
-		//var gradient=ctx.createLinearGradient(0, 0, w, 0);
-		//gradient.addColorStop("0","green");
-		//gradient.addColorStop("0.5","red");
-		//gradient.addColorStop("1.0","blue");
-		//style = gradient;
-		style = "#a00";
+		var gradient=ctx.createLinearGradient(0, 0, w, 0);
+		gradient.addColorStop("0","green");
+		gradient.addColorStop("0.5","red");
+		gradient.addColorStop("1.0","blue");
+		style = gradient;
 	    }
 
 	    if (!transparent)
-		transparent = 1.0;
+		transparent = 0.8;
 
 	    ctx.globalAlpha = transparent;
 	    ctx.fillStyle = style;
 	    ctx.fillRect(0, 0, w, h);
 	}
 
-	function __draw_text(canvas, str, font, align, style, y, x, transparent, bg) {
+	function __draw_text(canvas, str, font, align, style, y, x, transparent, bg, bg_style) {
 	    if (canvas === vnc_canvas_backup)
 		ctx = vnc_canvas_backup.getContext('2d');
 	    else
@@ -498,39 +501,38 @@
 	    h = canvas.height;
 
 	    if (!font)
-		font = "50px Verdana";
+		font = "60px Verdana";
 
 	    if (!align)
 		align = "center";
 
-	    if (!style) {
-		//var gradient=ctx.createLinearGradient(0, 0, w, 0);
-		//gradient.addColorStop("0","green");
-		//gradient.addColorStop("0.5","red");
-		//gradient.addColorStop("1.0","blue");
-		//style = gradient;
-		style = "#a00";
-	    }
+	    if (!style)
+		style = "#fff";
+
+	    var font_height = parseInt(font);
 
 	    if (!x)
 		x = parseInt(w / 2);
 
 	    if (!y) {
-		//var y = parseInt(h / 6);
-		var y = 100;
+		var y = parseInt(h / 6);
 	    }
 
 	    if (!transparent)
 		transparent = 0.8;
 
-	    var font_height = parseInt(font);
+	    if (!bg_style) {
+		var gradient=ctx.createLinearGradient(0, 0, w, 0);
+		gradient.addColorStop("0","green");
+		gradient.addColorStop("0.5","red");
+		gradient.addColorStop("1.0","blue");
 
-	    if (bg !== 0)
-		bg = 1;
+		bg_style = gradient;
+	    }
 
-	    if (bg) {
+	    if (bg !== 0) {
 		ctx.globalAlpha = transparent;
-		ctx.fillStyle = "#fff";
+		ctx.fillStyle = bg_style;
 		ctx.fillRect(0, y - font_height, w, Math.floor(font_height + font_height/2));
 	    }
 
