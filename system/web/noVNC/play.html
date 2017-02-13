@@ -283,7 +283,7 @@
 	    draw_frameinfo();
 
 	    y = Math.round(vnc_canvas_backup.height*3/4);
-	    __draw_text(vnc_canvas_backup, "Tiny noVNC Player",
+	    __draw_text(vnc_canvas_backup, "Tiny noVNC Player, powered by http://tinylab.org",
 		"20px Verdana", "center", "#00a", y, 0, 0.8, 1, "#fff");
 
 	    vnc_canvas.style.display = 'none';
@@ -478,8 +478,8 @@
 	    if (!style) {
 		var gradient=ctx.createLinearGradient(0, 0, w, 0);
 		gradient.addColorStop("0","green");
-		gradient.addColorStop("0.5","red");
-		gradient.addColorStop("1.0","blue");
+		gradient.addColorStop("0.6","blue");
+		gradient.addColorStop("1.0","red");
 		style = gradient;
 	    }
 
