@@ -6,7 +6,7 @@
 	<style type="text/css">
 	    body { background-color:#eee; font-size:12px; font-family:'Tahoma', 'Verdana'; text-align:center }
 	    body,a,input,span { vertical-align:middle }
-	    div { overflow:hidden; white-space:nowrap; }
+	    div { overflow:hidden; }
 
 	    div a { text-decoration: none; outline: none; }
 	    h1 a { text-decoration: none; outline: none; color:#000 }
@@ -14,14 +14,14 @@
 	    #VNC_records { display: none; width: 100%; }
 	    iframe { text-align: center; width: 98%; height: 360px; }
 
-	    #VNC_screen { display: inline-block; }
+	    #VNC_screen { display: inline-block; white-space:nowrap; margin-top: -2px; }
 	    #VNC_canvas { display: none; }
 	    #VNC_canvas_backup { display: inline-block; }
 
 	    #session { font-size: 115%; vertical-align: top }
 	    #iterations { width: 30px; }
 
-	    #VNC_playbar { display: none; text-align: center; }
+	    #VNC_playbar { display: none; text-align: center; white-space:nowrap; margin-bottom: -2px; margin-top: -5px; }
 	    #left_playbar { float: left; padding-left: 2px }
 	    #middle_playbar { float: left; }
 	    #right_playbar { float: right; }
@@ -92,7 +92,7 @@
 	    <input id="endBtn" type='button' value='>>' onclick="track_click('end');" title="Ctrl/Shift/Alt + Down, Goto the End">
 	  </div>
 	</div>
-	<br>
+
 	<div id="VNC_screen" ontouchstart='track_stop(1)' onmousedown='track_stop(1)' ontouchmove='track_move(1)' onmousemove='track_move(1)' ontouchend='track_start(1)' onmouseup='track_start(1)'>
 	    <canvas id="VNC_canvas" width="100%">
 		Canvas not supported.
