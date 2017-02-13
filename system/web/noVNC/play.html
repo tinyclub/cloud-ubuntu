@@ -216,6 +216,9 @@
 	function format_time(ms) {
 	    var s, m, h;
 
+	    if (!ms)
+		return '00:00:00';
+
 	    s = Math.floor(ms / 1000);
 
 	    h = Math.floor(s / 3600);
