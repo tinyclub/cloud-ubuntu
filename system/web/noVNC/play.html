@@ -93,7 +93,7 @@
 	  </div>
 	</div><br>
 
-	<div id="VNC_screen" ontouchstart='track_stop(1)' onmousedown='track_stop(1)' ontouchmove='track_move(1)' onmousemove='track_move(1)' ontouchend='track_start(1)' onmouseup='track_start(1)'>
+	<div id="VNC_screen" ontouchstart='track_stop(2)' onmousedown='track_stop(1)' ontouchmove='track_move(2)' onmousemove='track_move(1)' ontouchend='track_start(2)' onmouseup='track_start(1)'>
 	    <canvas id="VNC_canvas" width="100%">
 		Canvas not supported.
 	    </canvas>
@@ -121,6 +121,7 @@
     <script src="./app/webutil.js"></script>
 
     <script>
+	var touchable = 0;
 	// skip drawing if (skipframes - frame_idx) is big
 	// draw a text to tell users wait instead.
 	var frames_delta = 200;
@@ -642,6 +643,12 @@
 	    if (track_bar.disabled)
 		return;
 
+	    if (touch === 2)
+		touchable = 1;
+
+	    if (touchable && touch === 1)
+		return;
+
 	    track_bar_stats = trackBarStats.DOWN;
 	    prev_play_stats = play_stats;
 	    if (fname && (frame_idx < frame_idx_max) && ___running())
@@ -666,6 +673,12 @@
 
 	function track_move(touch) {
 	    if (track_bar.disabled)
+		return;
+
+	    if (touch === 2)
+		touchable = 1;
+
+	    if (touchable && touch === 1)
 		return;
 
 	    if ((track_bar_stats === trackBarStats.DOWN) || (track_bar_stats === trackBarStats.MOVE)) {
@@ -724,6 +737,12 @@
 
 	function track_start(touch) {
 	    if (track_bar.disabled)
+		return;
+
+	    if (touch === 2)
+		touchable = 1;
+
+	    if (touchable && touch === 1)
 		return;
 
 	    track_move();
