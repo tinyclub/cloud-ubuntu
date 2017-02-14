@@ -277,7 +277,7 @@
 	    __draw_bg(vnc_canvas_backup);
 
 	    y = Math.round(vnc_canvas_backup.height/6);
-	    __draw_text(vnc_canvas_backup, "Session: [ " + frame_title.substring(0,20) + " ] " + str,
+	    __draw_text(vnc_canvas_backup, "[ " + frame_title.substring(0,20) + " ] " + str,
 		"50px Verdana", "center", "#a00", y, 0, 0.8, 1, "#fff");
 
 	    draw_frameinfo();
@@ -905,7 +905,7 @@
 
 	    finish();
 	    __resume();
-	    draw_frame("Finished.");
+	    draw_frame("Finish.");
 	}
 
 	var prev_screen_width = 0;
