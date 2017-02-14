@@ -292,7 +292,7 @@
 
 	function ___update_stats(iteration, frame_idx) {
 	    iter.textContent = iteration;
-	    if (fname) {
+	    if (fname && full_frame_found) {
 		var frame, tmp = frame_idx + 1;
 		if (frame_idx > frame_idx_max)
 		    tmp = totalframes;
@@ -310,7 +310,7 @@
 		}
 	    }
 
-	    if ((frame_idx > skipframes) && ___running())
+	    if (full_frame_found && (frame_idx > skipframes) && ___running())
 		track_bar.value = frame_idx;
 
 	    if (frame_idx === frame_idx_max)
@@ -320,10 +320,14 @@
 		if (prev_canvas_height === default_canvas_height) {
 		   //console.info("draw the welcome page.");
 
-		    __stop();
+		    if (vnc_canvas_backup.width !== vnc_canvas.width) {
+			vnc_canvas_backup.width = vnc_canvas.width;
+			vnc_canvas_backup.height = vnc_canvas.height;
+		    }
+
 		    draw_frame("Ready.");
 
-		   prev_canvas_height = vnc_canvas.height;
+		    prev_canvas_height = vnc_canvas.height;
 		}
 
 		if (!full_frame_found) {
@@ -332,10 +336,10 @@
 	            var imgdata = vnc_canvas.getContext('2d').getImageData(w-1, h-1, w, h);
 		    // console.info("w: " + w + " h: " + h + " frame: " + frame_idx + " imgdata: " + imgdata.data[0]);
 		    if (imgdata.data[0] !== 0) {
+		        __stop();
+
 			full_frame_found = 1;
 			full_frame_idx = frame_idx;
-		        vnc_canvas_backup.style.display = 'none';
-		        vnc_canvas.style.display = 'inline-block';
 			track_bar.min = frame_idx;
 		    }
 		}
@@ -443,20 +447,14 @@
 
 	    update_screensize();
 
-	    var w = vnc_canvas.width;
-	    var h = vnc_canvas.height;
-
-	    vnc_canvas_backup.width = w;
-	    vnc_canvas_backup.height = h;
-
-	    canvas_imgdata = vnc_canvas.getContext('2d').getImageData(0, 0, w, h);
+	    canvas_imgdata = vnc_canvas.getContext('2d').getImageData(0, 0, vnc_canvas.width, vnc_canvas.height);
 	}
 
 	function restore_canvas(str) {
 	    if (!str)
 		return;
 
-	    if (!(full_frame_found) || (frame_idx < full_frame_idx))
+	    if (!full_frame_found)
 		return;
 
 	    var ctx = vnc_canvas_backup.getContext('2d');
@@ -561,8 +559,10 @@
 
 	    skipframes = 0;
 	    prev_track_value = frame_idx_max;
-	    vnc_canvas_backup.style.display = 'none';
-	    vnc_canvas.style.display = 'inline-block';
+	    if (full_frame_found && (frame_idx > full_frame_idx)) {
+		vnc_canvas_backup.style.display = 'none';
+		vnc_canvas.style.display = 'inline-block';
+	    }
 	}
 
 	function ___speedup() {
@@ -839,7 +839,7 @@
 	}
 
 	window.onblur = function() {
-	    if (!(full_frame_found) || (frame_idx < full_frame_idx))
+	    if (!full_frame_found)
 		return;
 
 	    if (frame_idx >= frame_idx_max)
@@ -908,6 +908,9 @@
 	    draw_frame("Finished.");
 	}
 
+	var prev_screen_width = 0;
+	var prev_screen_height = 0;
+
 	function update_screensize() {
 	    var target_width = window.innerWidth - 35;
 
@@ -922,6 +925,9 @@
 		screen_width = Math.round(screen_height * screen_ratio);
 
 	    if (rfb && rfb._display) {
+		if (full_frame_found && prev_screen_width === screen_width && prev_screen_height === screen_height)
+		    return;
+
 		rfb._display.autoscale(screen_width, screen_height, 1);
 
 		var w = vnc_canvas.style.width;
@@ -931,17 +937,21 @@
 		if (vnc_canvas.height <= default_canvas_height)
 		    return;
 
-		vnc_canvas_backup.style.width = w;
-		vnc_canvas_backup.style.height = h;
+		if (vnc_canvas_backup.style.width !== w) {
+		    vnc_canvas_backup.style.width = w;
+		    vnc_canvas_backup.style.height = h;
 
-		vnc_records.style.width = w;
+		    vnc_records.style.width = w;
 
-		//play_bar.style.width = w;
-		play_bar.style.display = 'inline-block';
-		var middle_play_bar_width = parseInt(w) - left_play_bar.offsetWidth - right_play_bar.offsetWidth;
-		middle_play_bar.style.width = middle_play_bar_width + "px";
-		vnc_screen.style.width = w;
+		    //play_bar.style.width = w;
+		    play_bar.style.display = 'inline-block';
+		    var middle_play_bar_width = parseInt(w) - left_play_bar.offsetWidth - right_play_bar.offsetWidth;
+		    middle_play_bar.style.width = middle_play_bar_width + "px";
+		    vnc_screen.style.width = w;
+		}
 	    }
+	    prev_screen_width = screen_width;
+	    prev_screen_height = screen_height;
 	}
 
 	function update_frameinfo() {
