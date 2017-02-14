@@ -91,7 +91,7 @@
 	    <input id="plusBtn" type='button' value='>' onclick="track_click('plus');" title="Ctrl/Shift/Alt + Right, Fastforward 10 frames">
 	    <input id="endBtn" type='button' value='>>' onclick="track_click('end');" title="Ctrl/Shift/Alt + Down, Goto the End">
 	  </div>
-	</div>
+	</div><br>
 
 	<div id="VNC_screen" ontouchstart='track_stop(1)' onmousedown='track_stop(1)' ontouchmove='track_move(1)' onmousemove='track_move(1)' ontouchend='track_start(1)' onmouseup='track_start(1)'>
 	    <canvas id="VNC_canvas" width="100%">
@@ -277,7 +277,7 @@
 	    __draw_bg(vnc_canvas_backup);
 
 	    y = Math.round(vnc_canvas_backup.height/6);
-	    __draw_text(vnc_canvas_backup, "[ " + frame_title.substring(0,25) + " ]",
+	    __draw_text(vnc_canvas_backup, "[ " + frame_title.substring(0,30) + " ]",
 		"50px Verdana", "center", "#a00", y, 0, 0.8, 1, "#fff");
 
 	    draw_frameinfo();
