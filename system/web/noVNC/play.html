@@ -248,30 +248,24 @@
 	var full_frame_idx = 0;
 
 
+	function draw_frameitem(item, desc, font, align, color, y, x) {
+	    if (item)
+	        __draw_text(vnc_canvas_backup, desc + ": " + item.substring(0, 30), font, align, color, y, x, 1, 0);
+	}
+
 	function draw_frameinfo() {
-	    var y = Math.round(vnc_canvas_backup.height/3) + 45;
+	    var y = Math.round(vnc_canvas_backup.height/3);
 	    var x = Math.round(vnc_canvas_backup.width/3);
+	    var font = "35px Verdana";
+	    var color = "#fff";
+	    var align = "left";
+	    var offset = 40;
 
-	    if (frame_author)
-	        __draw_text(vnc_canvas_backup, "Author: " + frame_author.substring(0, 30), "20px Verdana", "left", "#fff", y, x, 1, 0);
-
-	    if (frame_time) {
-	        y += 25;
-	        __draw_text(vnc_canvas_backup, "Create: " + frame_time, "20px Verdana", "left", "#fff", y, x, 1, 0);
-	    }
-
-	    y += 25;
-	    __draw_text(vnc_canvas_backup, "Length: " + ttime.textContent, "20px Verdana", "left", "#fff", y, x, 1, 0);
-
-	    if (frame_tags) {
-	        y += 25;
-	        __draw_text(vnc_canvas_backup, "Tags: " + frame_tags.substring(0, 30), "20px Verdana", "left", "#fff", y, x, 1, 0);
-	    }
-	    if (frame_desc) {
-	        y += 25;
-	        __draw_text(vnc_canvas_backup, "Desc: " + frame_desc.substr(0, 30), "20px Verdana", "left", "#fff", y, x, 1, 0);
-	    }
-
+	    draw_frameitem(frame_author, "Author", font, align, color, y, x);
+	    draw_frameitem(frame_time, "Create", font, align, color, y+=offset, x);
+	    draw_frameitem(ttime.textContent, "Length", font, align, color, y+=offset, x);
+	    draw_frameitem(frame_tags, "Tags", font, align, color, y+=offset, x);
+	    draw_frameitem(frame_desc, "Desc", font, align, color, y+=offset, x);
 	}
 
 	function draw_frame() {
@@ -285,7 +279,7 @@
 
 	    y = Math.round(vnc_canvas_backup.height*3/4);
 	    __draw_text(vnc_canvas_backup, "Tiny noVNC Player, powered by http://tinylab.org",
-		"20px Verdana", "center", "#00a", y, 0, 0.8, 1, "#fff");
+		"30px Verdana", "center", "#00a", y, 0, 0.8, 1, "#fff");
 
 	    vnc_canvas.style.display = 'none';
 	    vnc_canvas_backup.style.display = 'inline-block';
@@ -956,7 +950,7 @@
 		if (vnc_canvas.height <= default_canvas_height)
 		    return;
 
-		if (vnc_canvas_backup.style.width !== w) {
+		if (vnc_screen.style.width !== w) {
 		    vnc_canvas_backup.style.width = w;
 		    vnc_canvas_backup.style.height = h;
 
