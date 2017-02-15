@@ -408,6 +408,7 @@
 
 	function full_screen() {
 	    fullscreen = 1;
+	    hide_others();
 
 	    var element = document.body;
 
@@ -416,8 +417,6 @@
 
 	    if (requestMethod)
 		requestMethod.call(element);
-
-	    hide_others();
 	}
 
 	function hide_others() {
@@ -959,15 +958,11 @@
 
 	function check_fullscreen() {
 	    if (window.outerWidth === screen.width && window.outerHeight === screen.height) {
-		if (!fullscreen) {
 		    fullscreen = 1;
 		    hide_others();
-		}
 	    } else {
-		if (fullscreen) {
 		    fullscreen = 0;
 		    show_others();
-		}
 	    }
 	}
 
