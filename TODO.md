@@ -15,3 +15,5 @@
     * http://kolber.github.io/audiojs/
     * http://www.cnblogs.com/dragondean/p/jquery-audioplayer-js.html
     * https://msdn.microsoft.com/zh-cn/library/gg589529(v=vs.85).aspx
+12. Add data compress with base64+lz4/decompress support for big data
+    TODO: check the size diff between base64 and binary encoding

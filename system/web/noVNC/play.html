@@ -427,7 +427,7 @@
 
 	disconnected = function (rfb, reason) {
 	    if (reason) {
-		message("noVNC sent '" + state + "' state during iteration " + iteration + " frame " + frame_idx);
+		message("noVNC sent '" + reason + "' state during iteration " + iteration + " frame " + frame_idx);
 		test_state = 'failed';
 	    }
 	}
@@ -1135,7 +1135,7 @@
 		part = next_data_part;
 
 	    uri = get_uri(fname, part);
-	    console.info("data uri is " + uri);
+	    //console.info("data uri is " + uri);
 	    window.asyncLoad(uri, handle_framedata, 120000);
 	}
 
