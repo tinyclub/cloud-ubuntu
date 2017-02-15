@@ -141,7 +141,7 @@
 	var prev_track_value;
 
 	var fname, short_fname, start_time, play_stats, frame_idx_max, totalframes, skipframes, messageon, canvas_imgdata;
-	var frame_title, frame_author, frame_time, frame_tags, frame_desc, prev_frame_length;
+	var frame_title, frame_author, frame_time, frame_tags, frame_desc, frame_data_parts;
 	var screen_width_input, screen_height_input, screen_width, screen_height, screen_ratio;
 
 	var vnc_screen = document.getElementById('VNC_screen');
@@ -194,6 +194,7 @@
 	prev_track_value = 0;
 	prev_play_stats = play_stats;
 	frame_idx_max = 0;
+	frame_data_parts = 0;
 	totalframes = 0;
 	canvas_imgdata = '';
 
@@ -1041,8 +1042,13 @@
 	    }
 	}
 
-	function merge_data() {
+	function merge_data(uri) {
 	    var stopped_by_me = 0;
+	    var prev_frame_length;
+	    var next_part;
+
+	    console.info("uri: " + uri);
+	    console.info("part: " + uri.substring(uri.lastIndexOf(".")+1));
 
 	    if (___running()) {
 		stopped_by_me = 1;
@@ -1052,24 +1058,39 @@
 		stopped_by_me = 1;
 	    }
 
-	    VNC_frame_data = VNC_frame_data.concat(VNC_frame_data_2);
-	    handle_framedata();
+	    index = parseInt(uri.substring(uri.lastIndexOf(".")+1));
+	    prev_frame_length = VNC_frame_data.length - 1;
+	    VNC_frame_data = VNC_frame_data.concat(VNC_frame_data_parts[index]);
 
 	    if (stopped_by_me) {
 		vnc_canvas.style.display = 'inline-block';
 		vnc_canvas_backup.style.display = 'none';
 		__resume_control();
+		frame_idx = prev_frame_length;
 	        __continue();
 	    }
+
+	    next_part = index + 1;
+	    if (next_part < frame_data_parts)
+		load_framedata(next_part);
 	}
 
-	function load_framedata() {
+	function get_uri(fname, part) {
+	    var uri;
+	    if (short_fname === fname)
+		uri = '' + INCLUDE_URI + '/recordings/' + fname + "." + part;
+	    else
+		uri = fname + "." + part;
+
+	    return uri;
+	}
+
+	function load_framedata(part) {
+	    if (typeof(part) === 'undefined')
+		part = 1;
+
 	    if (typeof(VNC_frame_length) !== 'undefined') {
-		var uri;
-		if (short_fname === fname)
-		    uri = '' + INCLUDE_URI + '/recordings/' + fname + ".2";
-		else
-		    uri = fname + ".2";
+		uri = get_uri(fname, part);
 		console.info("data uri is " + uri);
 		window.asyncLoad(uri, merge_data, 12000);
 	    }
@@ -1080,12 +1101,13 @@
 
 	    message("VNC_frame_data.length: " + VNC_frame_data.length);
 
-	    prev_frame_length = VNC_frame_data.length;
-
 	    if (typeof(VNC_frame_title) !== "undefined") {
 	        session.title = frame_desc;
 	        session.textContent = "#" + VNC_frame_title;
 	    }
+
+	    if (typeof(VNC_frame_data_parts) !== 'undefined')
+		frame_data_parts = VNC_frame_data_parts.length;
 
 	    if (typeof(VNC_frame_length) !== 'undefined')
 		frame_length = VNC_frame_length;
@@ -1150,7 +1172,8 @@
 		update_frameinfo();
 		handle_framedata();
 		//load_framedata();
-		setTimeout(load_framedata, 15000);
+		if (frame_data_parts)
+		    setTimeout(load_framedata, 1000);
 
 		track_bar.style.display = "inline-block";
 

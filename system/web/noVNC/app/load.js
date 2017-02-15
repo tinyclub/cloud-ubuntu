@@ -38,7 +38,7 @@ define( function() {
 		finished = function() {
 			addEventCallback( null );
 			clearTimeout( _timeout );
-			always();
+			always( url );
 		};
 
 		/**
