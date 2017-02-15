@@ -31,7 +31,7 @@ class Records:
                   "    td { font-size: 80%; overflow: hidden; text-overflow: ellipsis } \n" \
                   "    tr.head { background-color: #ccc; } \n" \
                   "    tr.odd { background-color: #eee } \n" \
-                  "    tr:hover { background-color: #aaa; font-size: 120%; } \n" \
+                  "    tr:hover { background-color: #aaa; } \n" \
                   "</style>\n" \
                   "</head>\n" \
                   "<body>\n\n"

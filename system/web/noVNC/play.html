@@ -6,25 +6,25 @@
 	<style type="text/css">
 	    body { background-color:#eee; font-size:16px; font-family:'Tahoma', 'Tahoma'; text-align:center; overflow: hidden; }
 	    body,a,input,span { vertical-align:middle }
-	    div { overflow:hidden; }
+	    div { overflow:hidden; margin: 0px;; padding: 0px; }
 
 	    div a { text-decoration: none; outline: none; }
 	    h1 a { text-decoration: none; outline: none; color:#000 }
 
-	    #VNC_records { display: none; width: 100%; padding-bottom: 6px; }
-	    iframe { text-align: center; width: 98%; height: 360px; }
+	    #VNC_records { display: none; width: 100%; height: 600px; }
+	    iframe { text-align: center; width: 98%; height: 100%; }
 
-	    #VNC_screen { display: inline-block; white-space:nowrap; padding: 0px; margin: 0px; }
+	    #VNC_screen { display: inline-block; white-space:nowrap; }
 	    #VNC_canvas { display: none; }
 	    #VNC_canvas_backup { display: inline-block; }
 
 	    #session { font-size: 115%; vertical-align: top }
 	    #iterations { width: 30px; }
 
-	    #VNC_playbar { display: none; text-align: center; white-space:nowrap; padding: 0px; margin: 0px; }
-	    #left_playbar { float: left; margin: 0px; padding: 0px; }
-	    #middle_playbar { float: left; margin: 0px; padding: 0px; }
-	    #right_playbar { float: right; margin: 0px; padding: 0px; }
+	    #VNC_playbar { display: none; text-align: center; white-space:nowrap; }
+	    #left_playbar { float: left; }
+	    #middle_playbar { float: left; }
+	    #right_playbar { float: right; }
 	    #startBtn { width: 45px; margin-left: 1px; margin-right: 1px }
 	    #trackBar { width: 98%; margin-left: 1px; margin-right: 1px; }
 	    #minusBtn, #plusBtn, #beginBtn, #endBtn {
@@ -45,7 +45,7 @@
 	  <br>
 	  <div id="VNC_control_status">
 
-	     <a href="#VNC_playbar"><span id="session" title="Goto the session video"></span></a>&nbsp;&nbsp;
+	     <a><span id="session" title="session title"></span></a>&nbsp;&nbsp;
 	     <span id="loop" title="Total iterations"></span><a> . </a>
 	     <span id="iteration" title="Current iteration"></span><a> . </a>
 	     <span id="size" title="Total frames"></span><a> . </a>
@@ -199,8 +199,12 @@
 	    console.info("vnc records display " + vnc_records.style.display);
 	    if (vnc_records.style.display === "inline-block")
 		vnc_records.style.display = "none";
-	    else
+	    else {
+	        vnc_records.style.height = "200px";
 		vnc_records.style.display = "inline-block";
+	    }
+
+	    update_screensize();
 	}
 
 	function iters_update() {
@@ -960,7 +964,7 @@
 	    if (screen_height > 0 && screen_width === 0)
 		screen_width = Math.round(screen_height * screen_ratio);
 
-	    if (rfb && rfb._display) {
+	    if (typeof(rfb) !== 'undefined' && rfb._display) {
 		if (full_frame_found && prev_screen_width === screen_width && prev_screen_height === screen_height)
 		    return;
 
@@ -977,10 +981,11 @@
 		    vnc_canvas_backup.style.width = w;
 		    vnc_canvas_backup.style.height = h;
 
-		    vnc_records.style.width = w;
+		    //vnc_records.style.width = w;
 
-		    //play_bar.style.width = w;
+		    play_bar.style.width = w;
 		    play_bar.style.display = 'inline-block';
+
 		    var middle_play_bar_width = parseInt(w) - left_play_bar.offsetWidth - right_play_bar.offsetWidth;
 		    middle_play_bar.style.width = middle_play_bar_width + "px";
 		    vnc_screen.style.width = w;
@@ -1049,7 +1054,7 @@
 
 		message("VNC_frame_data.length: " + VNC_frame_data.length);
 		if (typeof(VNC_frame_title) !== "undefined") {
-		    session.title = VNC_frame_title;
+		    session.title = frame_desc;
 		    session.textContent = "#" + VNC_frame_title;
 		}
 
