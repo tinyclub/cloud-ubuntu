@@ -10,6 +10,7 @@
 
 	<h1 id="VNC_title"><a href="http://tinylab.org" target="_blank" title="Powered by TinyLab.org">Tiny noVNC Player</a></h1>
 
+       <div id="main">
 	<div id="VNC_control">
 	  <div id="VNC_control_status">
 
@@ -55,9 +56,6 @@
 	    <input id="fsBtn" type='button' value='[ ]' onclick="full_screen();" title="Enter/Exit Fullscreen">
 	    <input id="moreBtn" type='button' value='...' onclick="op_records();" title="More noVNC Sessions">
 	  </div>
-	</div><br>
-
-	<div id="VNC_records">
 	</div>
 
 	<div id="VNC_screen" ontouchstart='track_stop(2)' onmousedown='track_stop(1)' ontouchmove='track_move(2)' onmousemove='track_move(1)' ontouchend='track_start(2)' onmouseup='track_start(1)'>
@@ -69,6 +67,11 @@
 	    </canvas>
 	    <div id="VNC_status">Loading ...</div>
 	</div>
+
+	<div id="VNC_records">
+	</div>
+
+      </div>
     </body>
 
     <!--
@@ -424,6 +427,7 @@
 	}
 
 	var prev_screen_width = 0;
+	var prev_screen_height = 0;
 
 	function full_screen() {
 	    if (fullscreen) {
@@ -1089,7 +1093,7 @@
 		    vnc_records.style.height = h;
 
 		    play_bar.style.width = w;
-		    play_bar.style.display = 'inline-block';
+		    play_bar.style.display = 'block';
 
 		    var middle_play_bar_width = parseInt(w) - left_play_bar.offsetWidth - right_play_bar.offsetWidth;
 		    middle_play_bar.style.width = middle_play_bar_width + "px";
