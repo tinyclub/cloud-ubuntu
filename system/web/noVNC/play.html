@@ -144,7 +144,7 @@
 
 	var fname, start_time, play_stats, frame_idx_max, totalframes, skipframes, messageon, canvas_imgdata;
 	var frame_title, frame_author, frame_time, frame_tags, frame_desc;
-	var screen_width_input, screen_width, screen_height, screen_ratio;
+	var screen_width_input, screen_height_input, screen_width, screen_height, screen_ratio;
 
 	var vnc_screen = document.getElementById('VNC_screen');
 	var vnc_screen_disabled = 1;
@@ -359,6 +359,7 @@
 	function show_others() {
 	    vnc_title.style.display = 'block';
 	    vnc_ctrl.style.display = 'block';
+	    update_screensize();
 	}
 
 	function full_screen() {
@@ -369,6 +370,7 @@
 	function hide_others() {
 	    vnc_title.style.display = 'none';
 	    vnc_ctrl.style.display = 'none';
+	    update_screensize();
 	}
 
 	fullscreen = WebUtil.getQueryVar('f', 0);
@@ -945,11 +947,17 @@
 
 	function update_screensize() {
 	    var target_width = window.innerWidth - 35;
+	    var target_height = window.innerHeight - vnc_screen.offsetTop - 10;
 
 	    if (screen_width_input <= 0)
 		screen_width = target_width;
 	    else if (screen_width_input > target_width)
 		screen_width = target_width;
+
+	    if (screen_height_input <= 0)
+		screen_height = target_height;
+	    else if (screen_height_input > target_height)
+		screen_height = target_height;
 
 	    if (screen_width > 0 && screen_height === 0)
 		screen_height = Math.round(screen_width / screen_ratio);
@@ -1021,6 +1029,7 @@
 	    screen_ratio = WebUtil.getQueryVar('ratio', 4/3);
 
 	    screen_width_input = screen_width;
+	    screen_height_input = screen_height;
 
 	    update_screensize();
 
