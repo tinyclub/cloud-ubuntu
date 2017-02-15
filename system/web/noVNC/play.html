@@ -100,7 +100,7 @@
 	    <canvas id="VNC_canvas_backup" width="100%">
 		Canvas not supported.
 	    </canvas>
-	    <div id="VNC_status">Loading</div>
+	    <div id="VNC_status">Loading ...</div>
 	</div>
     </body>
 
@@ -396,7 +396,7 @@
 	    message("Loading " + tmp);
 
 	    session.textContent = "#"+ tmp;
-	    vnc_status.textContent = "Loading";
+	    vnc_status.textContent = "Loading ...";
 
 	    // Load supporting scripts
 	    WebUtil.load_scripts({
