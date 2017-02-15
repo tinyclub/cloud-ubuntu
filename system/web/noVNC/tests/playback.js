@@ -141,7 +141,7 @@ queue_next_packet = function () {
     if (test_state !== 'running') { return; }
 
     if (frame_idx >= curr_frame_length && frame_idx < frame_idx_max) {
-	__stop_onload();
+	__stop_onload(1);
 	return;
     }
 
@@ -151,7 +151,7 @@ queue_next_packet = function () {
         frame_idx += 1;
 
 	if (frame_idx >= curr_frame_length && frame_idx < frame_idx_max) {
-	    __stop_onload();
+	    __stop_onload(2);
 	    return;
 	}
 
