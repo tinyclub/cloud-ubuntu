@@ -273,11 +273,11 @@
 
 	}
 
-	function draw_frame(str) {
+	function draw_frame() {
 	    __draw_bg(vnc_canvas_backup);
 
 	    y = Math.round(vnc_canvas_backup.height/6);
-	    __draw_text(vnc_canvas_backup, "[ " + frame_title.substring(0,20) + " ] " + str,
+	    __draw_text(vnc_canvas_backup, "[ " + frame_title.substring(0,25) + " ]",
 		"50px Verdana", "center", "#a00", y, 0, 0.8, 1, "#fff");
 
 	    draw_frameinfo();
@@ -325,7 +325,7 @@
 			vnc_canvas_backup.height = vnc_canvas.height;
 		    }
 
-		    draw_frame("Ready.");
+		    draw_frame();
 
 		    prev_canvas_height = vnc_canvas.height;
 		}
@@ -905,7 +905,7 @@
 
 	    finish();
 	    __resume();
-	    draw_frame("Finish.");
+	    draw_frame();
 	}
 
 	var prev_screen_width = 0;
