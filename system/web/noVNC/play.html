@@ -1047,8 +1047,8 @@
 	    var prev_frame_length;
 	    var next_part;
 
-	    console.info("uri: " + uri);
-	    console.info("part: " + uri.substring(uri.lastIndexOf(".")+1));
+	    //console.info("uri: " + uri);
+	    //console.info("part: " + uri.substring(uri.lastIndexOf(".")+1));
 
 	    if (___running()) {
 		stopped_by_me = 1;
@@ -1091,7 +1091,7 @@
 
 	    if (typeof(VNC_frame_length) !== 'undefined') {
 		uri = get_uri(fname, part);
-		console.info("data uri is " + uri);
+		//console.info("data uri is " + uri);
 		window.asyncLoad(uri, merge_data, 12000);
 	    }
 	}
