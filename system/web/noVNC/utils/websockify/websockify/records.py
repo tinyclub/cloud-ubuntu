@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 
-import os, re, time
+import os, re, time, base64, zlib, binascii
 
 class Records:
-    def __init__(self, record_dir = 'recordings/', record_list = 'records.js', record_html = 'records.html', record_slice_size = 128):
+    def __init__(self, record_dir = 'recordings/', record_list = 'records.js', record_html = 'records.html', slice_size = 128, compress_level = 9):
 	self.record_dir = record_dir
 	self.record_list = record_list
 	self.record_html = record_html
 	# in KB
-	self.record_slice_size = 128 * 1024
+	self.slice_size = 128 * 1024
+	self.compress_level = compress_level
 
     def compare(self, x, y):
 	stat_x = os.stat(self.record_dir + "/" + x)
@@ -52,7 +53,8 @@ class Records:
 	    #   3. joined array data size for compress (required by client for decompression)
 	    #   4. data size after compression
 
-	    info = {"create": '', "title": '', 'author': '', 'tags': '', 'desc': '', 'encoding': '', 'length': 0, 'time': 0, 'parts': 0, 'data_size': 0}
+	    info = {"create": '', "title": '', 'author': '', 'tags': '', 'desc': '', 'encoding': '', \
+		'length': 0, 'time': 0, 'parts': 0, 'data_size': 0, 'data_compressed': ''}
 	    for (k, v) in info.items():
 		exec("VNC_frame_%s = ''" % k)
 
@@ -71,9 +73,11 @@ class Records:
 		    VNC_frame_time = time.strftime("%H:%M:%S", time.gmtime(float(m.group(1))/1000))
 		    # print "LOG: > VNC_frame_time = %s" % VNC_frame_time
 	    else:
-		if str(VNC_frame_time).isdigit():
-		    VNC_frame_time = time.strftime("%H:%M:%S", time.gmtime(float(VNC_frame_time)/1000))
+		#if str(VNC_frame_time).isdigit():
+		#    VNC_frame_time = time.strftime("%H:%M:%S", time.gmtime(float(VNC_frame_time)/1000))
 		    # print "LOG: < VNC_frame_time = %s" % VNC_frame_time
+		t.close()
+		continue;
 
 		# The size in string, not in binary
 		# VNC_frame_data_size = len(repr(VNC_frame_data))
@@ -83,7 +87,14 @@ class Records:
 		if val:
 		    info[k] = val
 
+	    if info['data_size']:
+		# already compressed data, ignore it.
+		print "Invalid noVNC session data: %s" % rec
+		t.close()
+		continue
+
 	    if not info['encoding']:
+		# encoding is necessary for the raw data.
 		print "Invalid noVNC session data: %s" % rec
 		t.close()
 		continue
@@ -106,6 +117,7 @@ class Records:
 	    t.close()
 
 	    rec_size = os.path.getsize(f)
+	    raw_size = rec_size
 	    unit = ""
 	    if rec_size > 1024:
 		rec_size = round(rec_size / 1024.0, 1)
@@ -119,6 +131,32 @@ class Records:
 		   "  ['%s', '%s', '%s%s', '%s', '%s', '%s', '%s', '%s'],\n" \
 		   % (rec, info['title'], str(rec_size), unit, info['time'],
 		     info['create'], info['author'], info['tags'], info['desc'])
+
+	    # Generate xxx.zb64
+	    split_str = '^_^';
+	    orig = split_str.join(VNC_frame_data)
+	    info["data_size"] = len(orig)
+
+	    out = base64.b64encode(zlib.compress(orig, self.compress_level))
+	    info["data_compressed"] = out;
+
+	    length = len(out)
+	    ratio = length*100 / raw_size
+	    print "LOG: Compress Ratio: %d%% (%d --> %d)" % (ratio, raw_size, length)
+	    out = ''
+	    orig = ''
+
+	    zb_content = ""
+	    for (k, v) in info.items():
+		if str(v).isdigit():
+		    zb_content += "var VNC_frame_%s = %s;\n" % (k, v)
+		else:
+		    zb_content += "var VNC_frame_%s = '%s';\n" % (k, v)
+
+	    f = os.path.abspath(self.record_dir + rec + ".zb64")
+	    t = open(f, 'w+')
+	    t.write(zb_content)
+	    t.close()
 
 	    for k in ['data', 'data_compressed', 'data_part']:
 		if globals().has_key('VNC_frame_%s' % k) or locals().has_key('VNC_frame_%s' % k):

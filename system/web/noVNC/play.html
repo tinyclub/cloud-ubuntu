@@ -1354,7 +1354,7 @@
 	    message("VNC_frame_length: " + frame_length);
 
 	    if (typeof(VNC_frame_time) !== 'undefined')
-		timestamp = VNC_frame_time;
+		ttime.textContent = VNC_frame_time;
 	    else {
 		var frame, i, idx;
 
@@ -1366,9 +1366,9 @@
 		} while (idx < 0);
 
 		timestamp = frame.slice(1, idx);
+	        ttime.textContent = format_time(timestamp);
 	    }
 
-	    ttime.textContent = format_time(timestamp);
 	    ftime.textContent = '00:00:00';
 
 	    message("VNC_frame_time: " + ttime.textContent);
