@@ -18,7 +18,7 @@
 	    #VNC_canvas { display: none; }
 	    #VNC_canvas_backup { display: inline-block; }
 
-	    #session { font-size: 115%; vertical-align: top }
+	    #session { color: #a00 }
 	    #iterations { width: 30px; }
 
 	    #VNC_playbar { display: none; text-align: center; white-space:nowrap; }
@@ -45,14 +45,14 @@
 	  <br>
 	  <div id="VNC_control_status">
 
-	     <a><span id="session" title="session title"></span></a>&nbsp;&nbsp;
+	     <span id="session" title="session title"></span>&nbsp;&nbsp;
 	     <span id="loop" title="Total iterations"></span><a> . </a>
 	     <span id="iteration" title="Current iteration"></span><a> . </a>
 	     <span id="size" title="Total frames"></span><a> . </a>
 	     <span id="skipframes" title="Frames to skip"></span><a> . </a>
 	     <span id="frame_idx" title="Current frame and percentage"></span>
-	     &nbsp;&nbsp;<a href="#" onclick="show_records();">#sessions</a>
-	     &nbsp;<a href="#" onclick="full_screen();">#fullscreen</a>
+	     &nbsp;&nbsp;<a href="#" onclick="show_records();" title="List all sessions">#sessions</a>
+	     &nbsp;<a href="#" onclick="full_screen();" title="Switch to fullscreen">#fullscreen</a>
 
 	  </div><br>
 
@@ -266,8 +266,10 @@
 		tmp = 3;
 	    else if (len < 20)
 		tmp = 4;
-	    else
+	    else if (len < 30)
 		tmp = 5;
+	    else
+		tmp = 6;
 
 	    x = Math.round(vnc_canvas_backup.width/tmp);
 
