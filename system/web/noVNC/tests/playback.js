@@ -232,6 +232,7 @@ do_packet = function () {
         }
     }
     bytes_processed += u8.length;
+    //console.info("frame_idx: " + frame_idx + " u8.length: " + u8.length);
     rfb._sock._recv_message({'data' : u8});
     //update_screensize();
     frame_idx += 1;

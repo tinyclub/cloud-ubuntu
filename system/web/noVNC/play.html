@@ -1144,10 +1144,45 @@
 		init_framedata();
 	}
 
+	function arr2str(array) {
+	    var res = '';
+	    var chunk = 8 * 1024;
+	    var i;
+	    for (i = 0; i < array.length / chunk; i++) {
+		res += String.fromCharCode.apply(null, array.slice(i * chunk, (i + 1) * chunk));
+	    }
+	    res += String.fromCharCode.apply(null, array.slice(i * chunk));
+	    return res;
+	}
+
+	function decompress(data) {
+	    var zlib = new Inflator.Inflate();
+
+	    console.info("base64 encoded data size: " + data.length);
+
+	    var tmp = Base64.decode(data);
+
+	    console.info("compressed data size: " + tmp.length);
+
+	    var tmp = zlib.inflate(tmp, true, VNC_frame_size);
+
+	    console.info("decompressed data size: " + tmp.length);
+
+	    // split str must be the same as the one used in compression
+	    var split_str = '^_^';
+
+	    VNC_frame_data = arr2str(tmp).split(split_str);
+
+	    console.info("data items: " + VNC_frame_data.length);
+	}
+
 	function init_framedata() {
 	    var timestamp;
 
 	    update_frameinfo();
+
+	    if (typeof(VNC_frame_data_compressed) !== 'undefined')
+		decompress(VNC_frame_data_compressed);
 
 	    if (typeof(VNC_frame_title) !== "undefined") {
 	        session.title = frame_desc;
