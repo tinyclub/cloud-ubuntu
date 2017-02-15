@@ -170,6 +170,8 @@
 	canvas_imgdata = '';
 
 	function show_records() {
+	    // console.info("show_records");
+
 	    __stop();
 
 	    if (vnc_records.innerHTML.length < 10)
@@ -182,6 +184,8 @@
 	}
 
 	function hide_records() {
+	    // console.info("hide_records");
+
 	    vnc_records.style.display = "none";
 	    vnc_screen.style.display = "inline-block";
 	}
@@ -1131,7 +1135,7 @@
 
 	    //console.info("part: " + index);
 
-	    if (!VNC_frame_data_parts[index] || VNC_frame_data_parts[index].length === 0) {
+	    if (typeof(VNC_frame_data_part) === 'undefined' || VNC_frame_data_part.length === 0) {
 		console.info("exit for empty data, network issue or data broken.");
 
 		___finish();
@@ -1150,8 +1154,9 @@
 	    }
 
 	    prev_frame_length = VNC_frame_data.length - 1;
-	    VNC_frame_data = VNC_frame_data.concat(VNC_frame_data_parts[index]);
+	    VNC_frame_data = VNC_frame_data.concat(VNC_frame_data_part);
 	    curr_frame_length = VNC_frame_data.length - 1;
+	    VNC_frame_data_part = undefined
 
 	    //console.info("data.length " + VNC_frame_data.length);
 	    //console.info("stopped_by_me " + stopped_by_me);
@@ -1198,6 +1203,8 @@
 	}
 
 	function show_records_list() {
+	    //console.info("show_records_list");
+
 	    if (vnc_records.innerHTML.length < 10)
 		list_records();
 
@@ -1294,7 +1301,7 @@
 	    VNC_frame_create = undefined;
 	    VNC_frame_time = undefined;
 	    VNC_frame_length = undefined;
-	    VNC_frame_data_parts = undefined;
+	    VNC_frame_data_part = undefined;
 	    VNC_frame_parts = undefined;
 	}
 
@@ -1311,8 +1318,8 @@
 	        session.textContent = "#" + VNC_frame_title;
 	    }
 
-	    if (typeof(VNC_frame_data_parts) !== 'undefined')
-		frame_data_parts = VNC_frame_data_parts.length;
+	    if (typeof(VNC_frame_parts) !== 'undefined')
+		frame_data_parts = VNC_frame_parts;
 
 	    if (typeof(VNC_frame_length) !== 'undefined')
 		frame_length = VNC_frame_length;
