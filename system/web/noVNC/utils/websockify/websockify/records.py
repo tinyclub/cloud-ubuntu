@@ -4,7 +4,7 @@ import os, re, time, base64, zlib, binascii
 
 class Records:
     def __init__(self, record_dir = 'recordings/', record_list = 'records.js', \
-		record_html = 'records.html', slice_size = 512, compress_level = 9, \
+		record_html = 'records.html', slice_size = 256, compress_level = 9, \
 		slice_str = '^_^', min_frames = 35):
 	self.record_dir = record_dir
 	self.record_list = record_list
@@ -27,11 +27,6 @@ class Records:
 	    return 0
 
     def generate_zb64(self, rec, data, info, suffix = ".zb64"):
-	out = ''
-	orig = ''
-	del info["data_size"]
-	del info["data_compressed"]
-
 	slice_str = self.slice_str;
 	orig = slice_str.join(data)
 	info["data_size"] = len(orig)
@@ -58,26 +53,35 @@ class Records:
 	    zb_content += "var VNC_frame_data_compressed = '%s';\n" % info["data_compressed"]
 
 	f = os.path.abspath(self.record_dir + rec + suffix)
-	t = open(f, 'w+')
-	t.write(zb_content)
-	t.close()
+	z = open(f, 'w+')
+	z.write(zb_content)
+	z.close()
 
 	return out_size;
 
 
     def generate(self):
-	records = open(os.path.abspath(self.record_dir + self.record_list),'w+')
-
 	content = "var VNC_record_player = '/play.html';\n"
 	content += "var VNC_record_dir = '/%s';\n\n" % os.path.basename(self.record_dir.strip('/'))
 	content += "var VNC_record_data = [ \n"
 	content += "  ['Name', 'Title', 'Size', 'Time', 'Create', 'Author', 'Tags', 'Desc'],\n"
 
+	# list and sort by time
 	rec_list = os.listdir(os.path.abspath(self.record_dir))
-	# sort by time
 	rec_list.sort(self.compare)
 
-	num = 0;
+	for rec in rec_list:
+	    if (rec == self.record_list or rec == self.record_html
+		or rec.find(".zb64") >= 0 or rec.find(".slice") >= 0):
+	        print "LOG: Remove %s" % rec
+		os.remove(os.path.abspath(self.record_dir + rec))
+
+	# flash the list and ignore the .zb64 and .slice* and the record list file
+	rec_list = os.listdir(os.path.abspath(self.record_dir))
+	rec_list.sort(self.compare)
+
+	# grab the records info and generate files with zlib+base64 and if the
+	# file is too big, slice it to several pieces.
 	for rec in rec_list:
 	    print "LOG: " + rec
 	    if (rec == self.record_list or rec == self.record_html):
@@ -85,7 +89,6 @@ class Records:
 	    if (rec.find(".zb64") >= 0 or rec.find(".slice") >= 0):
 		continue
 
-	    num += 1
 	    f = os.path.abspath(self.record_dir + rec)
 	    t = open(f)
 
@@ -107,7 +110,7 @@ class Records:
 	    for (k, v) in info.items():
 		exec("VNC_frame_%s = ''" % k)
 
-	    # Convert to python code
+	    # Convert origin novnc session record data (javascript) to python code
 	    py_data = t.read().replace('var VNC_', 'VNC_')
 	    exec(py_data)
 
@@ -163,8 +166,10 @@ class Records:
 	    if not info['desc']:
 		info['desc'] = ""
 
+	    # Close the file
 	    t.close()
 
+	    # Get file size
 	    rec_size = os.path.getsize(f)
 	    raw_size = rec_size
 	    unit = ""
@@ -210,13 +215,6 @@ class Records:
 		    out_size = self.generate_zb64(rec, VNC_frame_data[slice_frame_start:slice_frame_end], info, ".slice.%d" % slice_index)
 		    print "  LOG: %s: From %s to %s" % (rec, slice_frame_start, slice_frame_end)
 
-		    #slice_content = ""
-		    #f = os.path.abspath(self.record_dir + rec + ".slice.%d" % slice_index)
-		    #t = open(f, 'w+')
-		    #slice_conetent = "var VNC_fame_data_slize = "
-		    #t.write(slice_content)
-		    #t.close()
-
 		    slice_frame_start = slice_frame_end
 		    slice_index += 1
 
@@ -236,11 +234,13 @@ class Records:
 
 		# Write slice index
 		f = os.path.abspath(self.record_dir + rec + ".slice")
-		t = open(f, 'w+')
-		t.write(slice_content)
-		t.close()
+		s = open(f, 'w+')
+		s.write(slice_content)
+		s.close()
 
 	content += "];";
 
-	records.write(content);
-	records.close();
+	# Save records list to self.record_list, by default, records.js
+	r = open(os.path.abspath(self.record_dir + self.record_list),'w+')
+	r.write(content);
+	r.close();
