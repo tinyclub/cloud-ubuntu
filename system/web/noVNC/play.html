@@ -147,6 +147,7 @@
 	var screen_width_input, screen_width, screen_height, screen_ratio;
 
 	var vnc_screen = document.getElementById('VNC_screen');
+	var vnc_screen_disabled = 1;
 	var vnc_canvas = document.getElementById('VNC_canvas');
 	var vnc_canvas_backup = document.getElementById('VNC_canvas_backup');
 	var default_canvas_height = 20;
@@ -247,7 +248,6 @@
 	var full_frame_found = 0;
 	var full_frame_idx = 0;
 
-
 	function draw_frameitem(item, desc, font, align, color, y, x) {
 	    if (item)
 	        __draw_text(vnc_canvas_backup, desc + ": " + item.substring(0, 30), font, align, color, y, x, 1, 0);
@@ -333,6 +333,7 @@
 		    if (imgdata.data[0] !== 0) {
 		        __stop();
 
+			vnc_screen_disabled = 0;
 			full_frame_found = 1;
 			full_frame_idx = frame_idx;
 			track_bar.min = frame_idx;
@@ -634,7 +635,7 @@
 	}
 
 	function track_stop(touch) {
-	    if (track_bar.disabled)
+	    if (track_bar.disabled || vnc_screen_disabled)
 		return;
 
 	    if (touch === 2)
@@ -666,7 +667,7 @@
 	}
 
 	function track_move(touch) {
-	    if (track_bar.disabled)
+	    if (track_bar.disabled || vnc_screen_disabled)
 		return;
 
 	    if (touch === 2)
@@ -730,7 +731,7 @@
 	}
 
 	function track_start(touch) {
-	    if (track_bar.disabled)
+	    if (track_bar.disabled || vnc_screen_disabled)
 		return;
 
 	    if (touch === 2)
