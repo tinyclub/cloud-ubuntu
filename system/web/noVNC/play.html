@@ -10,20 +10,19 @@
 
 	<h1 id="VNC_title"><a href="http://tinylab.org" target="_blank" title="Powered by TinyLab.org">Tiny noVNC Player</a></h1>
 
-       <div id="main">
+	<div id="main">
 	<div id="VNC_control">
 	  <div id="VNC_control_status">
-
 	     <span id="session" title="session title"></span>&nbsp;&nbsp;
 	     <span id="loop" title="Total iterations"></span><a> . </a>
 	     <span id="iteration" title="Current iteration"></span><a> . </a>
 	     <span id="size" title="Total frames"></span><a> . </a>
 	     <span id="skipframes" title="Frames to skip"></span><a> . </a>
 	     <span id="frame_idx" title="Current frame and percentage"></span>
-	     <br><br>
 	  </div>
 
 	  <div id="infoBar">
+	      <br><br>
 	      &nbsp; <a>Fullspeed: </a><input type='radio' id='mode1' name='mode' onclick='mode1_checked();'>
 	      &nbsp; <a>Realtime: </a><input type='radio' id='mode2' name='mode' checked>
 	      &nbsp; <a>Iterations: </a><input id='iterations' onchange='iters_update()'>
@@ -183,19 +182,19 @@
 	    vnc_records.style.width = vnc_screen.offsetWidth + "px";
 	    vnc_records.style.height = vnc_screen.offsetHeight + "px";
 	    vnc_screen.style.display = "none";
-	    vnc_records.style.display = "inline-block";
+	    vnc_records.style.display = "block";
 	}
 
 	function hide_records() {
 	    // console.info("hide_records");
 
 	    vnc_records.style.display = "none";
-	    vnc_screen.style.display = "inline-block";
+	    vnc_screen.style.display = "block";
 	}
 
 	function op_records() {
 	    // console.info("vnc records display " + vnc_records.style.display);
-	    if (vnc_records.style.display === "inline-block") {
+	    if (vnc_records.style.display === "block") {
 		hide_records();
 	    } else {
 		show_records();
@@ -289,7 +288,7 @@
 		"30px Verdana", "center", "#00a", y, 0, 0.8, 1, "#fff");
 
 	    vnc_canvas.style.display = 'none';
-	    vnc_canvas_backup.style.display = 'inline-block';
+	    vnc_canvas_backup.style.display = 'block';
 	}
 
 	function __update_stats(iteration, frame_idx) {
@@ -410,8 +409,6 @@
 	    var enter = element.requestFullScreen || element.webkitRequestFullScreen || element.mozRequestFullScreen || element.msRequestFullScreen;
 	    if (enter)
 		enter.call(element);
-
-	    document.body.style.background = "#eee";
 	}
 
 	function exit_fullscreen() {
@@ -652,7 +649,7 @@
 
 	    if (full_frame_found && (frame_idx >= full_frame_idx) && (frame_idx < frame_idx_max)) {
 		vnc_canvas_backup.style.display = 'none';
-		vnc_canvas.style.display = 'inline-block';
+		vnc_canvas.style.display = 'block';
 	    }
 	}
 
@@ -693,7 +690,7 @@
 	    if (mode === 'realtime' || (mode === 'fullspeed' && skipframes - frame_idx > frames_delta)
 		|| (full_frame_found && frame_idx < full_frame_idx)) {
 		vnc_canvas.style.display = 'none';
-		vnc_canvas_backup.style.display = 'inline-block';
+		vnc_canvas_backup.style.display = 'block';
 	    }
 	}
 
@@ -1043,7 +1040,7 @@
 	    play_stats = playStats.FINISH;
 	    start_btn.value = "=>";
 	    //vnc_status.textContent = "Finished";
-	    //vnc_status.style.display = 'inline-block';
+	    //vnc_status.style.display = 'block';
 	}
 
 	function ___finish() {
@@ -1215,7 +1212,7 @@
 	    vnc_records.style.width = window.innerWidth + "px";
 	    vnc_records.style.height = window.innerHeight + "px";
 	    vnc_screen.style.display = "none";
-	    vnc_records.style.display = "inline-block";
+	    vnc_records.style.display = "block";
 	    vnc_ctrl.style.display = "none";
 	}
 
