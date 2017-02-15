@@ -696,7 +696,6 @@
 	    __stop_control();
 	    __stop("Loading ...");
 
-	    prev_frame_length = VNC_frame_data.length - 1;
 	    setTimeout(check_load_timeout, 30000);
 	}
 
@@ -1161,7 +1160,6 @@
 	var curr_frame_length = 0;
 	var next_data_slice = 0;
 	var stopped_by_me = 0;
-	var prev_frame_length = 0;
 
 	function handle_framedata(uri) {
 	    //console.info("uri: " + uri);
@@ -1187,14 +1185,8 @@
 	    }
 
 	    if (index !== 0) {
-		if (___running()) {
+		if (frame_idx >= curr_frame_length)
 		    stopped_by_me = 1;
-		    __stop_control();
-		    __stop();
-		    prev_frame_length = 0;
-		} else if (frame_idx >= curr_frame_length) {
-		    stopped_by_me = 1;
-		}
 	    }
 
 	    VNC_frame_data = VNC_frame_data.concat(VNC_frame_data_slice);
@@ -1211,16 +1203,10 @@
 	    if (index === 0)
 		start(0, 0, 'fullspeed');
 	    else {
-		if (stopped_by_me) {
-		//if (stopped_by_me && curr_frame_length >= skipframes) {
+		if (stopped_by_me && !___running()) {
 		    stopped_by_me = 0;
 		    __resume_control();
-		    if (prev_frame_length) {
-			// frame_idx = prev_frame_length;
-			__continue(1);
-		    } else {
-			__continue();
-		    }
+		    __continue(1);
 		}
 	    }
 
