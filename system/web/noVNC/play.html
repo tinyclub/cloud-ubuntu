@@ -824,14 +824,13 @@
 
 		if (touch && window.event) {
 			var event = window.event;
-			var x_offset;
-			var y_offset;
+			var x_offset, y_offset, x, y;
 			if (event.touches) {
-			    var x = event.touches[0].clientX;
-			    var y = event.touches[0].clientY;
+			    x = event.touches[0].clientX;
+			    y = event.touches[0].clientY;
 			} else {
-			    var x = event.clientX;
-			    var y = event.clientY;
+			    x = event.clientX;
+			    y = event.clientY;
 			}
 
 			x_offset = Math.abs(x - last_x);
