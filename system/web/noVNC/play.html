@@ -4,7 +4,7 @@
 	<title>Tiny noVNC Player</title>
 
 	<style type="text/css">
-	    body { background-color:#eee; font-size:16px; font-family:'Tahoma', 'Tahoma'; text-align:center }
+	    body { background-color:#eee; font-size:16px; font-family:'Tahoma', 'Tahoma'; text-align:center; overflow: hidden; }
 	    body,a,input,span { vertical-align:middle }
 	    div { overflow:hidden; }
 
@@ -14,17 +14,17 @@
 	    #VNC_records { display: none; width: 100%; padding-bottom: 6px; }
 	    iframe { text-align: center; width: 98%; height: 360px; }
 
-	    #VNC_screen { display: inline-block; white-space:nowrap; }
+	    #VNC_screen { display: inline-block; white-space:nowrap; padding: 0px; margin: 0px; }
 	    #VNC_canvas { display: none; }
 	    #VNC_canvas_backup { display: inline-block; }
 
 	    #session { font-size: 115%; vertical-align: top }
 	    #iterations { width: 30px; }
 
-	    #VNC_playbar { display: none; text-align: center; white-space:nowrap; padding-bottom: 3px; margin-top: -6px; margin-bottom: -6px}
-	    #left_playbar { float: left; padding-left: 2px }
-	    #middle_playbar { float: left; }
-	    #right_playbar { float: right; }
+	    #VNC_playbar { display: none; text-align: center; white-space:nowrap; padding: 0px; margin: 0px; }
+	    #left_playbar { float: left; margin: 0px; padding: 0px; }
+	    #middle_playbar { float: left; margin: 0px; padding: 0px; }
+	    #right_playbar { float: right; margin: 0px; padding: 0px; }
 	    #startBtn { width: 45px; margin-left: 1px; margin-right: 1px }
 	    #trackBar { width: 98%; margin-left: 1px; margin-right: 1px; }
 	    #minusBtn, #plusBtn, #beginBtn, #endBtn {
@@ -100,11 +100,7 @@
 	    <canvas id="VNC_canvas_backup" width="100%">
 		Canvas not supported.
 	    </canvas>
-	    <div id="VNC_status_bar" class="VNC_status_bar">
-		<table border=0 width=100%><tr>
-		    <td><div id="VNC_status">Loading</div></td>
-		</tr></table>
-	    </div>
+	    <div id="VNC_status">Loading</div>
 	</div>
     </body>
 
@@ -947,7 +943,7 @@
 
 	function update_screensize() {
 	    var target_width = window.innerWidth - 35;
-	    var target_height = window.innerHeight - vnc_screen.offsetTop - 10;
+	    var target_height = window.innerHeight - vnc_screen.offsetTop - 8;
 
 	    if (screen_width_input <= 0)
 		screen_width = target_width;
