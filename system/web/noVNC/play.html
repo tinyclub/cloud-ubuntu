@@ -187,7 +187,7 @@
 	}
 
 	function op_records() {
-	    console.info("vnc records display " + vnc_records.style.display);
+	    // console.info("vnc records display " + vnc_records.style.display);
 	    if (vnc_records.style.display === "inline-block") {
 		hide_records();
 	    } else {
@@ -1036,7 +1036,6 @@
 	    start_btn.value = "=>";
 	    //vnc_status.textContent = "Finished";
 	    //vnc_status.style.display = 'inline-block';
-	    exit_fullscreen();
 	}
 
 	function ___finish() {
@@ -1046,6 +1045,7 @@
 	    finish();
 	    __resume();
 	    draw_frame();
+	    //exit_fullscreen();
 	}
 
 	function update_screensize() {
@@ -1178,7 +1178,7 @@
 	function get_uri(fname, part) {
 	    var uri;
 
-	    console.info("short_fname: " + short_fname + " fname: " + fname);
+	    //console.info("short_fname: " + short_fname + " fname: " + fname);
 
 	    if (short_fname === fname)
 		uri = '' + INCLUDE_URI + '/recordings/' + fname + "." + part;
@@ -1248,7 +1248,7 @@
 	    fname = record[index][0];
 
 	    ___finish();
-	    console.info("Loading ...... " + fname);
+	    // console.info("Loading ...... " + fname);
 	    __load(fname);
 	}
 
