@@ -1156,10 +1156,12 @@
 
 	    index = parseInt(uri.substring(uri.lastIndexOf(".")+1));
 
-	    console.info("part: " + index);
+	    //console.info("part: " + index);
 
 	    if (typeof(VNC_frame_data_compressed) !== 'undefined' && typeof(VNC_frame_data_size) !== 'undefined')
 		VNC_frame_data_slice = decompress(VNC_frame_data_compressed, VNC_frame_data_size);
+
+	    //console.info("length: " + VNC_frame_data_slice.length);
 
 	    if (typeof(VNC_frame_data_slice) === 'undefined' || VNC_frame_data_slice.length === 0) {
 		console.info("exit for empty data, network issue or data broken.");
@@ -1201,11 +1203,12 @@
 
 	    next_data_slice = index + 1;
 	    if (next_data_slice < frame_data_slices) {
-		if (next_data_slice === 1)
+		if (next_data_slice === 1) {
 		    setTimeout(load_framedata, 1000);
-		else
-		    setTimeout(load_framedata, 500);
-		    //load_framedata(next_data_slice);
+		} else {
+		    //setTimeout(load_framedata, 1000);
+		    load_framedata(next_data_slice);
+		}
 	    }
 	}
 
@@ -1227,7 +1230,7 @@
 		part = next_data_slice;
 
 	    uri = get_uri(fname, part);
-	    console.info("data uri is " + uri);
+	    //console.info("data uri is " + uri);
 	    window.asyncLoad(uri, handle_framedata, 120000);
 	}
 
