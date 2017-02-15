@@ -312,7 +312,6 @@
 	    //if (mode === 'realtime' && foffset > 1000) {
 	    if (mode === 'realtime') {
 	        ftime.textContent = format_time(foffset);
-		ftime.style.color = '#0a0';
 	    } else {
 	        frame = VNC_frame_data[frame_idx];
 	        if (frame) {
@@ -320,7 +319,6 @@
 		    if (idx > -1) {
 			foffset = frame.slice(1, idx);
 			ftime.textContent = format_time(foffset);
-			ftime.style.color = '#0a0';
 		    }
 	        }
 	    }
@@ -451,6 +449,8 @@
 	    //recv_message = rfb.testMode(send_array, VNC_frame_encoding);
 
 	    play_stats = playStats.RUNNING;
+	    ftime.style.color = '#0a0';
+	    fidx.style.color = '#0a0';
 
 	    ___speedup();
 
@@ -465,6 +465,12 @@
 
 	    start_btn.value = '=>';
 	    vnc_status.textContent = "Stopped";
+
+	    if (ftime.style.color !== '#000') {
+		ftime.style.color = '#000';
+		jumpto.style.color = '#000';
+	        fidx.style.color = '#000';
+	    }
 	    message("Stopped at the " + frame_idx + " frame!");
 	}
 
@@ -661,6 +667,8 @@
 	    }
 
 	    play_stats = playStats.RUNNING;
+	    ftime.style.color = '#0a0';
+	    fidx.style.color = '#0a0';
 	    message("Continue play the " + frame_idx + " frame!");
 	}
 
@@ -685,6 +693,7 @@
 
 	    if (stats !== playStats.RUNNING) {
 		vnc_status.style.display = 'none';
+
 		if (fullscreen)
 		    hide_others();
 		if (stats === playStats.STOPPED)
@@ -798,7 +807,7 @@
 			jumpto.textContent = totalframes;
 		    else
 			jumpto.textContent = tmp + 1;
-		    jumpto.style.color = '#00f';
+		    jumpto.style.color = '#f00';
 		}
 	    }
 	}
@@ -816,11 +825,6 @@
 	    track_move();
 
 	    skipframes = Number(track_bar.value) + 1;
-
-	    if (ftime.style.color !== '#0a0') {
-		ftime.style.color = '#0a0';
-		jumpto.style.color = '#000';
-	    }
 
 	    if (track_bar_stats !== trackBarStats.MOVE) {
 		track_bar_stats = trackBarStats.UP;
