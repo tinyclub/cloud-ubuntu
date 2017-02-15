@@ -1,22 +1,22 @@
 body { font-size:16px; font-family:'Tahoma', 'Tahoma'; text-align:center; overflow: hidden; }
 body,a,input,span { vertical-align:middle }
-div { overflow:hidden; margin: 0px; padding: 0px; text-align: center; }
+div { overflow:hidden; margin: 0 auto; padding: 0px; text-align: center; }
 div a { text-decoration: none; outline: none; }
 h1 a { text-decoration: none; outline: none; color:#000 }
 
 body, #main, #VNC_control, #VNC_title, #VNC_playbar { background-color: #eee; }
 
-#main { display: inline-block; overflow: hidden; margin: 0px; padding: 0px; text-align: center; vertical-align: middle; }
+#main { display: inline-block; overflow: hidden; padding: 0px; text-align: center; vertical-align: middle; }
 
 #VNC_records { display: none; }
-#VNC_screen { display: inline-block; white-space:nowrap; padding: 0px; vertical-align: top; }
+#VNC_screen { display: inline-block; white-space:nowrap; padding: 0px; vertical-align: top; border: 1px dotted #eee; }
 #VNC_canvas { display: none; padding: 0px; margin: 0px; border: 0px; }
 #VNC_canvas_backup { display: inline-block; padding: 0px; margin: 0px; border: 0px; }
 
 #session { color: #a00 }
 #iterations { width: 30px; }
 
-#VNC_title { margin: 0px; padding: 16px; }
+#VNC_title { margin: 0 auto; padding: 16px; }
 #VNC_control { display: none; }
 #VNC_playbar { display: none; padding-top: 2px; padding-bottom: 2px; text-align: center; white-space:nowrap; vertical-align: bottom;}
 #left_playbar { float: left; }

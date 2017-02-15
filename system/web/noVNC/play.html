@@ -33,7 +33,6 @@
 	</div>
 
 	<div id="VNC_playbar">
-
 	  <div id="left_playbar">
 	    <input id='startBtn' type='button' value='=>' onclick="start(1);" title="Press Enter, Start/Stop/Continue" disabled>
 
@@ -250,7 +249,7 @@
 	function draw_frameinfo() {
 	    var x, y = Math.round(vnc_canvas_backup.height/3);
 	    var font = "35px Verdana";
-	    var color = "#fff";
+	    var color = "white";
 	    var align = "left";
 	    var offset = 45;
 
@@ -279,13 +278,13 @@
 
 	    y = Math.round(vnc_canvas_backup.height/6);
 	    __draw_text(vnc_canvas_backup, "[ " + frame_title.substring(0,30) + " ]",
-		"50px Verdana", "center", "#a00", y, 0, 0.8, 1, "#fff");
+		"50px Verdana", "center", "#a00", y, 0, 0.8, 1, "white");
 
 	    draw_frameinfo();
 
 	    y = Math.round(vnc_canvas_backup.height*3/4);
 	    __draw_text(vnc_canvas_backup, "Tiny noVNC Player, powered by http://tinylab.org",
-		"30px Verdana", "center", "#00a", y, 0, 0.8, 1, "#fff");
+		"30px Verdana", "center", "#00a", y, 0, 0.8, 1, "white");
 
 	    vnc_canvas.style.display = 'none';
 	    vnc_canvas_backup.style.display = 'block';
@@ -388,12 +387,6 @@
 	    return (play_stats === playStats.RUNNING)
 	}
 
-	function show_others() {
-	    vnc_title.style.display = 'block';
-	    vnc_ctrl.style.display = 'block';
-	    update_screensize();
-	}
-
 	function __exit_fullscreen() {
 	    if (document.exitFullscreen) {
 		document.exitFullscreen();
@@ -452,6 +445,15 @@
 	function hide_others() {
 	    vnc_title.style.display = 'none';
 	    vnc_ctrl.style.display = 'none';
+	    document.body.style.background = "black";
+	    update_screensize();
+	}
+
+	function show_others() {
+	    vnc_title.style.display = 'block';
+	    vnc_ctrl.style.display = 'block';
+	    document.body.style.background = "#eee";
+	    update_screensize();
 	    update_screensize();
 	}
 
@@ -517,10 +519,10 @@
 	    start_btn.value = '=>';
 	    vnc_status.textContent = "Stopped";
 
-	    if (ftime.style.color !== '#000') {
-		ftime.style.color = '#000';
-		jumpto.style.color = '#000';
-	        fidx.style.color = '#000';
+	    if (ftime.style.color !== 'black') {
+		ftime.style.color = 'black';
+		jumpto.style.color = 'black';
+	        fidx.style.color = 'black';
 	    }
 	    message("Stopped at the " + frame_idx + " frame!");
 	}
@@ -595,7 +597,7 @@
 		align = "center";
 
 	    if (!style)
-		style = "#fff";
+		style = "white";
 
 	    var font_height = parseInt(font);
 
@@ -666,7 +668,7 @@
 
 	    var y = Math.round(vnc_canvas_backup.height/2);
 	    __draw_text(vnc_canvas_backup, "File not found or network speed issue!",
-		"30px Verdana", "center", "#a00", y, 0, 0.8, 1, "#fff");
+		"30px Verdana", "center", "#a00", y, 0, 0.8, 1, "white");
 
 	    setTimeout(___finish, 10000);
 	}
