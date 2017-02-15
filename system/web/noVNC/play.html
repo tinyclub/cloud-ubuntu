@@ -328,10 +328,26 @@
 	    if ((frame_idx > skipframes) && ___running())
 		track_bar.value = frame_idx;
 
-	    if (frame_idx === frame_idx_max)
+	    if (frame_idx === frame_idx_max || frame_idx == full_frame_idx)
 		backup_canvas();
 
 	    iter.textContent = iteration;
+
+	    if (full_frame_found) {
+		if (frame_idx < full_frame_idx) {
+		    vnc_screen_disable = 1;
+		    mode = 'fullspeed';
+		} else if (frame_idx === full_frame_idx) {
+		    if (prev_play_stats === playStats.FINISH) {
+			if (mode2.checked)
+			    mode = 'realtime';
+			if (play_stats == playStats.STOPPED)
+			    __continue();
+		    }
+		    __resume_control();
+		    vnc_screen_disable = 0;
+		}
+	    }
 	}
 
 	function ___update_stats(iteration, frame_idx) {
@@ -391,6 +407,8 @@
 	}
 
 	function full_screen() {
+	    fullscreen = 1;
+
 	    var element = document.body;
 
 	    // Supports most browsers and their versions.
@@ -501,16 +519,14 @@
 	}
 
 	function restore_canvas(str) {
-	    if (!str)
-		return;
-
-	    if (!full_frame_found)
+	    if (!full_frame_found || frame_idx < full_frame_idx)
 		return;
 
 	    var ctx = vnc_canvas_backup.getContext('2d');
 	    if (canvas_imgdata !== '') {
 		ctx.putImageData(canvas_imgdata, 0, 0);
-		backup_draw_text(str)
+	        if (str)
+		    backup_draw_text(str)
 	    }
 	}
 
@@ -606,17 +622,19 @@
 	    plus_btn.disabled = false;
 	    minus_btn.disabled = false;
 	    track_bar.disabled = false;
+
+	    if (full_frame_found && (frame_idx >= full_frame_idx) && (frame_idx < frame_idx_max)) {
+		vnc_canvas_backup.style.display = 'none';
+		vnc_canvas.style.display = 'inline-block';
+	    }
 	}
 
 	function __resume() {
 	    __resume_control();
 
-	    skipframes = 0;
+	    skipframes = full_frame_idx;
+	    track_bar_stats = trackBarStats.INIT;
 	    prev_track_value = frame_idx_max;
-	    if (full_frame_found && (frame_idx > full_frame_idx)) {
-		vnc_canvas_backup.style.display = 'none';
-		vnc_canvas.style.display = 'inline-block';
-	    }
 	}
 
 	function load_timeout() {
@@ -633,8 +651,6 @@
 	    console.info("Stopped at frame: " + frame_idx);
 	    __stop_control();
 	    __stop("Loading ...");
-	    vnc_canvas.style.display = 'none';
-	    vnc_canvas_backup.style.display = 'inline-block';
 
 	    setTimeout(load_timeout, 30000);
 	}
@@ -646,6 +662,12 @@
 	    plus_btn.disabled = true;
 	    minus_btn.disabled = true;
 	    track_bar.disabled = true;
+
+	    if (mode === 'realtime' || (mode === 'fullspeed' && skipframes - frame_idx > frames_delta)
+		|| (full_frame_found && frame_idx < full_frame_idx)) {
+		vnc_canvas.style.display = 'none';
+		vnc_canvas_backup.style.display = 'inline-block';
+	    }
 	}
 
 	function ___speedup() {
@@ -653,13 +675,6 @@
 		return;
 
 	    mode = 'fullspeed';
-
-	    if (skipframes - frame_idx > frames_delta) {
-		vnc_canvas.style.display = 'none';
-		vnc_canvas_backup.style.display = 'inline-block';
-		vnc_status.textContent = "Fast Continued...";
-	    }
-
 	    __stop_control();
 	}
 
@@ -1137,8 +1152,6 @@
 		start(0, 0, 'fullspeed');
 	    else {
 		if (stopped_by_me) {
-		    vnc_canvas.style.display = 'inline-block';
-		    vnc_canvas_backup.style.display = 'none';
 		    __resume_control();
 		    frame_idx = prev_frame_length;
 		    __continue();
