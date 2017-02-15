@@ -3,13 +3,17 @@
 import os, re, time, base64, zlib, binascii
 
 class Records:
-    def __init__(self, record_dir = 'recordings/', record_list = 'records.js', record_html = 'records.html', slice_size = 128, compress_level = 9):
+    def __init__(self, record_dir = 'recordings/', record_list = 'records.js', \
+		record_html = 'records.html', slice_size = 128, compress_level = 9, \
+		slice_str = '^_^', min_frames = 35):
 	self.record_dir = record_dir
 	self.record_list = record_list
 	self.record_html = record_html
 	# in KB
 	self.slice_size = 128 * 1024
 	self.compress_level = compress_level
+	self.slice_str = slice_str
+	self.min_frames = min_frames
 
     def compare(self, x, y):
 	stat_x = os.stat(self.record_dir + "/" + x)
@@ -20,6 +24,45 @@ class Records:
 	    return 1
 	else:
 	    return 0
+
+    def generate_zb64(self, rec, data, info, suffix = ".zb64"):
+	out = ''
+	orig = ''
+	del info["data_size"]
+	del info["data_compressed"]
+
+	slice_str = self.slice_str;
+	orig = slice_str.join(data)
+	info["data_size"] = len(orig)
+
+	out = base64.b64encode(zlib.compress(orig, self.compress_level))
+	info["data_compressed"] = out;
+
+	in_size = len(repr(data))
+	out_size = len(out)
+	ratio = out_size*100 / in_size
+	print "LOG: Compress Ratio: %d%% (%d --> %d)" % (ratio, in_size, out_size)
+	out = ''
+	orig = ''
+
+	zb_content = ""
+	if suffix.find('.slice.') < 0:
+	    for (k, v) in info.items():
+		if str(v).isdigit():
+		    zb_content += "var VNC_frame_%s = %s;\n" % (k, v)
+		else:
+		    zb_content += "var VNC_frame_%s = '%s';\n" % (k, v)
+	else:
+	    zb_content += "var VNC_frame_data_size = %s;\n" % info["data_size"]
+	    zb_content += "var VNC_frame_data_compressed = '%s';\n" % info["data_compressed"]
+
+	f = os.path.abspath(self.record_dir + rec + suffix)
+	t = open(f, 'w+')
+	t.write(zb_content)
+	t.close()
+
+	return out_size;
+
 
     def generate(self):
 	records = open(os.path.abspath(self.record_dir + self.record_list),'w+')
@@ -52,9 +95,12 @@ class Records:
 	    #   2. array data size in binary
 	    #   3. joined array data size for compress (required by client for decompression)
 	    #   4. data size after compression
+	    for k in ['data', 'data_compressed']:
+		if globals().has_key('VNC_frame_%s' % k) or locals().has_key('VNC_frame_%s' % k):
+		    exec("del VNC_frame_%s" % k)
 
 	    info = {"create": '', "title": '', 'author': '', 'tags': '', 'desc': '', 'encoding': '', \
-		'length': 0, 'time': 0, 'parts': 0, 'data_size': 0, 'data_compressed': ''}
+		'length': 0, 'time': 0, 'slices': 0, 'data_size': 0, 'data_compressed': ''}
 	    for (k, v) in info.items():
 		exec("VNC_frame_%s = ''" % k)
 
@@ -133,34 +179,48 @@ class Records:
 		     info['create'], info['author'], info['tags'], info['desc'])
 
 	    # Generate xxx.zb64
-	    split_str = '^_^';
-	    orig = split_str.join(VNC_frame_data)
-	    info["data_size"] = len(orig)
+	    out_size = self.generate_zb64(rec, VNC_frame_data, info)
 
-	    out = base64.b64encode(zlib.compress(orig, self.compress_level))
-	    info["data_compressed"] = out;
+	    # Generate xxx.slice
+	    if out_size > self.slice_size:
+		slices = out_size / self.slice_size + 1
+		info['slices'] = slices
 
-	    length = len(out)
-	    ratio = length*100 / raw_size
-	    print "LOG: Compress Ratio: %d%% (%d --> %d)" % (ratio, raw_size, length)
-	    out = ''
-	    orig = ''
+		slice_content = ""
+	        for (k, v) in info.items():
+		    if (k == "data_size" or k == "data_compressed"):
+			continue
 
-	    zb_content = ""
-	    for (k, v) in info.items():
-		if str(v).isdigit():
-		    zb_content += "var VNC_frame_%s = %s;\n" % (k, v)
-		else:
-		    zb_content += "var VNC_frame_%s = '%s';\n" % (k, v)
+		    if str(v).isdigit():
+			slice_content += "var VNC_frame_%s = %s;\n" % (k, v)
+		    else:
+			slice_content += "var VNC_frame_%s = '%s';\n" % (k, v)
 
-	    f = os.path.abspath(self.record_dir + rec + ".zb64")
-	    t = open(f, 'w+')
-	    t.write(zb_content)
-	    t.close()
+		# Write slice index
+		f = os.path.abspath(self.record_dir + rec + ".slice")
+		t = open(f, 'w+')
+		t.write(slice_content)
+		t.close()
 
-	    for k in ['data', 'data_compressed', 'data_part']:
-		if globals().has_key('VNC_frame_%s' % k) or locals().has_key('VNC_frame_%s' % k):
-		    exec("del VNC_frame_%s" % k)
+		# Write first slice
+		slice_index = 0
+		slice_frame_start = 0;
+		slice_frame_length = VNC_frame_length / slices;
+
+		while (slice_index < slices):
+		    _slice_frame_length = slice_frame_length
+		    if (slice_index == 0 and slice_frame_length < self.min_frames):
+			_slice_frame_length = self.min_frames
+
+		    slice_frame_end = slice_frame_start + _slice_frame_length - 1
+		    if (slice_frame_end > VNC_frame_length - 1):
+			slice_frame_end = VNC_frame_length - 1
+
+		    print "%s: From %s to %s" % (rec, slice_frame_start, slice_frame_end)
+		    out_size = self.generate_zb64(rec, VNC_frame_data[slice_frame_start:slice_frame_end], info, ".slice.%d" % slice_index)
+
+		    slice_frame_start = slice_frame_end + 1
+		    slice_index += 1
 
 	content += "];";
 
