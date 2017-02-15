@@ -309,14 +309,19 @@
 
 	    fidx.textContent = tmp + " . " + parseInt(tmp * 100 / totalframes) + "%";
 
-	    if (mode === 'realtime' && foffset > 1000) {
+	    //if (mode === 'realtime' && foffset > 1000) {
+	    if (mode === 'realtime') {
 	        ftime.textContent = format_time(foffset);
+		ftime.style.color = '#0a0';
 	    } else {
 	        frame = VNC_frame_data[frame_idx];
 	        if (frame) {
 		    var idx = frame.indexOf('{', 1);
-		    if (idx > -1)
-			ftime.textContent = format_time(frame.slice(1, idx));
+		    if (idx > -1) {
+			foffset = frame.slice(1, idx);
+			ftime.textContent = format_time(foffset);
+			ftime.style.color = '#0a0';
+		    }
 	        }
 	    }
 
@@ -812,8 +817,8 @@
 
 	    skipframes = Number(track_bar.value) + 1;
 
-	    if (ftime.style.color !== '#000') {
-		ftime.style.color = '#000';
+	    if (ftime.style.color !== '#0a0') {
+		ftime.style.color = '#0a0';
 		jumpto.style.color = '#000';
 	    }
 
