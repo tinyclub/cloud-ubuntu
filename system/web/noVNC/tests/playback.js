@@ -95,7 +95,6 @@ next_iteration = function () {
     }
 
     if (iteration === 0) {
-        //frame_length = VNC_frame_data.length;
         test_state = 'running';
     }
 
@@ -140,10 +139,27 @@ queue_next_packet = function () {
     ___update_stats(iteration, frame_idx);
     if (test_state !== 'running') { return; }
 
+    if (frame_idx >= VNC_frame_data.length - 1 && frame_idx < frame_length) {
+	console.info("Stopped at frame: " + frame_idx);
+	__stop("Loading ...");
+	vnc_canvas.style.display = 'none';
+	vnc_canvas_backup.style.display = 'inline-block';
+	return;
+    }
+
     frame = VNC_frame_data[frame_idx];
     while ((frame_idx < VNC_frame_data.length) && (frame.charAt(0) === "}")) {
         //console.info("Send frame " + frame_idx);
         frame_idx += 1;
+
+	if (frame_idx >= VNC_frame_data.length - 1 && frame_idx < frame_length) {
+	    console.info("Stopped at frame: " + frame_idx);
+	    __stop("Loading ...");
+	    vnc_canvas.style.display = 'none';
+	    vnc_canvas_backup.style.display = 'inline-block';
+	    return;
+	}
+
         frame = VNC_frame_data[frame_idx];
         ___update_stats(iteration, frame_idx);
     }
@@ -153,8 +169,9 @@ queue_next_packet = function () {
         end_iteration();
         return;
     }
-    if (frame_idx >= VNC_frame_data.length) {
-        console.info("Finished, no more frames");
+
+    if (frame_idx >= frame_length) {
+        console.info("Finished all frame data, no more frames");
         end_iteration();
         return;
     }

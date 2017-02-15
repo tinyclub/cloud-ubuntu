@@ -115,6 +115,8 @@
     </script>
     <script src="./core/util.js"></script>
     <script src="./app/webutil.js"></script>
+    <!-- https://github.com/heyday/async-load -->
+    <script src="./app/load.js"></script>
 
     <script>
 	var touchable = 0;
@@ -1024,8 +1026,33 @@
 	    }
 	}
 
+	function merge_data() {
+	    var stopped_by_me = 0;
+
+	    if (___running()) {
+		stopped_by_me = 1;
+		__stop();
+	    } else if (frame_idx >= VNC_frame_data.length - 1) {
+		stopped_by_me = 1;
+	    }
+
+	    VNC_frame_data = VNC_frame_data.concat(VNC_frame_data_2);
+	    handle_framedata();
+
+	    if (stopped_by_me) {
+		vnc_canvas.style.display = 'inline-block';
+		vnc_canvas_backup.style.display = 'none';
+	        __continue();
+	    }
+	}
+
+	function load_framedata(fname) {
+	    if (typeof(VNC_frame_length) !== 'undefined')
+		window.asyncLoad('' + INCLUDE_URI + '/recordings/' + fname + ".2", merge_data, 12000);
+	}
+
 	function handle_framedata() {
-	    var frame, i, idx;
+	    var timestamp;
 
 	    message("VNC_frame_data.length: " + VNC_frame_data.length);
 	    if (typeof(VNC_frame_title) !== "undefined") {
@@ -1033,22 +1060,35 @@
 	        session.textContent = "#" + VNC_frame_title;
 	    }
 
-	    frame_idx_max = VNC_frame_data.length - 2;
+	    if (typeof(VNC_frame_length) !== 'undefined')
+		frame_length = VNC_frame_length;
+	    else
+		frame_length = VNC_frame_data.length;
 
-	    var idx, i = VNC_frame_data.length;
-	    do {
-	        i -= 1;
-	        frame = VNC_frame_data[i];
-	        idx = frame.indexOf('{', 1);
-	    } while (idx < 0);
+	    if (typeof(VNC_frame_timestamp) !== 'undefined')
+		timestamp = VNC_frame_timestamp;
+	    else {
+		var frame, i, idx;
 
-	    ttime.textContent = format_time(frame.slice(1, idx));
+		i = VNC_frame_data.length;
+		do {
+		    i -= 1;
+		    frame = VNC_frame_data[i];
+		    idx = frame.indexOf('{', 1);
+		} while (idx < 0);
+
+		timestamp = frame.slice(1, idx);
+	    }
+
+	    ttime.textContent = format_time(timestamp);
 	    ftime.textContent = '00:00:00';
 
+	    frame_idx_max = frame_length - 2;
+	    track_bar.max = frame_idx_max;
 	    track_bar.max = frame_idx_max;
 	    prev_track_value = frame_idx_max;
-	    totalframes = VNC_frame_data.length - 1;
-	    size.textContent = VNC_frame_data.length - 1;
+	    totalframes = frame_length - 1;
+	    size.textContent = frame_length - 1;
 	}
 
 	window.onscriptsload = function () {
@@ -1082,6 +1122,8 @@
 	    if (fname) {
 		update_frameinfo();
 		handle_framedata();
+		//load_framedata();
+		setTimeout(load_framedata, 15000);
 
 		track_bar.style.display = "inline-block";
 
