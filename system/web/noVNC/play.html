@@ -1212,12 +1212,7 @@
 
 	    next_data_slice = index + 1;
 	    if (next_data_slice < frame_data_slices) {
-		if (next_data_slice === 1) {
-		    setTimeout(load_framedata, 1000);
-		} else {
-		    //setTimeout(load_framedata, 1000);
-		    load_framedata(next_data_slice);
-		}
+		load_framedata(next_data_slice);
 	    }
 	}
 
