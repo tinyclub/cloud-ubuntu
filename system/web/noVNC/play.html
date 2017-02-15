@@ -140,7 +140,7 @@
 	var track_bar_stats = trackBarStats.INIT;
 	var prev_track_value;
 
-	var fname, start_time, play_stats, frame_idx_max, totalframes, skipframes, messageon, canvas_imgdata;
+	var fname, short_fname, start_time, play_stats, frame_idx_max, totalframes, skipframes, messageon, canvas_imgdata;
 	var frame_title, frame_author, frame_time, frame_tags, frame_desc;
 	var screen_width_input, screen_height_input, screen_width, screen_height, screen_ratio;
 
@@ -396,10 +396,10 @@
 
 	fname = WebUtil.getQueryVar('data', null);
 	if (fname) {
-	    var tmp = fname.replace(/.*\//,"");
-	    message("Loading " + tmp);
+	    short_fname = fname.replace(/.*\//,"");
+	    message("Loading " + short_fname);
 
-	    session.textContent = "#"+ tmp;
+	    session.textContent = "#"+ short_fname;
 	    vnc_status.textContent = "Loading ...";
 
 	    // Load supporting scripts
@@ -411,7 +411,6 @@
 		'recordings': [fname]});
 
 	    play_stats = playStats.LOADING;
-	    fname = tmp;
 	} else {
 	    vnc_status.textContent = 'Must specify data=FOO in query string.';
 	    vnc_records.style.display = "inline-block";
@@ -1003,7 +1002,7 @@
 	}
 
 	function update_frameinfo() {
-	    frame_title = fname;
+	    frame_title = short_fname;
 	    frame_author = 'Unknown';
 	    frame_time = 'Unknown';
 	    frame_tags = 'Unknown';
@@ -1046,9 +1045,16 @@
 	    }
 	}
 
-	function load_framedata(fname) {
-	    if (typeof(VNC_frame_length) !== 'undefined')
-		window.asyncLoad('' + INCLUDE_URI + '/recordings/' + fname + ".2", merge_data, 12000);
+	function load_framedata() {
+	    if (typeof(VNC_frame_length) !== 'undefined') {
+		var uri;
+		if (short_fname === fname)
+		    uri = '' + INCLUDE_URI + '/recordings/' + fname + ".2";
+		else
+		    uri = fname + ".2";
+		console.info("data uri is " + uri);
+		window.asyncLoad(uri, merge_data, 12000);
+	    }
 	}
 
 	function handle_framedata() {
