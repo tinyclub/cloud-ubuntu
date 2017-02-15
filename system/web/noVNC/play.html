@@ -31,7 +31,7 @@
 		color: #777; display: none; margin-left: 1px; margin-right: 1px;
 		width: 30px;
 	    }
-	    #current_time, #total_time { min-width: 45px; }
+	    #current_time, #total_time { min-width: 45px; margin-left: 1px; margin-right: 1px; }
 
 	    #infoBar { display: none; }
 	    #messages { font-size: 9; margin: 0 auto; }
@@ -295,9 +295,9 @@
 	    vnc_canvas_backup.style.display = 'inline-block';
 	}
 
-	function ___update_stats(iteration, frame_idx) {
+	function __update_stats(iteration, frame_idx) {
 	    iter.textContent = iteration;
-	    if (fname && full_frame_found) {
+	    if (fname) {
 		var frame, tmp = frame_idx + 1;
 		if (frame_idx > frame_idx_max)
 		    tmp = totalframes;
@@ -315,13 +315,24 @@
 		}
 	    }
 
-	    if (full_frame_found && (frame_idx > skipframes) && ___running())
+	    if ((frame_idx > skipframes) && ___running())
 		track_bar.value = frame_idx;
 
 	    if (frame_idx === frame_idx_max)
 		backup_canvas();
+	}
 
-	    if (rfb && rfb._display && vnc_canvas && vnc_canvas.height !== default_canvas_height) {
+	function ___update_stats(iteration, frame_idx) {
+	    if (full_frame_found)
+		__update_stats(iteration, frame_idx);
+	    else
+		find_full_frame(iteration, frame_idx);
+	}
+
+	function find_full_frame(iteration, frame_idx) {
+	    update_screensize();
+
+	    if (typeof(rfb) !== 'undefined' && rfb._display && vnc_canvas && vnc_canvas.height !== default_canvas_height) {
 		if (prev_canvas_height === default_canvas_height) {
 		   //console.info("draw the welcome page.");
 
@@ -332,22 +343,22 @@
 
 		    draw_frame();
 
+		    mode = "fullspeed";
 		    prev_canvas_height = vnc_canvas.height;
 		}
 
-		if (!full_frame_found) {
-		    var w = vnc_canvas.width;
-		    var h = vnc_canvas.height;
-	            var imgdata = vnc_canvas.getContext('2d').getImageData(w-1, h-1, w, h);
-		    // console.info("w: " + w + " h: " + h + " frame: " + frame_idx + " imgdata: " + imgdata.data[0]);
-		    if (imgdata.data[0] !== 0) {
-		        __stop();
+		var w = vnc_canvas.width;
+		var h = vnc_canvas.height;
+		var imgdata = vnc_canvas.getContext('2d').getImageData(w-1, h-1, w, h);
+		// console.info("w: " + w + " h: " + h + " frame: " + frame_idx + " imgdata: " + imgdata.data[0]);
+		if (imgdata.data[0] !== 0) {
+		    __stop();
 
-			vnc_screen_disabled = 0;
-			full_frame_found = 1;
-			full_frame_idx = frame_idx;
-			track_bar.min = frame_idx;
-		    }
+		    vnc_screen_disabled = 0;
+		    full_frame_found = 1;
+		    full_frame_idx = frame_idx;
+		    track_bar.min = frame_idx;
+		    mode = "realtime";
 		}
 	    }
 	}
@@ -942,9 +953,6 @@
 	    draw_frame();
 	}
 
-	var prev_screen_width = 0;
-	var prev_screen_height = 0;
-
 	function update_screensize() {
 	    var target_width = window.innerWidth - 35;
 	    var target_height = window.innerHeight - vnc_screen.offsetTop - 8;
@@ -965,9 +973,6 @@
 		screen_width = Math.round(screen_height * screen_ratio);
 
 	    if (typeof(rfb) !== 'undefined' && rfb._display) {
-		if (full_frame_found && prev_screen_width === screen_width && prev_screen_height === screen_height)
-		    return;
-
 		rfb._display.autoscale(screen_width, screen_height, 1);
 
 		var w = vnc_canvas.style.width;
@@ -991,8 +996,6 @@
 		    vnc_screen.style.width = w;
 		}
 	    }
-	    prev_screen_width = screen_width;
-	    prev_screen_height = screen_height;
 	}
 
 	function update_frameinfo() {
