@@ -222,7 +222,7 @@ do_packet = function () {
     }
     bytes_processed += u8.length;
     rfb._sock._recv_message({'data' : u8});
-    update_screensize();
+    //update_screensize();
     frame_idx += 1;
 
     queue_next_packet();
