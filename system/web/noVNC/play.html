@@ -141,7 +141,7 @@
 	var prev_track_value;
 
 	var fname, short_fname, start_time, play_stats, frame_idx_max, totalframes, skipframes, messageon, canvas_imgdata;
-	var frame_title, frame_author, frame_time, frame_tags, frame_desc;
+	var frame_title, frame_author, frame_time, frame_tags, frame_desc, prev_frame_length;
 	var screen_width_input, screen_height_input, screen_width, screen_height, screen_ratio;
 
 	var vnc_screen = document.getElementById('VNC_screen');
@@ -571,13 +571,17 @@
 	    __draw_text(vnc_canvas_backup, str, font);
 	}
 
-	function __resume() {
+	function __resume_control() {
 	    start_btn.disabled = false;
 	    begin_btn.disabled = false;
 	    end_btn.disabled = false;
 	    plus_btn.disabled = false;
 	    minus_btn.disabled = false;
 	    track_bar.disabled = false;
+	}
+
+	function __resume() {
+	    __resume_control();
 
 	    skipframes = 0;
 	    prev_track_value = frame_idx_max;
@@ -585,6 +589,23 @@
 		vnc_canvas_backup.style.display = 'none';
 		vnc_canvas.style.display = 'inline-block';
 	    }
+	}
+
+	function __stop_onload() {
+	    console.info("Stopped at frame: " + frame_idx);
+	    __stop_control();
+	    __stop("Loading ...");
+	    vnc_canvas.style.display = 'none';
+	    vnc_canvas_backup.style.display = 'inline-block';
+	}
+
+	function __stop_control() {
+	    start_btn.disabled = true;
+	    begin_btn.disabled = true;
+	    end_btn.disabled = true;
+	    plus_btn.disabled = true;
+	    minus_btn.disabled = true;
+	    track_bar.disabled = true;
 	}
 
 	function ___speedup() {
@@ -599,12 +620,7 @@
 		vnc_status.textContent = "Fast Continued...";
 	    }
 
-	    start_btn.disabled = true;
-	    begin_btn.disabled = true;
-	    end_btn.disabled = true;
-	    plus_btn.disabled = true;
-	    minus_btn.disabled = true;
-	    track_bar.disabled = true;
+	    __stop_control();
 	}
 
 	function __continue() {
@@ -1030,6 +1046,7 @@
 
 	    if (___running()) {
 		stopped_by_me = 1;
+		__stop_control();
 		__stop();
 	    } else if (frame_idx >= VNC_frame_data.length - 1) {
 		stopped_by_me = 1;
@@ -1041,6 +1058,7 @@
 	    if (stopped_by_me) {
 		vnc_canvas.style.display = 'inline-block';
 		vnc_canvas_backup.style.display = 'none';
+		__resume_control();
 	        __continue();
 	    }
 	}
@@ -1061,6 +1079,9 @@
 	    var timestamp;
 
 	    message("VNC_frame_data.length: " + VNC_frame_data.length);
+
+	    prev_frame_length = VNC_frame_data.length;
+
 	    if (typeof(VNC_frame_title) !== "undefined") {
 	        session.title = frame_desc;
 	        session.textContent = "#" + VNC_frame_title;
