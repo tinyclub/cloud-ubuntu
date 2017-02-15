@@ -1024,6 +1024,33 @@
 	    }
 	}
 
+	function handle_framedata() {
+	    var frame, i, idx;
+
+	    message("VNC_frame_data.length: " + VNC_frame_data.length);
+	    if (typeof(VNC_frame_title) !== "undefined") {
+	        session.title = frame_desc;
+	        session.textContent = "#" + VNC_frame_title;
+	    }
+
+	    frame_idx_max = VNC_frame_data.length - 2;
+
+	    var idx, i = VNC_frame_data.length;
+	    do {
+	        i -= 1;
+	        frame = VNC_frame_data[i];
+	        idx = frame.indexOf('{', 1);
+	    } while (idx < 0);
+
+	    ttime.textContent = format_time(frame.slice(1, idx));
+	    ftime.textContent = '00:00:00';
+
+	    track_bar.max = frame_idx_max;
+	    prev_track_value = frame_idx_max;
+	    totalframes = VNC_frame_data.length - 1;
+	    size.textContent = VNC_frame_data.length - 1;
+	}
+
 	window.onscriptsload = function () {
 	    iterations = WebUtil.getQueryVar('iterations', 1);
 	    skipframes = WebUtil.getQueryVar('skipframes', 0);
@@ -1053,32 +1080,8 @@
 		info_bar.style.display = 'block';
 
 	    if (fname) {
-		var frame, i, idx;
-
 		update_frameinfo();
-
-		message("VNC_frame_data.length: " + VNC_frame_data.length);
-		if (typeof(VNC_frame_title) !== "undefined") {
-		    session.title = frame_desc;
-		    session.textContent = "#" + VNC_frame_title;
-		}
-
-		frame_idx_max = VNC_frame_data.length - 2;
-
-		i = VNC_frame_data.length;
-		do {
-		    i -= 1;
-		    frame = VNC_frame_data[i];
-		    idx = frame.indexOf('{', 1);
-		} while (idx < 0);
-
-		ttime.textContent = format_time(frame.slice(1, idx));
-		ftime.textContent = '00:00:00';
-
-		track_bar.max = frame_idx_max;
-		prev_track_value = frame_idx_max;
-		totalframes = VNC_frame_data.length - 1;
-		size.textContent = VNC_frame_data.length - 1;
+		handle_framedata();
 
 		track_bar.style.display = "inline-block";
 

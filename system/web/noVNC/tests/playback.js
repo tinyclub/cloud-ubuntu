@@ -95,7 +95,7 @@ next_iteration = function () {
     }
 
     if (iteration === 0) {
-        frame_length = VNC_frame_data.length;
+        //frame_length = VNC_frame_data.length;
         test_state = 'running';
     }
 
@@ -141,7 +141,7 @@ queue_next_packet = function () {
     if (test_state !== 'running') { return; }
 
     frame = VNC_frame_data[frame_idx];
-    while ((frame_idx < frame_length) && (frame.charAt(0) === "}")) {
+    while ((frame_idx < VNC_frame_data.length) && (frame.charAt(0) === "}")) {
         //console.info("Send frame " + frame_idx);
         frame_idx += 1;
         frame = VNC_frame_data[frame_idx];
@@ -153,7 +153,7 @@ queue_next_packet = function () {
         end_iteration();
         return;
     }
-    if (frame_idx >= frame_length) {
+    if (frame_idx >= VNC_frame_data.length) {
         console.info("Finished, no more frames");
         end_iteration();
         return;
