@@ -1300,7 +1300,14 @@
 	    __load(fname);
 	}
 
-	function arr2str(array) {
+	function arr2str(uint8array) {
+	    var array = uint8array
+
+	    if (typeof(array.slice) === 'undefined')
+		array.slice = Array.prototype.slice;
+
+	    //array = [].slice.call(uint8array);
+
 	    var res = '';
 	    var chunk = 8 * 1024;
 	    var i;
