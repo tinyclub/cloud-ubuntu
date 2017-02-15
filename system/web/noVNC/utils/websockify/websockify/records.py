@@ -10,7 +10,7 @@ class Records:
 	self.record_list = record_list
 	self.record_html = record_html
 	# in KB
-	self.slice_size = 512 * 1024
+	self.slice_size = slice_size * 1024
 	self.compress_level = compress_level
 	self.slice_str = slice_str
 	# Ensure frames eough for play several seconds
@@ -103,7 +103,7 @@ class Records:
 		    exec("del VNC_frame_%s" % k)
 
 	    info = {"create": '', "title": '', 'author': '', 'tags': '', 'desc': '', 'encoding': '', \
-		'length': 0, 'time': 0, 'slices': 0, 'data_size': 0, 'data_compressed': ''}
+		'length': 0, 'time': 0, 'slice_str': self.slice_str, 'slices': 0, 'data_size': 0, 'data_compressed': ''}
 	    for (k, v) in info.items():
 		exec("VNC_frame_%s = ''" % k)
 

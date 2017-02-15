@@ -1158,8 +1158,10 @@
 
 	    //console.info("part: " + index);
 
-	    if (typeof(VNC_frame_data_compressed) !== 'undefined' && typeof(VNC_frame_data_size) !== 'undefined')
-		VNC_frame_data_slice = decompress(VNC_frame_data_compressed, VNC_frame_data_size);
+	    if (typeof(VNC_frame_data_compressed) !== 'undefined'
+		&& typeof(VNC_frame_data_size) !== 'undefined'
+		&& typeof(VNC_frame_slice_str) !== 'undefined')
+		VNC_frame_data_slice = decompress(VNC_frame_data_compressed, VNC_frame_data_size, VNC_frame_slice_str);
 
 	    //console.info("length: " + VNC_frame_data_slice.length);
 
@@ -1302,7 +1304,7 @@
 	    return res;
 	}
 
-	function decompress(data, size) {
+	function decompress(data, size, slice_str) {
 	    var zlib = new Inflator.Inflate();
 
 	    //console.info("base64 encoded data size: " + data.length);
@@ -1314,9 +1316,6 @@
 	    var tmp = zlib.inflate(tmp, true, size);
 
 	    //console.info("decompressed data size: " + tmp.length);
-
-	    // split str must be the same as the one used in compression
-	    var slice_str = '^_^';
 
 	    zlib.reset();
 
@@ -1332,6 +1331,7 @@
 	    VNC_frame_create = undefined;
 	    VNC_frame_time = undefined;
 	    VNC_frame_length = undefined;
+	    VNC_frame_slice_str = undefined
 	    VNC_frame_data_slice = undefined;
 	    VNC_frame_slices = undefined;
 	}
@@ -1341,8 +1341,10 @@
 
 	    update_frameinfo();
 
-	    if (typeof(VNC_frame_data_compressed) !== 'undefined' && typeof(VNC_frame_data_size) !== 'undefined')
-		VNC_frame_data = decompress(VNC_frame_data_compressed, VNC_frame_data_size);
+	    if (typeof(VNC_frame_data_compressed) !== 'undefined'
+		&& typeof(VNC_frame_data_size) !== 'undefined'
+		&& typeof(VNC_frame_slice_str) !== 'undefined')
+		VNC_frame_data = decompress(VNC_frame_data_compressed, VNC_frame_data_size, VNC_frame_slice_str);
 
 	    if (typeof(VNC_frame_title) !== "undefined") {
 	        session.title = frame_desc;
