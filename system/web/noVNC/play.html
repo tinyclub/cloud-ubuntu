@@ -1275,6 +1275,7 @@
 		});
 		first_load = 0;
 	    } else {
+		//console.info("Reset and load a new data " + fname);
 		reset_framedata();
 		WebUtil.load_scripts({"recordings": [fname]});
 	    }
@@ -1283,13 +1284,17 @@
 	    vnc_ctrl.style.display = "block";
 	}
 
-	function load(index) {
+	// called in record list page while the record is choosed
+	function load(index, suffix) {
+	    if (typeof(suffix) === 'undefined')
+		suffix = "";
+
 	    var record = VNC_record_data;
 	    var record_dir = VNC_record_dir;
-	    fname = record[index][0];
+	    fname = record[index][0] + suffix;
 
 	    ___finish();
-	    // console.info("Loading ...... " + fname);
+	    //console.info("Loading ...... " + fname);
 	    __load(fname);
 	}
 
@@ -1334,6 +1339,10 @@
 	    VNC_frame_slice_str = undefined
 	    VNC_frame_data_slice = undefined;
 	    VNC_frame_slices = undefined;
+
+	    frame_length = 0;
+	    frame_data_slices = 0;
+	    curr_frame_length = 0;
 	}
 
 	function init_framedata() {
