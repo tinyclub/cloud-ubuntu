@@ -7,10 +7,9 @@
 	</style>
     </head>
     <body>
-
 	<h1 id="VNC_title"><a href="http://tinylab.org" target="_blank" title="Powered by TinyLab.org">Tiny noVNC Player</a></h1>
 
-	<div id="main">
+	<div id="VNC_main">
 	<div id="VNC_control">
 	  <div id="VNC_control_status">
 	     <span id="session" title="session title"></span>&nbsp;&nbsp;
@@ -248,7 +247,7 @@
 
 	function draw_frameinfo() {
 	    var x, y = Math.round(vnc_canvas_backup.height/3);
-	    var font = "35px Verdana";
+	    var font = "35px Tahoma";
 	    var color = "white";
 	    var align = "left";
 	    var offset = 45;
@@ -278,13 +277,13 @@
 
 	    y = Math.round(vnc_canvas_backup.height/6);
 	    __draw_text(vnc_canvas_backup, "[ " + frame_title.substring(0,30) + " ]",
-		"50px Verdana", "center", "#a00", y, 0, 0.8, 1, "white");
+		"50px Tahoma", "center", "#a00", y, 0, 0.8, 1, "white");
 
 	    draw_frameinfo();
 
 	    y = Math.round(vnc_canvas_backup.height*3/4);
 	    __draw_text(vnc_canvas_backup, "Tiny noVNC Player, powered by http://tinylab.org",
-		"30px Verdana", "center", "#00a", y, 0, 0.8, 1, "white");
+		"30px Tahoma", "center", "#00a", y, 0, 0.8, 1, "white");
 
 	    vnc_canvas.style.display = 'none';
 	    vnc_canvas_backup.style.display = 'block';
@@ -450,10 +449,9 @@
 	}
 
 	function show_others() {
+	    document.body.style.background = "#eee";
 	    vnc_title.style.display = 'block';
 	    vnc_ctrl.style.display = 'block';
-	    document.body.style.background = "#eee";
-	    update_screensize();
 	    update_screensize();
 	}
 
@@ -591,7 +589,7 @@
 	    h = canvas.height;
 
 	    if (!font)
-		font = "50px Verdana";
+		font = "50px Tahoma";
 
 	    if (!align)
 		align = "center";
@@ -668,7 +666,7 @@
 
 	    var y = Math.round(vnc_canvas_backup.height/2);
 	    __draw_text(vnc_canvas_backup, "File not found or network speed issue!",
-		"30px Verdana", "center", "#a00", y, 0, 0.8, 1, "white");
+		"30px Tahoma", "center", "#a00", y, 0, 0.8, 1, "white");
 
 	    setTimeout(___finish, 10000);
 	}
@@ -1056,8 +1054,8 @@
 	}
 
 	function update_screensize() {
-	    var target_width = window.innerWidth - 35;
-	    var target_height = window.innerHeight - vnc_screen.offsetTop - 8;
+	    var target_width = window.innerWidth - 2;
+	    var target_height = window.innerHeight - play_bar.offsetHeight - 2;
 
 	    if (screen_width_input <= 0)
 		screen_width = target_width;
@@ -1085,6 +1083,12 @@
 		    return;
 
 		if (vnc_screen.style.width !== w) {
+
+		    if (vnc_canvas_backup.width !== vnc_canvas.width) {
+			vnc_canvas_backup.width = vnc_canvas.width;
+			vnc_canvas_backup.height = vnc_canvas.height;
+		    }
+
 		    vnc_canvas_backup.style.width = w;
 		    vnc_canvas_backup.style.height = h;
 
