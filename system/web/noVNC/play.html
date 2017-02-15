@@ -708,9 +708,9 @@
 		}
 
 		if (!___running()) {
-		    var frame, idx = Number(track_bar.value) + offset;
+		    var frame, tmp, idx = Number(track_bar.value) + offset;
 		    track_bar.value = idx;
-		    skipframes = idx + 1;
+		    tmp = idx + 1;
 
 		    frame = VNC_frame_data[idx];
 		    if (frame) {
@@ -721,10 +721,10 @@
 			}
 		    }
 
-		    if (skipframes > frame_idx_max)
+		    if (tmp > frame_idx_max)
 			jumpto.textContent = totalframes;
 		    else
-			jumpto.textContent = Number(skipframes) + 1;
+			jumpto.textContent = tmp + 1;
 		    jumpto.style.color = '#00f';
 		}
 	    }
@@ -741,6 +741,8 @@
 		return;
 
 	    track_move();
+
+	    skipframes = Number(track_bar.value) + 1;
 
 	    if (ftime.style.color !== '#000') {
 		ftime.style.color = '#000';
