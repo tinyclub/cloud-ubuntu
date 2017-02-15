@@ -21,7 +21,8 @@
 	    #session { color: #a00 }
 	    #iterations { width: 30px; }
 
-	    #VNC_playbar { display: none; text-align: center; white-space:nowrap; }
+	    #VNC_control_status { background-color: #eee; }
+	    #VNC_playbar { display: none; background-color: #eee; text-align: center; white-space:nowrap; }
 	    #left_playbar { float: left; }
 	    #middle_playbar { float: left; }
 	    #right_playbar { float: right; }
@@ -145,6 +146,7 @@
 	var frame_title, frame_author, frame_time, frame_tags, frame_desc, frame_data_parts;
 	var screen_width_input, screen_height_input, screen_width, screen_height, screen_ratio;
 
+	var fullscreen = 0;
 	var vnc_screen = document.getElementById('VNC_screen');
 	var vnc_screen_disabled = 1;
 	var vnc_canvas = document.getElementById('VNC_canvas');
@@ -383,13 +385,20 @@
 	}
 
 	function show_others() {
-	    vnc_title.style.display = 'block';
+	    //vnc_title.style.display = 'block';
 	    vnc_ctrl.style.display = 'block';
 	    update_screensize();
 	}
 
 	function full_screen() {
-	    fullscreen = 1;
+	    var element = document.body;
+
+	    // Supports most browsers and their versions.
+	    var requestMethod = element.requestFullScreen || element.webkitRequestFullScreen || element.mozRequestFullScreen || element.msRequestFullScreen;
+
+	    if (requestMethod)
+		requestMethod.call(element);
+
 	    hide_others();
 	}
 
@@ -929,6 +938,22 @@
 
 	window.onresize = function() {
 	    update_screensize();
+
+	    check_fullscreen();
+	}
+
+	function check_fullscreen() {
+	    if (window.outerWidth === screen.width && window.outerHeight === screen.height) {
+		if (!fullscreen) {
+		    fullscreen = 1;
+		    hide_others();
+		}
+	    } else {
+		if (fullscreen) {
+		    fullscreen = 0;
+		    show_others();
+		}
+	    }
 	}
 
 	window.onblur = function() {
