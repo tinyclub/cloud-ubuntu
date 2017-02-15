@@ -1,12 +1,12 @@
-body { font-size:16px; font-family:'Tahoma', 'Tahoma'; text-align:center; overflow: hidden; }
-body,a,input,span { vertical-align:middle }
+body { font-size:16px; font-family:'Tahoma', 'Tahoma'; text-align:center; overflow: hidden; vertical-align: top; }
+a,input,span { vertical-align:middle }
 div { overflow:hidden; margin: 0 auto; padding: 0px; text-align: center; }
 div a { text-decoration: none; outline: none; }
 h1 a { text-decoration: none; outline: none; color:#000 }
 
 body, #main, #VNC_control, #VNC_title, #VNC_playbar { background-color: #eee; }
 
-#VNC_main { overflow: hidden; padding: 0px; text-align: center; vertical-align: middle; }
+#VNC_main { overflow: hidden; padding: 0px; text-align: center; vertical-align: top; }
 
 #VNC_records, #VNC_playbar, #VNC_screen { border: 1px solid #eee; vertical-align: top; }
 
@@ -20,7 +20,7 @@ body, #main, #VNC_control, #VNC_title, #VNC_playbar { background-color: #eee; }
 
 #VNC_title { margin: 0 auto; padding: 12px; }
 #VNC_control { display: none; }
-#VNC_playbar { display: none; padding-top: 2px; padding-bottom: 2px; text-align: center; white-space:nowrap; }
+#VNC_playbar { top: 0px; display: none; padding-top: 2px; padding-bottom: 2px; text-align: center; white-space:nowrap; }
 
 #left_playbar { float: left; }
 #middle_playbar { float: left; }

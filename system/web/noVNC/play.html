@@ -125,6 +125,7 @@
 
 	var vnc_title = document.getElementById('VNC_title');
 
+	var vnc_main = document.getElementById('VNC_main');
 	var vnc_ctrl = document.getElementById('VNC_control');
 	var vnc_ctrl_status = document.getElementById('VNC_control_status');
 	var iter = document.getElementById('iteration');
@@ -404,14 +405,14 @@
 	}
 
 	function exit_fullscreen() {
-	    show_others();
 	    __exit_fullscreen();
+	    show_others();
 	    fullscreen = 0;
 	}
 
 	function enter_fullscreen() {
-	    __enter_fullscreen();
 	    hide_others();
+	    __enter_fullscreen();
 	    fullscreen = 1;
 	}
 
@@ -430,7 +431,6 @@
 	    }
 	}
 
-
 	function check_fullscreen() {
 	    if (window.outerWidth === screen.width && window.outerHeight === screen.height) {
 		if (screen.width >= prev_screen_width && screen.height >= prev_screen_height)
@@ -445,14 +445,30 @@
 	    vnc_title.style.display = 'none';
 	    vnc_ctrl.style.display = 'none';
 	    document.body.style.background = "black";
+
+	    play_bar.style.position = "absolute";
+
 	    update_screensize();
+
+	    play_bar.style.left = Math.round((window.innerWidth - play_bar.offsetWidth)/2) + 'px';
+	    vnc_screen.style.position = 'absolute';
+	    vnc_screen.style.left = play_bar.style.left;
+	    vnc_screen.style.top = play_bar.offsetHeight - 2 + 'px';
 	}
 
 	function show_others() {
 	    document.body.style.background = "#eee";
 	    vnc_title.style.display = 'block';
 	    vnc_ctrl.style.display = 'block';
+
+	    play_bar.style.position = "relative";
+	    vnc_screen.style.position = 'relative';
+
 	    update_screensize();
+
+	    play_bar.style.left = 'auto';
+	    vnc_screen.style.left = 'auto';
+	    vnc_screen.style.top = 'auto';
 	}
 
 	function load_records() {
@@ -1054,8 +1070,8 @@
 	}
 
 	function update_screensize() {
-	    var target_width = window.innerWidth - 2;
-	    var target_height = window.innerHeight - play_bar.offsetHeight - 2;
+	    var target_width = window.innerWidth;
+	    var target_height = window.innerHeight - play_bar.offsetHeight;
 
 	    if (screen_width_input <= 0)
 		screen_width = target_width;
@@ -1100,6 +1116,7 @@
 
 		    var middle_play_bar_width = parseInt(w) - left_play_bar.offsetWidth - right_play_bar.offsetWidth;
 		    middle_play_bar.style.width = middle_play_bar_width + "px";
+
 		    vnc_screen.style.width = w;
 		}
 	    }
