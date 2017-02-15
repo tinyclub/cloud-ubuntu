@@ -11,3 +11,7 @@
 8. Make sure the 1st frame is a full frame, not only part of a full screen (Check the size)?
 9. Add speedup/slowdown feature? (not necessary, but available on the latest frame delay improve)
 10. Connect Cloud-Lab automatically by allow select and launch the labs (random token and append to the token map).
+11. Add audio play support: with <audio> meta
+    * http://kolber.github.io/audiojs/
+    * http://www.cnblogs.com/dragondean/p/jquery-audioplayer-js.html
+    * https://msdn.microsoft.com/zh-cn/library/gg589529(v=vs.85).aspx
