@@ -4,7 +4,7 @@
 	<title>Tiny noVNC Player</title>
 
 	<style type="text/css">
-	    body { background-color:#eee; font-size:12px; font-family:'Tahoma', 'Verdana'; text-align:center }
+	    body { background-color:#eee; font-size:16px; font-family:'Tahoma', 'Tahoma'; text-align:center }
 	    body,a,input,span { vertical-align:middle }
 	    div { overflow:hidden; }
 
@@ -254,12 +254,22 @@
 	}
 
 	function draw_frameinfo() {
-	    var y = Math.round(vnc_canvas_backup.height/3);
-	    var x = Math.round(vnc_canvas_backup.width/3);
-	    var font = "35px Verdana";
+	    var x, y = Math.round(vnc_canvas_backup.height/3);
+	    var font = "40px Verdana";
 	    var color = "#fff";
 	    var align = "left";
-	    var offset = 40;
+	    var offset = 45;
+
+	    var len = Math.max(frame_author.length, frame_time.length, frame_tags.length, frame_desc.length);
+	    tmp = 3;
+	    if (len < 10)
+		tmp = 3;
+	    else if (len < 20)
+		tmp = 4;
+	    else
+		tmp = 5;
+
+	    x = Math.round(vnc_canvas_backup.width/tmp);
 
 	    draw_frameitem(frame_author, "Author", font, align, color, y, x);
 	    draw_frameitem(frame_time, "Create", font, align, color, y+=offset, x);
