@@ -363,7 +363,8 @@
 		    full_frame_found = 1;
 		    full_frame_idx = frame_idx;
 		    track_bar.min = frame_idx;
-		    mode = "realtime";
+		    if (mode2.checked)
+			mode = "realtime";
 		}
 	    }
 	}
@@ -640,7 +641,7 @@
 	    message("Continue play the " + frame_idx + " frame!");
 	}
 
-	function start(clean, prev_play_stats) {
+	function start(clean, prev_play_stats, speed) {
 	    if (clean)
 		__resume();
 	    else
@@ -651,7 +652,7 @@
 	    else
 		stats = play_stats;
 
-	    if (mode1.checked) {
+	    if (mode1.checked || speed === 'fullspeed') {
 		message("Starting performance playback (fullspeed) [" + iterations + " iteration(s)]");
 		mode = 'fullspeed';
 	    } else {
@@ -1188,7 +1189,7 @@
 	    }
 	    vnc_status.textContent = "Loaded";
 
-	    start();
+	    start(0, 0, 'fullspeed');
 	}
     </script>
 </html>
