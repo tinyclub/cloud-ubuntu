@@ -41,6 +41,7 @@ define( function() {
 			always( url );
 		};
 
+		el.async = true;
 		/**
 		 * Set url of script to load
 		 */

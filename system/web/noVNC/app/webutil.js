@@ -443,7 +443,7 @@ WebUtil.load_scripts = function (files_by_dir) {
             } else {
                 // For webkit and firefox set async=false and append now
                 // https://developer.mozilla.org/en-US/docs/HTML/Element/script
-                script.async = false;
+                script.async = true;
                 head.appendChild(script);
             }
             ps.push(script);
