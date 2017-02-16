@@ -301,23 +301,22 @@
 	}
 
 	function __update_stats(iteration, frame_idx) {
-	    iter.textContent = iteration;
-	    if (fname) {
-		var frame, tmp = frame_idx + 1;
-		if (frame_idx > frame_idx_max)
-		    tmp = totalframes;
-		fidx.textContent = tmp + " . " + parseInt(tmp * 100 / totalframes) + "%";
+	    var frame, tmp = frame_idx + 1;
 
-		if (mode === 'realtime' && foffset > 1000) {
-		    ftime.textContent = format_time(foffset);
-		} else {
-		    frame = VNC_frame_data[frame_idx];
-		    if (frame) {
-			var idx = frame.indexOf('{', 1);
-			if (idx > -1)
-			    ftime.textContent = format_time(frame.slice(1, idx));
-		    }
-		}
+	    if (frame_idx > frame_idx_max)
+	        tmp = totalframes;
+
+	    fidx.textContent = tmp + " . " + parseInt(tmp * 100 / totalframes) + "%";
+
+	    if (mode === 'realtime' && foffset > 1000) {
+	        ftime.textContent = format_time(foffset);
+	    } else {
+	        frame = VNC_frame_data[frame_idx];
+	        if (frame) {
+		    var idx = frame.indexOf('{', 1);
+		    if (idx > -1)
+			ftime.textContent = format_time(frame.slice(1, idx));
+	        }
 	    }
 
 	    if ((frame_idx > skipframes) && ___running())
@@ -325,6 +324,8 @@
 
 	    if (frame_idx === frame_idx_max)
 		backup_canvas();
+
+	    iter.textContent = iteration;
 	}
 
 	function ___update_stats(iteration, frame_idx) {
@@ -702,7 +703,7 @@
 
 	    track_bar_stats = trackBarStats.DOWN;
 	    prev_play_stats = play_stats;
-	    if (fname && (frame_idx < frame_idx_max) && ___running())
+	    if ((frame_idx < frame_idx_max) && ___running())
 		__stop();
 
 	    if (touch && window.event) {
