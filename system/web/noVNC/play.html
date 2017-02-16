@@ -593,12 +593,24 @@
 	    }
 	}
 
+	function load_timeout() {
+	    restore_canvas("Loading timeout!");
+
+	    var y = Math.round(vnc_canvas_backup.height/2);
+	    __draw_text(vnc_canvas_backup, "File not found or network speed issue!",
+		"30px Verdana", "center", "#a00", y, 0, 0.8, 1, "#fff");
+
+	    setTimeout(___finish, 10000);
+	}
+
 	function __stop_onload() {
 	    console.info("Stopped at frame: " + frame_idx);
 	    __stop_control();
 	    __stop("Loading ...");
 	    vnc_canvas.style.display = 'none';
 	    vnc_canvas_backup.style.display = 'inline-block';
+
+	    setTimeout(load_timeout, 30000);
 	}
 
 	function __stop_control() {
@@ -1050,6 +1062,14 @@
 
 	    //console.info("uri: " + uri);
 	    //console.info("part: " + uri.substring(uri.lastIndexOf(".")+1));
+	    index = parseInt(uri.substring(uri.lastIndexOf(".")+1));
+	    if (!VNC_frame_data_parts[index] || VNC_frame_data_parts[index].length === 0) {
+		console.info("exit for empty data, network issue or data broken.");
+
+		___finish();
+
+		return;
+	    }
 
 	    if (___running()) {
 		stopped_by_me = 1;
@@ -1059,7 +1079,6 @@
 		stopped_by_me = 1;
 	    }
 
-	    index = parseInt(uri.substring(uri.lastIndexOf(".")+1));
 	    prev_frame_length = VNC_frame_data.length - 1;
 	    VNC_frame_data = VNC_frame_data.concat(VNC_frame_data_parts[index]);
 
@@ -1093,7 +1112,7 @@
 	    if (typeof(VNC_frame_length) !== 'undefined') {
 		uri = get_uri(fname, part);
 		//console.info("data uri is " + uri);
-		window.asyncLoad(uri, merge_data, 12000);
+		window.asyncLoad(uri, merge_data, 120000);
 	    }
 	}
 
