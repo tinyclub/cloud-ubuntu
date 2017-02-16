@@ -139,7 +139,7 @@ queue_next_packet = function () {
     ___update_stats(iteration, frame_idx);
     if (test_state !== 'running') { return; }
 
-    if (frame_idx >= VNC_frame_data.length - 1 && frame_idx < frame_idx_max) {
+    if (frame_idx >= curr_frame_length && frame_idx < frame_idx_max) {
 	__stop_onload();
 	return;
     }
@@ -149,7 +149,7 @@ queue_next_packet = function () {
         //console.info("Send frame " + frame_idx);
         frame_idx += 1;
 
-	if (frame_idx >= VNC_frame_data.length - 1 && frame_idx < frame_idx_max) {
+	if (frame_idx >= curr_frame_length && frame_idx < frame_idx_max) {
 	    __stop_onload();
 	    return;
 	}

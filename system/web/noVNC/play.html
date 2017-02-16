@@ -140,6 +140,7 @@
 	var track_bar_stats = trackBarStats.INIT;
 	var prev_track_value;
 
+	var VNC_frame_data = new Array();
 	var fname, short_fname, start_time, play_stats, frame_idx_max, totalframes, skipframes, messageon, canvas_imgdata;
 	var frame_title, frame_author, frame_time, frame_tags, frame_desc, frame_data_parts;
 	var screen_width_input, screen_height_input, screen_width, screen_height, screen_ratio;
@@ -366,6 +367,10 @@
 		    track_bar.min = frame_idx;
 		    if (mode2.checked)
 			mode = "realtime";
+
+		    // Play immediately after load the data
+		    start_btn.disabled = false;
+	            vnc_status.textContent = "Loaded";
 		}
 	    }
 	}
@@ -1056,14 +1061,19 @@
 	    }
 	}
 
-	function merge_data(uri) {
+	var curr_frame_length = 0;
+	var next_data_part = 0;
+
+	function handle_framedata(uri) {
 	    var stopped_by_me = 0;
 	    var prev_frame_length;
-	    var next_part;
 
 	    //console.info("uri: " + uri);
-	    //console.info("part: " + uri.substring(uri.lastIndexOf(".")+1));
+
 	    index = parseInt(uri.substring(uri.lastIndexOf(".")+1));
+
+	    //console.info("part: " + index);
+
 	    if (!VNC_frame_data_parts[index] || VNC_frame_data_parts[index].length === 0) {
 		console.info("exit for empty data, network issue or data broken.");
 
@@ -1072,28 +1082,42 @@
 		return;
 	    }
 
-	    if (___running()) {
-		stopped_by_me = 1;
-		__stop_control();
-		__stop();
-	    } else if (frame_idx >= VNC_frame_data.length - 1) {
-		stopped_by_me = 1;
+	    if (index !== 0) {
+		if (___running()) {
+		    stopped_by_me = 1;
+		    __stop_control();
+		    __stop();
+		} else if (frame_idx >= curr_frame_length) {
+		    stopped_by_me = 1;
+		}
 	    }
 
 	    prev_frame_length = VNC_frame_data.length - 1;
 	    VNC_frame_data = VNC_frame_data.concat(VNC_frame_data_parts[index]);
+	    curr_frame_length = VNC_frame_data.length - 1;
 
-	    if (stopped_by_me) {
-		vnc_canvas.style.display = 'inline-block';
-		vnc_canvas_backup.style.display = 'none';
-		__resume_control();
-		frame_idx = prev_frame_length;
-	        __continue();
+	    //console.info("data.length " + VNC_frame_data.length);
+	    //console.info("stopped_by_me " + stopped_by_me);
+	
+	    if (index === 0)
+		start(0, 0, 'fullspeed');
+	    else {
+		if (stopped_by_me) {
+		    vnc_canvas.style.display = 'inline-block';
+		    vnc_canvas_backup.style.display = 'none';
+		    __resume_control();
+		    frame_idx = prev_frame_length;
+		    __continue();
+		}
 	    }
 
-	    next_part = index + 1;
-	    if (next_part < frame_data_parts)
-		load_framedata(next_part);
+	    next_data_part = index + 1;
+	    if (next_data_part < frame_data_parts) {
+		if (next_data_part === 1)
+		    setTimeout(load_framedata, 1000);
+		else
+		    load_framedata(next_data_part);
+	    }
 	}
 
 	function get_uri(fname, part) {
@@ -1108,19 +1132,22 @@
 
 	function load_framedata(part) {
 	    if (typeof(part) === 'undefined')
-		part = 1;
+		part = next_data_part;
 
-	    if (typeof(VNC_frame_length) !== 'undefined') {
-		uri = get_uri(fname, part);
-		//console.info("data uri is " + uri);
-		window.asyncLoad(uri, merge_data, 120000);
-	    }
+	    uri = get_uri(fname, part);
+	    console.info("data uri is " + uri);
+	    window.asyncLoad(uri, handle_framedata, 120000);
 	}
 
-	function handle_framedata() {
+	window.onscriptsload = function () {
+	    if (fname)
+		init_framedata();
+	}
+
+	function init_framedata() {
 	    var timestamp;
 
-	    message("VNC_frame_data.length: " + VNC_frame_data.length);
+	    update_frameinfo();
 
 	    if (typeof(VNC_frame_title) !== "undefined") {
 	        session.title = frame_desc;
@@ -1134,6 +1161,8 @@
 		frame_length = VNC_frame_length;
 	    else
 		frame_length = VNC_frame_data.length;
+
+	    message("VNC_frame_length: " + frame_length);
 
 	    if (typeof(VNC_frame_timestamp) !== 'undefined')
 		timestamp = VNC_frame_timestamp;
@@ -1153,55 +1182,49 @@
 	    ttime.textContent = format_time(timestamp);
 	    ftime.textContent = '00:00:00';
 
+	    message("VNC_frame_timestamp: " + ttime.textContent);
+
 	    frame_idx_max = frame_length - 2;
 	    track_bar.max = frame_idx_max;
 	    track_bar.max = frame_idx_max;
 	    prev_track_value = frame_idx_max;
 	    totalframes = frame_length - 1;
 	    size.textContent = frame_length - 1;
-	}
 
-	window.onscriptsload = function () {
-	    iterations = WebUtil.getQueryVar('iterations', 1);
-	    skipframes = WebUtil.getQueryVar('skipframes', 0);
-	    frames_delta = WebUtil.getQueryVar('delta', frames_delta);
-	    messageon = WebUtil.getQueryVar('message', 0);
-
-	    screen_width = WebUtil.getQueryVar('width', 0);
-	    screen_height = WebUtil.getQueryVar('height', 0);
-	    screen_ratio = WebUtil.getQueryVar('ratio', 16/9);
-
-	    screen_width_input = screen_width;
-	    screen_height_input = screen_height;
-
-	    update_screensize();
-
-	    iters.value = iterations;
-	    jumpto.textContent = skipframes;
-	    loop.textContent = iterations;
-	    mode = WebUtil.getQueryVar('mode', 3);
-
-	    if (mode === 'fullspeed') {
-		mode1.checked = true;
+	    if (frame_data_parts) {
+		load_framedata(0);
 	    } else {
-		mode2.checked = true;
-	    }
-	    if (messageon)
-		info_bar.style.display = 'block';
-
-	    if (fname) {
-		update_frameinfo();
-		handle_framedata();
-		//load_framedata();
-		if (frame_data_parts)
-		    setTimeout(load_framedata, 1000);
-
-		// Play immediately after load the data
-		start_btn.disabled = false;
-	        vnc_status.textContent = "Loaded";
-
-	        start(0, 0, 'fullspeed');
+		start(0, 0, 'fullspeed');
 	    }
 	}
+
+	// Get query variables and do initialization
+
+	iterations = WebUtil.getQueryVar('iterations', 1);
+	skipframes = WebUtil.getQueryVar('skipframes', 0);
+	frames_delta = WebUtil.getQueryVar('delta', frames_delta);
+	messageon = WebUtil.getQueryVar('message', 0);
+
+	screen_width = WebUtil.getQueryVar('width', 0);
+	screen_height = WebUtil.getQueryVar('height', 0);
+	screen_ratio = WebUtil.getQueryVar('ratio', 16/9);
+
+	screen_width_input = screen_width;
+	screen_height_input = screen_height;
+
+	update_screensize();
+
+	iters.value = iterations;
+	jumpto.textContent = skipframes;
+	loop.textContent = iterations;
+	mode = WebUtil.getQueryVar('mode', 3);
+
+	if (mode === 'fullspeed') {
+	    mode1.checked = true;
+	} else {
+	    mode2.checked = true;
+	}
+	if (messageon)
+	    info_bar.style.display = 'block';
     </script>
 </html>
