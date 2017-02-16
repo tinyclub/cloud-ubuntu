@@ -28,7 +28,7 @@
 	    #startBtn { width: 45px; margin-left: 1px; margin-right: 1px }
 	    #trackBar { width: 98%; margin-left: 1px; margin-right: 1px; }
 	    #minusBtn, #plusBtn, #beginBtn, #endBtn {
-		color: #777; display: none; margin-left: 1px; margin-right: 1px;
+		color: #777; margin-left: 1px; margin-right: 1px;
 		width: 30px;
 	    }
 	    #current_time, #total_time { min-width: 45px; margin-left: 1px; margin-right: 1px; }
@@ -1195,20 +1195,12 @@
 		if (frame_data_parts)
 		    setTimeout(load_framedata, 1000);
 
-		track_bar.style.display = "inline-block";
-
-		start_btn.style.display = 'inline-block';
-		begin_btn.style.display = 'inline-block';
-		end_btn.style.display = 'inline-block';
-		plus_btn.style.display = 'inline-block';
-		minus_btn.style.display = 'inline-block';
-
 		// Play immediately after load the data
 		start_btn.disabled = false;
-	    }
-	    vnc_status.textContent = "Loaded";
+	        vnc_status.textContent = "Loaded";
 
-	    start(0, 0, 'fullspeed');
+	        start(0, 0, 'fullspeed');
+	    }
 	}
     </script>
 </html>
