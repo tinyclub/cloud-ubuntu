@@ -1162,6 +1162,8 @@
 	    else
 		frame_length = VNC_frame_data.length;
 
+	    curr_frame_length = frame_length;
+
 	    message("VNC_frame_length: " + frame_length);
 
 	    if (typeof(VNC_frame_timestamp) !== 'undefined')
