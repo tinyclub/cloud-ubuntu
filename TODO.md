@@ -18,3 +18,4 @@
 12. Add data compress with base64+lz4/decompress support for big data
     TODO: check the size diff between base64 and binary encoding
 13. Add data compress support for splitted big data
+14. Convert the records.html to a html page and a js data, allows to load and handle easierly

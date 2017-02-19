@@ -21,14 +21,15 @@
 	    #session { color: #a00 }
 	    #iterations { width: 30px; }
 
-	    #VNC_control_status { background-color: #eee; }
-	    #VNC_playbar { display: none; background-color: #eee; text-align: center; white-space:nowrap; }
+	    #VNC_control, #VNC_title { background-color: #eee; }
+	    #VNC_control { display: none; }
+	    #VNC_playbar { display: none; padding-top: 2px; background-color: #eee; text-align: center; white-space:nowrap; }
 	    #left_playbar { float: left; }
 	    #middle_playbar { float: left; }
 	    #right_playbar { float: right; }
 	    #startBtn { width: 45px; margin-left: 1px; margin-right: 1px }
 	    #trackBar { width: 98%; margin-left: 1px; margin-right: 1px; }
-	    #minusBtn, #plusBtn, #beginBtn, #endBtn {
+	    #minusBtn, #plusBtn, #beginBtn, #endBtn, #fsBtn, #moreBtn {
 		color: #777; margin-left: 1px; margin-right: 1px;
 		width: 30px;
 	    }
@@ -43,7 +44,6 @@
 	<h1 id="VNC_title"><a href="http://tinylab.org" target="_blank" title="Powered by TinyLab.org">Tiny noVNC Player</a></h1>
 
 	<div id="VNC_control">
-	  <br>
 	  <div id="VNC_control_status">
 
 	     <span id="session" title="session title"></span>&nbsp;&nbsp;
@@ -52,13 +52,7 @@
 	     <span id="size" title="Total frames"></span><a> . </a>
 	     <span id="skipframes" title="Frames to skip"></span><a> . </a>
 	     <span id="frame_idx" title="Current frame and percentage"></span>
-	     &nbsp;&nbsp;<a href="#" onclick="show_records();" title="List all sessions">#sessions</a>
-	     &nbsp;<a href="#" onclick="full_screen();" title="Switch to fullscreen">#fullscreen</a>
 
-	  </div><br>
-
-	  <div id="VNC_records">
-		<iframe src="/recordings/records.html"></iframe>
 	  </div><br>
 
 	  <div id="infoBar">
@@ -69,7 +63,7 @@
 	      <textarea id="messages" cols=80 rows=10></textarea>
 	      <br><br>
 	  </div>
-	</div>
+	</div><br>
 
 	<div id="VNC_playbar">
 
@@ -91,8 +85,14 @@
 
 	    <input id="plusBtn" type='button' value='>' onclick="track_click('plus');" title="Ctrl/Shift/Alt + Right, Fastforward 10 frames">
 	    <input id="endBtn" type='button' value='>>' onclick="track_click('end');" title="Ctrl/Shift/Alt + Down, Goto the End">
+	    <input id="fsBtn" type='button' value='[ ]' onclick="full_screen();" title="Enter/Exit Fullscreen">
+	    <input id="moreBtn" type='button' value='...' onclick="show_records();" title="More noVNC Sessions">
 	  </div>
 	</div><br>
+
+	<div id="VNC_records">
+		<iframe src="/recordings/records.html"></iframe>
+	</div>
 
 	<div id="VNC_screen" ontouchstart='track_stop(2)' onmousedown='track_stop(1)' ontouchmove='track_move(2)' onmousemove='track_move(1)' ontouchend='track_start(2)' onmouseup='track_start(1)'>
 	    <canvas id="VNC_canvas" width="100%">
@@ -203,14 +203,16 @@
 
 	function show_records() {
 	    console.info("vnc records display " + vnc_records.style.display);
-	    if (vnc_records.style.display === "inline-block")
+	    if (vnc_records.style.display === "inline-block") {
 		vnc_records.style.display = "none";
-	    else {
-	        vnc_records.style.height = "200px";
+		vnc_screen.style.display = "inline-block";
+	    	update_screensize();
+	    } else {
+	        vnc_records.style.width = vnc_screen.offsetWidth + "px";
+	        vnc_records.style.height = vnc_screen.offsetHeight + "px";
+		vnc_screen.style.display = "none";
 		vnc_records.style.display = "inline-block";
 	    }
-
-	    update_screensize();
 	}
 
 	function iters_update() {
@@ -401,22 +403,48 @@
 	}
 
 	function show_others() {
-	    //vnc_title.style.display = 'block';
+	    vnc_title.style.display = 'block';
 	    vnc_ctrl.style.display = 'block';
 	    update_screensize();
 	}
 
-	function full_screen() {
-	    fullscreen = 1;
-	    hide_others();
+	function exit_fullscreen() {
+	    if (document.exitFullscreen) {
+		document.exitFullscreen();
+	    } else if (document.mozCancelFullScreen) {
+		document.mozCancelFullScreen();
+	    } else if (document.webkitExitFullscreen) {
+		document.webkitExitFullscreen();
+	    }
+	}
 
+	function enter_fullscreen() {
 	    var element = document.body;
+	    var enter = element.requestFullScreen || element.webkitRequestFullScreen || element.mozRequestFullScreen || element.msRequestFullScreen;
+	    if (enter)
+		enter.call(element);
 
-	    // Supports most browsers and their versions.
-	    var requestMethod = element.requestFullScreen || element.webkitRequestFullScreen || element.mozRequestFullScreen || element.msRequestFullScreen;
+	    document.body.style.background = "#eee";
+	}
 
-	    if (requestMethod)
-		requestMethod.call(element);
+	function full_screen() {
+	    if (fullscreen) {
+		fullscreen = 0;
+		exit_fullscreen();
+		show_others();
+	    } else {
+		fullscreen = 1;
+		hide_others();
+		enter_fullscreen();
+	    }
+	}
+
+	function check_fullscreen() {
+	    if (window.outerWidth === screen.width && window.outerHeight === screen.height) {
+		hide_others();
+	    } else {
+		show_others();
+	    }
 	}
 
 	function hide_others() {
@@ -448,6 +476,7 @@
 		'recordings': [fname]});
 
 	    play_stats = playStats.LOADING;
+	    vnc_ctrl.style.display = "inline-block";
 	} else {
 	    vnc_status.textContent = 'Must specify data=FOO in query string.';
 	    vnc_records.style.display = "inline-block";
@@ -951,19 +980,9 @@
 	}
 
 	window.onresize = function() {
-	    update_screensize();
-
 	    check_fullscreen();
-	}
 
-	function check_fullscreen() {
-	    if (window.outerWidth === screen.width && window.outerHeight === screen.height) {
-		    fullscreen = 1;
-		    hide_others();
-	    } else {
-		    fullscreen = 0;
-		    show_others();
-	    }
+	    update_screensize();
 	}
 
 	window.onblur = function() {

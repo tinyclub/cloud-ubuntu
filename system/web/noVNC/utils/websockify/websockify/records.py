@@ -30,7 +30,8 @@ class Records:
                   "             text-align: center; max-width: 100px; }\n" \
                   "    td { font-size: 80%; overflow: hidden; text-overflow: ellipsis } \n" \
                   "    tr.head { background-color: #ccc; } \n" \
-                  "    tr.odd { background-color: #eee } \n" \
+                  "    tr.odd { background-color: #eee; } \n" \
+                  "    tr.even { background-color: #fff; } \n" \
                   "    tr:hover { background-color: #aaa; } \n" \
                   "</style>\n" \
                   "</head>\n" \
