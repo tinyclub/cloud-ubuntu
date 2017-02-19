@@ -2,41 +2,8 @@
 <html>
     <head>
 	<title>Tiny noVNC Player</title>
-
-	<style type="text/css">
-	    body { background-color:#eee; font-size:16px; font-family:'Tahoma', 'Tahoma'; text-align:center; overflow: hidden; }
-	    body,a,input,span { vertical-align:middle }
-	    div { overflow:hidden; margin: 0px; padding: 0px; }
-
-	    div a { text-decoration: none; outline: none; }
-	    h1 a { text-decoration: none; outline: none; color:#000 }
-
-	    #VNC_records { display: none; width: 100%; height: 500px; margin-bottom: 16px; }
-	    iframe { text-align: center; width: 98%; height: 100%; }
-
-	    #VNC_screen { display: inline-block; white-space:nowrap; }
-	    #VNC_canvas { display: none; }
-	    #VNC_canvas_backup { display: inline-block; }
-
-	    #session { color: #a00 }
-	    #iterations { width: 30px; }
-
-	    #VNC_control, #VNC_title { background-color: #eee; }
-	    #VNC_control { display: none; }
-	    #VNC_playbar { display: none; padding-top: 2px; background-color: #eee; text-align: center; white-space:nowrap; }
-	    #left_playbar { float: left; }
-	    #middle_playbar { float: left; }
-	    #right_playbar { float: right; }
-	    #startBtn { width: 45px; margin-left: 1px; margin-right: 1px }
-	    #trackBar { width: 98%; margin-left: 1px; margin-right: 1px; }
-	    #minusBtn, #plusBtn, #beginBtn, #endBtn, #fsBtn, #moreBtn {
-		color: #777; margin-left: 1px; margin-right: 1px;
-		width: 30px;
-	    }
-	    #current_time, #total_time { min-width: 45px; margin-left: 1px; margin-right: 1px; }
-
-	    #infoBar { display: none; }
-	    #messages { font-size: 9; margin: 0 auto; }
+	<link rel="stylesheet" href="./app/styles/player.css">
+	<link rel="stylesheet" href="./app/styles/records.css">
 	</style>
     </head>
     <body>
@@ -91,7 +58,6 @@
 	</div><br>
 
 	<div id="VNC_records">
-		<iframe src="/recordings/records.html"></iframe>
 	</div>
 
 	<div id="VNC_screen" ontouchstart='track_stop(2)' onmousedown='track_stop(1)' ontouchmove='track_move(2)' onmousemove='track_move(1)' ontouchend='track_start(2)' onmouseup='track_start(1)'>
@@ -202,6 +168,9 @@
 	canvas_imgdata = '';
 
 	function show_records() {
+	    if (vnc_records.innerHTML.length < 10)
+		list_records();
+
 	    vnc_records.style.width = vnc_screen.offsetWidth + "px";
 	    vnc_records.style.height = vnc_screen.offsetHeight + "px";
 	    vnc_screen.style.display = "none";
@@ -480,7 +449,9 @@
 			 "input/keysymdef.js", "input/xtscancodes.js", "input/util.js",
 			 "input/devices.js", "display.js", "rfb.js", "inflator.js"],
 		'tests': ["playback.js"],
-		'recordings': [fname]});
+		'app': ["list_records.js"],
+		'recordings': ["records.js", fname],
+		});
 
 	    play_stats = playStats.LOADING;
 	    vnc_ctrl.style.display = "inline-block";

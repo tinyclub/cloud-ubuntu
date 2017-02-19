@@ -1,0 +1,30 @@
+body { background-color:#eee; font-size:16px; font-family:'Tahoma', 'Tahoma'; text-align:center; overflow: hidden; }
+body,a,input,span { vertical-align:middle }
+div { overflow:hidden; margin: 0px; padding: 0px; }
+
+div a { text-decoration: none; outline: none; }
+h1 a { text-decoration: none; outline: none; color:#000 }
+
+#VNC_screen { display: inline-block; white-space:nowrap; }
+#VNC_canvas { display: none; }
+#VNC_canvas_backup { display: inline-block; }
+
+#session { color: #a00 }
+#iterations { width: 30px; }
+
+#VNC_control, #VNC_title { background-color: #eee; }
+#VNC_control { display: none; }
+#VNC_playbar { display: none; padding-top: 2px; background-color: #eee; text-align: center; white-space:nowrap; }
+#left_playbar { float: left; }
+#middle_playbar { float: left; }
+#right_playbar { float: right; }
+#startBtn { width: 45px; margin-left: 1px; margin-right: 1px }
+#trackBar { width: 98%; margin-left: 1px; margin-right: 1px; }
+#minusBtn, #plusBtn, #beginBtn, #endBtn, #fsBtn, #moreBtn {
+color: #777; margin-left: 1px; margin-right: 1px;
+width: 30px;
+}
+#current_time, #total_time { min-width: 45px; margin-left: 1px; margin-right: 1px; }
+
+#infoBar { display: none; }
+#messages { font-size: 9; margin: 0 auto; }
