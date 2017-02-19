@@ -5,6 +5,7 @@ div { overflow:hidden; margin: 0px; padding: 0px; }
 div a { text-decoration: none; outline: none; }
 h1 a { text-decoration: none; outline: none; color:#000 }
 
+#VNC_records { display: none; }
 #VNC_screen { display: inline-block; white-space:nowrap; }
 #VNC_canvas { display: none; }
 #VNC_canvas_backup { display: inline-block; }

@@ -433,6 +433,14 @@
 	    update_screensize();
 	}
 
+	function load_records() {
+	    // Load supporting scripts
+	    WebUtil.load_scripts({
+	    'app': ["list_records.js"],
+	    "recordings": ["records.js"],
+	    });
+	}
+
 	fullscreen = WebUtil.getQueryVar('f', 0);
 	if (fullscreen === 0)
 	    fullscreen = WebUtil.getQueryVar('fullscreen', 0);
@@ -443,8 +451,8 @@
 	if (fname) {
 	    __load(fname);
 	} else {
+	    load_records();
 	    vnc_status.textContent = 'Must specify data=FOO in query string.';
-	    vnc_records.style.display = "inline-block";
 	    message("Must specify data=FOO in query string.");
 	}
 
@@ -503,7 +511,7 @@
 
 	function backup_canvas() {
 	    //console.info("backup canvas");
-	    if (!(rfb && rfb._display))
+	    if (!(typeof(rfb) !== 'undefined' && rfb && rfb._display))
 		return;
 
 	    update_screensize();
@@ -1171,9 +1179,22 @@
 	    window.asyncLoad(uri, handle_framedata, 120000);
 	}
 
+	function show_records_list() {
+	    if (vnc_records.innerHTML.length < 10)
+		list_records();
+
+	    vnc_records.style.width = window.innerWidth + "px";
+	    vnc_records.style.height = window.innerHeight + "px";
+	    vnc_screen.style.display = "none";
+	    vnc_records.style.display = "inline-block";
+	    vnc_ctrl.style.display = "none";
+	}
+
 	window.onscriptsload = function () {
 	    if (fname)
 		init_framedata();
+	    else
+		show_records_list();
 	}
 
 	function __load(fname) {
