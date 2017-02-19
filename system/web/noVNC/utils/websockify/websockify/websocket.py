@@ -106,7 +106,7 @@ class WebSocketRequestHandler(SimpleHTTPRequestHandler):
         self.daemon = getattr(server, "daemon", False)
         self.record = getattr(server, "record", False)
         self.record_dir = getattr(server, "record_dir", "recordings/")
-        self.record_list = getattr(server, "record_list", "records.html")
+        self.record_list = getattr(server, "record_list", "records.js")
         self.run_once = getattr(server, "run_once", False)
         self.public = getattr(server, "public", False)
         self.rec        = None
@@ -558,10 +558,10 @@ class WebSocketRequestHandler(SimpleHTTPRequestHandler):
 
                 # Record raw frame data as JavaScript array
                 cur_time = time.localtime(time.time())
-                fname_time = time.strftime("%Y%m%d.%H%M%S", cur_time)
-                record_time = time.strftime("%a, %d %b %Y %H:%M:%S %Z", cur_time)
+                fname_create = time.strftime("%Y%m%d.%H%M%S", cur_time)
+                record_create = time.strftime("%a, %d %b %Y %H:%M:%S %Z", cur_time)
 
-                fname = "%s.%s.%s" % (self.record, fname_time, self.handler_id)
+                fname = "%s.%s.%s" % (self.record, fname_create, self.handler_id)
 
                 if not os.path.exists(self.record_dir):
                     os.makedirs(self.record_dir)
@@ -571,9 +571,9 @@ class WebSocketRequestHandler(SimpleHTTPRequestHandler):
                 encoding = "binary"
                 if self.base64: encoding = "base64"
 
-                if record_time:
-                    self.rec.write("var VNC_frame_time = '%s';\n"
-                               % record_time)
+                if record_create:
+                    self.rec.write("var VNC_frame_create = '%s';\n"
+                               % record_create)
                 if record_title:
                     self.rec.write("var VNC_frame_title = '%s';\n"
                                % record_title)
@@ -681,7 +681,7 @@ class WebSocketServer(object):
     def __init__(self, RequestHandlerClass, listen_host='',
                  listen_port=None, source_is_ipv6=False,
             verbose=False, cert='', key='', ssl_only=None,
-            daemon=False, record='', record_dir='recordings/', record_list='records.html', web='',
+            daemon=False, record='', record_dir='recordings/', record_list='records.js', web='',
             file_only=False,
             run_once=False, public=False, timeout=0, idle_timeout=0, traffic=False,
             tcp_keepalive=True, tcp_keepcnt=None, tcp_keepidle=None,

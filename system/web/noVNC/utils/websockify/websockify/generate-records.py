@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# generate-records.py -- generate records.html for noVNC recordings in /noVNC/recordings/
+# generate-records.py -- generate records.js for noVNC recordings in /noVNC/recordings/
 #
 
 import sys, os

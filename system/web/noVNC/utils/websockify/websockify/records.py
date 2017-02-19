@@ -24,7 +24,7 @@ class Records:
 	content = "var VNC_record_player = '/play.html';\n"
 	content += "var VNC_record_dir = '/%s';\n\n" % os.path.basename(self.record_dir.strip('/'))
 	content += "var VNC_record_data = [ \n"
-	content += "  ['Name', 'Title', 'Size', 'Time', 'Author', 'Tags', 'Desc'],\n"
+	content += "  ['Name', 'Title', 'Size', 'Create', 'Author', 'Tags', 'Desc'],\n"
 
 	rec_list = os.listdir(os.path.abspath(self.record_dir))
 	# sort by time
@@ -40,7 +40,7 @@ class Records:
 	    t = open(f)
 
 	    frame_data_valid = 0
-	    info = {"time": '', "title": '', 'author': '', 'tags': '', 'desc': ''}
+	    info = {"create": '', "title": '', 'author': '', 'tags': '', 'desc': ''}
 	    for i in range(1, 20):
 		l = t.readline()
 		if not l:
@@ -61,12 +61,12 @@ class Records:
 		t.close()
 		continue
 
-	    if not info['time']:
-		info['time'] = time.strftime("%Y%m%d %H:%M:%S",
+	    if not info['create']:
+		info['create'] = time.strftime("%Y%m%d %H:%M:%S",
 			     time.localtime(os.path.getctime(f)))
 	    else:
-		info['time'] = time.strftime("%Y%m%d %H:%M:%S",
-			     time.strptime(info['time'], "%a, %d %b %Y %H:%M:%S %Z"))
+		info['create'] = time.strftime("%Y%m%d %H:%M:%S",
+			     time.strptime(info['create'], "%a, %d %b %Y %H:%M:%S %Z"))
 	    if not info['title']:
 		info["title"] = rec
 	    if not info['author']:
@@ -91,7 +91,7 @@ class Records:
 	    content += \
 		   "  ['%s', '%s', '%s%s', '%s', '%s', '%s', '%s'],\n" \
 		   % (rec, info['title'], str(rec_size), unit,
-		     info['time'], info['author'], info['tags'], info['desc'])
+		     info['create'], info['author'], info['tags'], info['desc'])
 
 	content += "];";
 

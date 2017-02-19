@@ -384,7 +384,7 @@ def websockify_init():
     parser.add_option("--record-dir",
             help="directoy to save recorded sessions", default='recordings/', metavar="DIR")
     parser.add_option("--record-list",
-            help="file to save the list of recorded sessions", default='records.html', metavar="FILE")
+            help="file to save the list of recorded sessions", default='records.js', metavar="FILE")
     parser.add_option("--daemon", "-D",
             dest="daemon", action="store_true",
             help="become a daemon (background process)")

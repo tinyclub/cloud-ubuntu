@@ -111,7 +111,7 @@
 
 	var VNC_frame_data = new Array();
 	var fname, short_fname, start_time, play_stats, frame_idx_max, totalframes, skipframes, messageon, canvas_imgdata;
-	var frame_title, frame_author, frame_time, frame_tags, frame_desc, frame_data_parts;
+	var frame_title, frame_author, frame_create, frame_tags, frame_desc, frame_data_parts;
 	var screen_width_input, screen_height_input, screen_width, screen_height, screen_ratio;
 
 	var fullscreen = 0;
@@ -248,7 +248,7 @@
 	    var align = "left";
 	    var offset = 45;
 
-	    var len = Math.max(frame_author.length, frame_time.length, frame_tags.length, frame_desc.length);
+	    var len = Math.max(frame_author.length, frame_create.length, frame_tags.length, frame_desc.length);
 	    tmp = 3;
 	    if (len < 10)
 		tmp = 3;
@@ -262,7 +262,7 @@
 	    x = Math.round(vnc_canvas_backup.width/tmp);
 
 	    draw_frameitem(frame_author, "Author", font, align, color, y, x);
-	    draw_frameitem(frame_time, "Create", font, align, color, y+=offset, x);
+	    draw_frameitem(frame_create, "Create", font, align, color, y+=offset, x);
 	    draw_frameitem(ttime.textContent, "Length", font, align, color, y+=offset, x);
 	    draw_frameitem(frame_tags, "Tags", font, align, color, y+=offset, x);
 	    draw_frameitem(frame_desc, "Desc", font, align, color, y+=offset, x);
@@ -1097,7 +1097,7 @@
 	function update_frameinfo() {
 	    frame_title = short_fname;
 	    frame_author = 'Unknown';
-	    frame_time = 'Unknown';
+	    frame_create = 'Unknown';
 	    frame_tags = 'Unknown';
 	    frame_desc = 'Unknown';
 
@@ -1107,8 +1107,8 @@
 	    if (typeof(VNC_frame_author) !== "undefined") {
 		frame_author = VNC_frame_author;
 	    }
-	    if (typeof(VNC_frame_time) !== "undefined") {
-		frame_time = VNC_frame_time;
+	    if (typeof(VNC_frame_create) !== "undefined") {
+		frame_create = VNC_frame_create;
 	    }
 	    if (typeof(VNC_frame_tags) !== "undefined") {
 		frame_tags = VNC_frame_tags;
@@ -1223,8 +1223,6 @@
 	    vnc_status.textContent = "Loading ...";
 
 	    if (first_load === 1) {
-		console.info("loading all scripts");
-
 		// Load supporting scripts
 		WebUtil.load_scripts({
 		'core': ["base64.js", "websock.js", "des.js", "input/keysym.js",
@@ -1274,7 +1272,7 @@
 
 	    console.info("compressed data size: " + tmp.length);
 
-	    var tmp = zlib.inflate(tmp, true, VNC_frame_size);
+	    var tmp = zlib.inflate(tmp, true, VNC_frame_data_size);
 
 	    console.info("decompressed data size: " + tmp.length);
 
@@ -1293,8 +1291,8 @@
 	    VNC_frame_data_compressed = undefined;
 	    VNC_frame_title = undefined;
 	    VNC_frame_author = undefined;
+	    VNC_frame_create = undefined;
 	    VNC_frame_time = undefined;
-	    VNC_frame_timestamp = undefined;
 	    VNC_frame_length = undefined;
 	    VNC_frame_data_parts = undefined;
 	    VNC_frame_parts = undefined;
@@ -1325,8 +1323,8 @@
 
 	    message("VNC_frame_length: " + frame_length);
 
-	    if (typeof(VNC_frame_timestamp) !== 'undefined')
-		timestamp = VNC_frame_timestamp;
+	    if (typeof(VNC_frame_time) !== 'undefined')
+		timestamp = VNC_frame_time;
 	    else {
 		var frame, i, idx;
 
@@ -1343,7 +1341,7 @@
 	    ttime.textContent = format_time(timestamp);
 	    ftime.textContent = '00:00:00';
 
-	    message("VNC_frame_timestamp: " + ttime.textContent);
+	    message("VNC_frame_time: " + ttime.textContent);
 
 	    frame_idx_max = frame_length - 2;
 	    track_bar.max = frame_idx_max;
