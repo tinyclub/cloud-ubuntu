@@ -77,6 +77,7 @@ enable_test_mode = function () {
 next_iteration = function () {
     rfb = new RFB({'target': document.getElementById('VNC_canvas'),
                    'view_only': true,
+                   'local_cursor': false,
                    'onDisconnected': disconnected,
                    'onNotification': notification});
     enable_test_mode();
