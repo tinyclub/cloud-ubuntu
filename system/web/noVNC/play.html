@@ -86,6 +86,8 @@
     <script src="./app/load.js"></script>
 
     <script>
+	var first_load = 1;
+
 	var touchable = 0;
 	// skip drawing if (skipframes - frame_idx) is big
 	// draw a text to tell users wait instead.
@@ -168,8 +170,10 @@
 	canvas_imgdata = '';
 
 	function show_records() {
+	    __stop();
+
 	    if (vnc_records.innerHTML.length < 10)
-		list_records();
+		draw_records();
 
 	    vnc_records.style.width = vnc_screen.offsetWidth + "px";
 	    vnc_records.style.height = vnc_screen.offsetHeight + "px";
@@ -437,24 +441,7 @@
 
 	fname = WebUtil.getQueryVar('data', null);
 	if (fname) {
-	    short_fname = fname.replace(/.*\//,"");
-	    message("Loading " + short_fname);
-
-	    session.textContent = "#"+ short_fname;
-	    vnc_status.textContent = "Loading ...";
-
-	    // Load supporting scripts
-	    WebUtil.load_scripts({
-		'core': ["base64.js", "websock.js", "des.js", "input/keysym.js",
-			 "input/keysymdef.js", "input/xtscancodes.js", "input/util.js",
-			 "input/devices.js", "display.js", "rfb.js", "inflator.js"],
-		'tests': ["playback.js"],
-		'app': ["list_records.js"],
-		'recordings': ["records.js", fname],
-		});
-
-	    play_stats = playStats.LOADING;
-	    vnc_ctrl.style.display = "inline-block";
+	    __load(fname);
 	} else {
 	    vnc_status.textContent = 'Must specify data=FOO in query string.';
 	    vnc_records.style.display = "inline-block";
@@ -1164,6 +1151,9 @@
 
 	function get_uri(fname, part) {
 	    var uri;
+
+	    console.info("short_fname: " + short_fname + " fname: " + fname);
+
 	    if (short_fname === fname)
 		uri = '' + INCLUDE_URI + '/recordings/' + fname + "." + part;
 	    else
@@ -1184,6 +1174,45 @@
 	window.onscriptsload = function () {
 	    if (fname)
 		init_framedata();
+	}
+
+	function __load(fname) {
+	    short_fname = fname.replace(/.*\//,"");
+	    message("Loading " + short_fname);
+
+	    session.textContent = "#"+ short_fname;
+	    vnc_status.textContent = "Loading ...";
+
+	    if (first_load === 1) {
+		console.info("loading all scripts");
+
+		// Load supporting scripts
+		WebUtil.load_scripts({
+		'core': ["base64.js", "websock.js", "des.js", "input/keysym.js",
+			 "input/keysymdef.js", "input/xtscancodes.js", "input/util.js",
+			 "input/devices.js", "display.js", "rfb.js", "inflator.js"],
+		'tests': ["playback.js"],
+		'app': ["list_records.js"],
+		"recordings": ["records.js", fname],
+		});
+		first_load = 0;
+	    } else {
+		reset_framedata();
+		WebUtil.load_scripts({"recordings": [fname]});
+	    }
+
+	    play_stats = playStats.LOADING;
+	    vnc_ctrl.style.display = "inline-block";
+	}
+
+	function load(index) {
+	    var record = VNC_record_data;
+	    var record_dir = VNC_record_dir;
+	    fname = record[index][0];
+
+	    ___finish();
+	    console.info("Loading ...... " + fname);
+	    __load(fname);
 	}
 
 	function arr2str(array) {
@@ -1215,7 +1244,21 @@
 
 	    VNC_frame_data = arr2str(tmp).split(split_str);
 
+	    zlib.reset();
+
 	    console.info("data items: " + VNC_frame_data.length);
+	}
+
+	function reset_framedata() {
+	    VNC_frame_data = [];
+	    VNC_frame_data_compressed = undefined;
+	    VNC_frame_title = undefined;
+	    VNC_frame_author = undefined;
+	    VNC_frame_time = undefined;
+	    VNC_frame_timestamp = undefined;
+	    VNC_frame_length = undefined;
+	    VNC_frame_data_parts = undefined;
+	    VNC_frame_parts = undefined;
 	}
 
 	function init_framedata() {

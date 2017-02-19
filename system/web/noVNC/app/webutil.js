@@ -432,7 +432,7 @@ WebUtil.load_scripts = function (files_by_dir) {
                 script.src = files[f];
 	    else
                 script.src = WebUtil.get_include_uri(root_dir) + files[f];
-            //console.log("loading script: " + script.src);
+            // console.log("loading script: " + script.src);
             script.onload = script.onreadystatechange = loadFunc;
             // In-order script execution tricks
             if (Util.Engine.trident) {
