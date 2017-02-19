@@ -206,7 +206,6 @@
 	    if (vnc_records.style.display === "inline-block") {
 		vnc_records.style.display = "none";
 		vnc_screen.style.display = "inline-block";
-	    	update_screensize();
 	    } else {
 	        vnc_records.style.width = vnc_screen.offsetWidth + "px";
 	        vnc_records.style.height = vnc_screen.offsetHeight + "px";
@@ -1088,7 +1087,8 @@
 		    vnc_canvas_backup.style.width = w;
 		    vnc_canvas_backup.style.height = h;
 
-		    //vnc_records.style.width = w;
+		    vnc_records.style.width = w;
+		    vnc_records.style.height = h;
 
 		    play_bar.style.width = w;
 		    play_bar.style.display = 'inline-block';
