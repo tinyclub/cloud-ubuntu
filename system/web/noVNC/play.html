@@ -86,7 +86,7 @@
 	    <input id="plusBtn" type='button' value='>' onclick="track_click('plus');" title="Ctrl/Shift/Alt + Right, Fastforward 10 frames">
 	    <input id="endBtn" type='button' value='>>' onclick="track_click('end');" title="Ctrl/Shift/Alt + Down, Goto the End">
 	    <input id="fsBtn" type='button' value='[ ]' onclick="full_screen();" title="Enter/Exit Fullscreen">
-	    <input id="moreBtn" type='button' value='...' onclick="show_records();" title="More noVNC Sessions">
+	    <input id="moreBtn" type='button' value='...' onclick="op_records();" title="More noVNC Sessions">
 	  </div>
 	</div><br>
 
@@ -202,15 +202,23 @@
 	canvas_imgdata = '';
 
 	function show_records() {
+	    vnc_records.style.width = vnc_screen.offsetWidth + "px";
+	    vnc_records.style.height = vnc_screen.offsetHeight + "px";
+	    vnc_screen.style.display = "none";
+	    vnc_records.style.display = "inline-block";
+	}
+
+	function hide_records() {
+	    vnc_records.style.display = "none";
+	    vnc_screen.style.display = "inline-block";
+	}
+
+	function op_records() {
 	    console.info("vnc records display " + vnc_records.style.display);
 	    if (vnc_records.style.display === "inline-block") {
-		vnc_records.style.display = "none";
-		vnc_screen.style.display = "inline-block";
+		hide_records();
 	    } else {
-	        vnc_records.style.width = vnc_screen.offsetWidth + "px";
-	        vnc_records.style.height = vnc_screen.offsetHeight + "px";
-		vnc_screen.style.display = "none";
-		vnc_records.style.display = "inline-block";
+		show_records();
 	    }
 	}
 
@@ -724,6 +732,8 @@
 	}
 
 	function start(clean, prev_play_stats, speed) {
+	    hide_records();
+
 	    if (clean)
 		__resume();
 	    else
