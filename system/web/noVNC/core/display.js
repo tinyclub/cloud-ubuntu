@@ -30,6 +30,8 @@
     this._maxWidth = 0;
     this._maxHeight = 0;
 
+    this._view_only = false;
+
     // the visible "physical canvas" viewport
     this._viewportLoc = { 'x': 0, 'y': 0, 'w': 0, 'h': 0 };
     this._cleanRect = { 'x1': 0, 'y1': 0, 'x2': -1, 'y2': -1 };
@@ -45,6 +47,7 @@
         'colourMap': [],
         'scale': 1.0,
         'viewport': false,
+        'view_only': false,
         'render_mode': '',
         "onFlush": function () {},
     });
@@ -578,6 +581,11 @@
         },
 
         changeCursor: function (pixels, mask, hotx, hoty, w, h) {
+            if (this._view_only) {
+                Util.Warn("changeCursor called but view only set");
+                return;
+            }
+
             if (this._cursor_uri === false) {
                 Util.Warn("changeCursor called but no cursor data URI support");
                 return;
@@ -615,6 +623,10 @@
         // Overridden getters/setters
         get_context: function () {
             return this._drawCtx;
+        },
+
+        set_view_only: function (v) {
+            this._view_only = v;
         },
 
         set_scale: function (scale) {
@@ -825,6 +837,7 @@
         ['colourMap', 'rw', 'arr'],    // Colour map array (when not true-color)
         ['scale', 'rw', 'float'],      // Display area scale factor 0.0 - 1.0
         ['viewport', 'rw', 'bool'],    // Use viewport clipping
+        ['view_only', 'rw', 'bool'],    // Use viewonly
         ['width', 'rw', 'int'],        // Display area width
         ['height', 'rw', 'int'],       // Display area height
         ['maxWidth', 'rw', 'int'],     // Viewport max width (0 if disabled)
