@@ -388,7 +388,7 @@
 	    update_screensize();
 	}
 
-	function exit_fullscreen() {
+	function __exit_fullscreen() {
 	    if (document.exitFullscreen) {
 		document.exitFullscreen();
 	    } else if (document.mozCancelFullScreen) {
@@ -398,7 +398,7 @@
 	    }
 	}
 
-	function enter_fullscreen() {
+	function __enter_fullscreen() {
 	    var element = document.body;
 	    var enter = element.requestFullScreen || element.webkitRequestFullScreen || element.mozRequestFullScreen || element.msRequestFullScreen;
 	    if (enter)
@@ -407,23 +407,40 @@
 	    document.body.style.background = "#eee";
 	}
 
+	function exit_fullscreen() {
+	    show_others();
+	    __exit_fullscreen();
+	    fullscreen = 0;
+	}
+
+	function enter_fullscreen() {
+	    __enter_fullscreen();
+	    hide_others();
+	    fullscreen = 1;
+	}
+
+	var prev_screen_width = 0;
+
 	function full_screen() {
 	    if (fullscreen) {
-		fullscreen = 0;
 		exit_fullscreen();
-		show_others();
+		prev_screen_width = screen.width;
+		prev_screen_height = screen.height;
 	    } else {
-		fullscreen = 1;
-		hide_others();
+		prev_screen_width = screen.width;
+		prev_screen_height = screen.height;
 		enter_fullscreen();
 	    }
 	}
 
+
 	function check_fullscreen() {
 	    if (window.outerWidth === screen.width && window.outerHeight === screen.height) {
-		hide_others();
+		if (screen.width >= prev_screen_width && screen.height >= prev_screen_height)
+		    hide_others();
 	    } else {
-		show_others();
+		if (screen.width <= prev_screen_width && screen.height <= prev_screen_height)
+		    show_others();
 	    }
 	}
 
@@ -444,8 +461,9 @@
 	fullscreen = WebUtil.getQueryVar('f', 0);
 	if (fullscreen === 0)
 	    fullscreen = WebUtil.getQueryVar('fullscreen', 0);
-	if (fullscreen)
-	    hide_others();
+	if (fullscreen) {
+	    enter_fullscreen();
+	}
 
 	fname = WebUtil.getQueryVar('data', null);
 	if (fname) {
@@ -1018,7 +1036,7 @@
 	    start_btn.value = "=>";
 	    //vnc_status.textContent = "Finished";
 	    //vnc_status.style.display = 'inline-block';
-	    show_others();
+	    exit_fullscreen();
 	}
 
 	function ___finish() {
