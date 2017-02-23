@@ -5,7 +5,7 @@ import os, re, time, base64, zlib, binascii
 class Records:
     def __init__(self, record_dir = 'recordings/', record_list = 'records.js', \
 		record_html = 'records.html', slice_size = 256, compress_level = 9, \
-		slice_str = '^_^', min_frames = 35):
+		slice_str = '^_^', min_frames = 35, max_frames = 45):
 	self.record_dir = record_dir
 	self.record_list = record_list
 	self.record_html = record_html
@@ -15,6 +15,7 @@ class Records:
 	self.slice_str = slice_str
 	# Ensure frames eough for play several seconds
 	self.min_frames = min_frames
+	self.max_frames = max_frames
 
     def compare(self, x, y):
 	stat_x = os.stat(self.record_dir + "/" + x)
@@ -201,8 +202,11 @@ class Records:
 
 		while (slice_frame_end < VNC_frame_length):
 		    _slice_frame_length = slice_frame_length
-		    if (slice_index == 0 and slice_frame_length < self.min_frames):
-			_slice_frame_length = self.min_frames
+		    if slice_index == 0:
+			if slice_frame_length < self.min_frames:
+			    _slice_frame_length = self.min_frames
+			if slice_frame_length > self.max_frames:
+			    _slice_frame_length = self.max_frames
 
 		    slice_frame_end = slice_frame_start + _slice_frame_length - 1
 		    if (slice_frame_end > VNC_frame_length):
