@@ -86,6 +86,10 @@
     <script src="./app/load.js"></script>
 
     <script>
+	// preload next slice if less than 10s left
+	// here assume the net speed is at least 256k/10s = 25.6 k/s, 256k is the biggest slice size (file size / slices)
+	var avail_timestamp = 10*1000;
+
 	var first_load = 1;
 
 	var touchable = 0;
@@ -778,6 +782,8 @@
 		    __continue();
 		else
 		    __start();
+
+		//check_load_framedata();
 	    } else {
 		__stop();
 	    }
@@ -1211,9 +1217,50 @@
 	    }
 
 	    next_data_slice = index + 1;
-	    if (next_data_slice < frame_data_slices) {
-		load_framedata(next_data_slice);
+	    if (next_data_slice < frame_data_slices)
+		check_load_framedata();
+	}
+
+	function check_load_framedata() {
+	    if (typeof(frame_idx) === 'undefined')
+		return;
+
+	    if (curr_frame_length >= frame_length - 1)
+		return;
+
+	    if (curr_frame_length <= skipframes) {
+	        load_framedata(next_data_slice);
+		return;
 	    }
+
+	    //if (!___running())
+	    //	return;
+
+	    //console.info("frame_idx: " + frame_idx + " curr_frame_length: " + curr_frame_length);
+	    if (frame_idx < curr_frame_length) {
+		var f, i, frame_timestamp, loaded_timestamp;
+
+		f = VNC_frame_data[frame_idx];
+		i = f.indexOf('{', 1);
+		i = i < 0 ? f.indexOf('}', 1) : i;
+		frame_timestamp = f.slice(1, i);
+
+		f = VNC_frame_data[curr_frame_length];
+		i = f.indexOf('{', 1);
+		i = i < 0 ? f.indexOf('}', 1) : i;
+		loaded_timestamp = f.slice(1, i);
+
+		//console.info("frame_timestamp: " + frame_timestamp +
+		//	" loaded_timestamp: " + loaded_timestamp +
+		//	" diff: " + (loaded_timestamp - frame_timestamp));
+		i = loaded_timestamp - frame_timestamp - avail_timestamp;
+		if (i > 0) {
+		   setTimeout(check_load_framedata, 1000);
+		   return;
+		}
+	    }
+
+	    setTimeout(load_framedata, 100);
 	}
 
 	function get_uri(fname, part) {
@@ -1234,7 +1281,7 @@
 		part = next_data_slice;
 
 	    uri = get_uri(fname, part);
-	    //console.info("data uri is " + uri);
+	    console.info("data uri is " + uri);
 	    window.asyncLoad(uri, handle_framedata, 120000);
 	}
 
