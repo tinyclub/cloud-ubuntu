@@ -5,7 +5,7 @@ import os, re, time, base64, zlib, binascii
 class Records:
     def __init__(self, record_dir = 'recordings/', record_list = 'records.js', \
 		record_html = 'records.html', slice_size = 256, compress_level = 9, \
-		slice_str = '^_^', min_frames = 35, max_frames = 45):
+		slice_str = '=-+-+=', min_frames = 35, max_frames = 45):
 	self.record_dir = record_dir
 	self.record_list = record_list
 	self.record_html = record_html
