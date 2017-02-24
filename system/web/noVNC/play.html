@@ -777,7 +777,7 @@
 
 	    if (stats !== playStats.RUNNING) {
 		vnc_status.style.display = 'none';
-		check_load_framedata();
+		//check_load_framedata();
 
 		if (fullscreen)
 		    hide_others();
@@ -1222,7 +1222,8 @@
 
 	    next_data_slice = index + 1;
 	    if (next_data_slice < frame_data_slices)
-		check_load_framedata();
+		load_framedata(next_data_slice);
+		//check_load_framedata();
 	}
 
 	function check_load_framedata() {
