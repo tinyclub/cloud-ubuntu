@@ -1174,7 +1174,11 @@
 	var stopped_by_me = 0;
 
 	function handle_framedata(uri) {
-	    //console.info("uri: " + uri);
+	    // console.info("uri: " + uri + " short_fname: " + short_fname);
+	    if (uri.indexOf(short_fname) < 0) {
+		console.info("The async loading data not belong to our session.");
+		return;
+	    }
 
 	    index = parseInt(uri.substring(uri.lastIndexOf(".")+1));
 
