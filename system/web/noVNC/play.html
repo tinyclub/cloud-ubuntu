@@ -115,7 +115,7 @@
 
 	var VNC_frame_data = new Array();
 	var fname, short_fname, start_time, play_stats, frame_idx_max, totalframes, skipframes, messageon, canvas_imgdata;
-	var frame_title, frame_author, frame_create, frame_tags, frame_desc, frame_data_slices;
+	var frame_title, frame_author, frame_create, frame_time, frame_tags, frame_desc, frame_data_slices;
 	var screen_width_input, screen_height_input, screen_width, screen_height, screen_ratio;
 
 	var fullscreen = 0;
@@ -272,7 +272,7 @@
 
 	    draw_frameitem(frame_author, "Author", font, align, color, y, x);
 	    draw_frameitem(frame_create, "Create", font, align, color, y+=offset, x);
-	    draw_frameitem(ttime.textContent, "Length", font, align, color, y+=offset, x);
+	    draw_frameitem(frame_time, "Length", font, align, color, y+=offset, x);
 	    draw_frameitem(frame_tags, "Tags", font, align, color, y+=offset, x);
 	    draw_frameitem(frame_desc, "Desc", font, align, color, y+=offset, x);
 	}
@@ -1151,6 +1151,7 @@
 	    frame_create = 'Unknown';
 	    frame_tags = 'Unknown';
 	    frame_desc = 'Unknown';
+	    frame_time = '00:00:00';
 
 	    if (typeof(VNC_frame_title) !== "undefined") {
 		frame_title = VNC_frame_title;
@@ -1160,6 +1161,9 @@
 	    }
 	    if (typeof(VNC_frame_create) !== "undefined") {
 		frame_create = VNC_frame_create;
+	    }
+	    if (typeof(VNC_frame_create) !== "undefined") {
+		frame_time = VNC_frame_time;
 	    }
 	    if (typeof(VNC_frame_tags) !== "undefined") {
 		frame_tags = VNC_frame_tags;
