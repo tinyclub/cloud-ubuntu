@@ -211,8 +211,8 @@ class Records:
 		    slice_frame_end = slice_frame_start + _slice_frame_length - 1
 		    if (slice_frame_end > VNC_frame_length):
 			slice_frame_end = VNC_frame_length
-		    elif ((VNC_frame_length - slice_frame_end) < self.min_frames):
-			slice_frame_end = VNC_frame_length
+		    #elif ((VNC_frame_length - slice_frame_end) < self.min_frames):
+		    #    slice_frame_end = VNC_frame_length
 
 		    print "  LOG: start: %d end: %d step: %d _end: %d" % (slice_frame_start, slice_frame_end, _slice_frame_length, VNC_frame_length)
 
