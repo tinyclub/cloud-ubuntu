@@ -777,6 +777,7 @@
 
 	    if (stats !== playStats.RUNNING) {
 		vnc_status.style.display = 'none';
+		check_load_framedata();
 
 		if (fullscreen)
 		    hide_others();
@@ -1074,6 +1075,7 @@
 
 	    play_stats = playStats.FINISH;
 	    start_btn.value = "=>";
+	    frame_idx = 0;
 	    //vnc_status.textContent = "Finished";
 	    //vnc_status.style.display = 'block';
 	}
@@ -1224,6 +1226,9 @@
 	}
 
 	function check_load_framedata() {
+	    if (!___running())
+		return;
+
 	    if (typeof(frame_idx) === 'undefined')
 		return;
 
@@ -1398,8 +1403,14 @@
 	    VNC_frame_data_slice = undefined;
 	    VNC_frame_slices = undefined;
 
+	    frame_idx = 0;
 	    frame_length = 0;
 	    frame_data_slices = 0;
+	    jumpto.textContent = 0;
+	    skipframes = 0;
+	    full_frame_found = 0;
+	    full_frame_idx = 0;
+	    track_bar.value = 0;
 	    curr_frame_length = 9999999;
 	}
 
