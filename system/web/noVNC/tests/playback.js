@@ -206,7 +206,7 @@ queue_next_packet = function () {
     }
 };
 
-var bytes_processed = 0;
+//var bytes_processed = 0;
 
 do_packet = function () {
     // Avoid having an excessive queue buildup
@@ -232,7 +232,7 @@ do_packet = function () {
             u8[i] = frame.charCodeAt(start + i);
         }
     }
-    bytes_processed += u8.length;
+    //bytes_processed += u8.length;
     //console.info("frame_idx: " + frame_idx + " u8.length: " + u8.length);
     rfb._sock._recv_message({'data' : u8});
     //update_screensize();
