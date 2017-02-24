@@ -684,7 +684,7 @@
 	function check_load_timeout() {
 	    // Must check if really timeout...
 	    // console.info("***skipframes: " + skipframes + " curr_frame_length: " + curr_frame_length + " frame_idx: " + frame_idx);
-	    if (curr_frame_length >= skipframes && curr_frame_length > frame_idx)
+	    if (VNC_frame_data.length >= skipframes && VNC_frame_data.length > frame_idx)
 		return;
 
 	    restore_canvas("Loading timeout!");
@@ -701,7 +701,9 @@
 	    __stop_control();
 	    __stop("Loading ...");
 
-	    var timeout = skipframes ? Math.floor(Math.abs(curr_frame_length - skipframes) / 10) * 1000: 30000;
+	    // Need to check if the file is not found or the network speed is too slow.
+	    // May be possible to get the error info while the file is not found.
+	    var timeout = 60000;
 	    setTimeout(check_load_timeout, timeout);
 	}
 
