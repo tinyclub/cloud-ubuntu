@@ -701,7 +701,8 @@
 	    __stop_control();
 	    __stop("Loading ...");
 
-	    setTimeout(check_load_timeout, 30000);
+	    var timeout = skipframes ? Math.floor(Math.abs(curr_frame_length - skipframes) / 10) * 1000: 30000;
+	    setTimeout(check_load_timeout, timeout);
 	}
 
 	function __stop_control() {
