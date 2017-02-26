@@ -89,7 +89,7 @@
     <script>
 	// preload next slice if less than 10s left
 	// here assume the net speed is at least 256k/10s = 25.6 k/s, 256k is the biggest slice size (file size / slices)
-	var avail_timestamp = 10*1000;
+	var avail_timestamp = 15*1000;
 
 	var first_load = 1;
 
@@ -550,6 +550,7 @@
 
 	    ___speedup();
 
+	    check_load_framedata();
 	    next_iteration();
 	}
 
@@ -766,6 +767,7 @@
 	    fidx.style.color = '#0a0';
 	    message("Continue play the " + frame_idx + " frame!");
 
+	    check_load_framedata();
 	    queue_next_packet();
 	}
 
@@ -792,7 +794,6 @@
 
 	    if (stats !== playStats.RUNNING) {
 		vnc_status.style.display = 'none';
-		//check_load_framedata();
 
 		if (fullscreen)
 		    hide_others();
@@ -1198,7 +1199,7 @@
 
 	    index = parseInt(uri.substring(uri.lastIndexOf(".")+1));
 
-	    //console.info("part: " + index);
+	    console.info("part: " + index);
 
 	    if (typeof(VNC_frame_data_compressed) !== 'undefined'
 		&& typeof(VNC_frame_data_size) !== 'undefined'
@@ -1244,27 +1245,21 @@
 
 	    next_data_slice = index + 1;
 	    if (next_data_slice < frame_data_slices)
-		load_framedata(next_data_slice);
-		//check_load_framedata();
+		//load_framedata(next_data_slice);
+		check_load_framedata();
 	}
 
 	function check_load_framedata() {
-	    if (!___running())
-		return;
-
 	    if (typeof(frame_idx) === 'undefined')
 		return;
 
 	    if (curr_frame_length >= frame_length - 1)
 		return;
 
-	    if (curr_frame_length <= skipframes) {
+	    if (curr_frame_length <= skipframes || curr_frame_length <= frame_idx) {
 	        load_framedata(next_data_slice);
 		return;
 	    }
-
-	    //if (!___running())
-	    //	return;
 
 	    //console.info("frame_idx: " + frame_idx + " curr_frame_length: " + curr_frame_length);
 	    if (frame_idx < curr_frame_length) {
@@ -1285,12 +1280,17 @@
 		//	" diff: " + (loaded_timestamp - frame_timestamp));
 		i = loaded_timestamp - frame_timestamp - avail_timestamp;
 		if (i > 0) {
+		   if (!___running()) {
+			console.info("Exit loading checking");
+			return;
+		   }
+
 		   setTimeout(check_load_framedata, 1000);
 		   return;
 		}
 	    }
 
-	    setTimeout(load_framedata, 100);
+	    load_framedata(next_data_slice);
 	}
 
 	function get_uri(fname, part) {
@@ -1306,13 +1306,21 @@
 	    return uri;
 	}
 
+	var prev_uri = "";
+
 	function load_framedata(part) {
 	    if (typeof(part) === 'undefined')
 		part = next_data_slice;
 
 	    uri = get_uri(fname, part);
-	    // console.info("data uri is " + uri);
+	    if (uri === prev_uri) {
+		console.info("Ignore duplicated loading...");
+		return;
+	    }
+
+	    //console.info("data uri is " + uri);
 	    window.asyncLoad(uri, handle_framedata, 120000);
+	    prev_uri = uri;
 	}
 
 	function show_records_list() {
@@ -1415,6 +1423,7 @@
 	}
 
 	function reset_framedata() {
+	    VNC_frame_data = undefined;
 	    VNC_frame_data = [];
 	    VNC_frame_data_size = undefined;
 	    VNC_frame_data_compressed = undefined;
@@ -1437,6 +1446,9 @@
 	    full_frame_idx = 0;
 	    track_bar.value = 0;
 	    curr_frame_length = 9999999;
+
+            next_data_slice = 0;
+            stopped_by_me = 0;
 	}
 
 	function init_framedata() {
