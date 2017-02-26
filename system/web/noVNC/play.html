@@ -82,6 +82,7 @@
     </script>
     <script src="./core/util.js"></script>
     <script src="./app/webutil.js"></script>
+    <script src="./app/iframeResizer.contentWindow.min.js"></script>
     <!-- https://github.com/heyday/async-load -->
     <script src="./app/load.js"></script>
 
@@ -118,7 +119,7 @@
 	var frame_title, frame_author, frame_create, frame_time, frame_tags, frame_desc, frame_data_slices;
 	var screen_width_input, screen_height_input, screen_width, screen_height, screen_ratio;
 
-	var fullscreen = 0;
+	var fullscreen = 0, fullscreen_input = 0;
 	var vnc_screen = document.getElementById('VNC_screen');
 	var vnc_screen_disabled = 1;
 	var vnc_canvas = document.getElementById('VNC_canvas');
@@ -151,6 +152,7 @@
 	var end_btn = document.getElementById('endBtn');
 	var plus_btn = document.getElementById('plusBtn');
 	var minus_btn = document.getElementById('minusBtn');
+	var fs_btn = document.getElementById('fsBtn');
 
 	var info_bar = document.getElementById('infoBar');
 	var cell = document.getElementById('messages');
@@ -182,8 +184,8 @@
 	    if (vnc_records.innerHTML.length < 10)
 		draw_records();
 
-	    vnc_records.style.width = vnc_screen.offsetWidth + "px";
-	    vnc_records.style.height = vnc_screen.offsetHeight + "px";
+	    vnc_records.style.width = vnc_screen.offsetWidth + 'px';
+	    vnc_records.style.height = vnc_screen.offsetHeight + 'px';
 	    vnc_screen.style.display = "none";
 	    vnc_records.style.display = "block";
 	}
@@ -292,6 +294,11 @@
 
 	    vnc_canvas.style.display = 'none';
 	    vnc_canvas_backup.style.display = 'block';
+
+	    if (fullscreen_input) {
+		fs_btn.style.display = 'none';
+		enter_fullscreen();
+	    }
 	}
 
 	function __update_stats(iteration, frame_idx) {
@@ -448,31 +455,53 @@
 	function hide_others() {
 	    vnc_title.style.display = 'none';
 	    vnc_ctrl.style.display = 'none';
-	    document.body.style.background = "black";
+	    if (!fullscreen_input)
+		document.body.style.background = "black";
 
 	    play_bar.style.position = "absolute";
 
 	    update_screensize();
 
-	    play_bar.style.left = Math.round((window.innerWidth - play_bar.offsetWidth)/2) + 'px';
+	    var tmp = Math.round((window.innerWidth - play_bar.offsetWidth)/2);
+	    play_bar.style.left = tmp + 'px';
 	    vnc_screen.style.position = 'absolute';
 	    vnc_screen.style.left = play_bar.style.left;
-	    vnc_screen.style.top = play_bar.offsetHeight - 2 + 'px';
+	    vnc_records.style.position = 'absolute';
+	    vnc_records.style.left = play_bar.style.left;
+
+	    tmp = play_bar.offsetHeight + vnc_screen.offsetHeight;
+
+	    if (tmp < window.innerHeight && !fullscreen_input) {
+		tmp = Math.round((window.innerHeight - tmp)/2);
+		play_bar.style.top = tmp + 'px';
+		vnc_screen.style.top = tmp + play_bar.offsetHeight - 2 + 'px';
+	    } else {
+		play_bar.style.top = '0px';
+		vnc_screen.style.top = play_bar.offsetHeight - 2 + 'px';
+	    }
+	    vnc_records.style.top = vnc_screen.style.top;
 	}
 
 	function show_others() {
+	    if (fullscreen_input)
+		return;
+
 	    document.body.style.background = "#eee";
 	    vnc_title.style.display = 'block';
 	    vnc_ctrl.style.display = 'block';
 
 	    play_bar.style.position = "relative";
 	    vnc_screen.style.position = 'relative';
+	    vnc_records.style.position = 'relative';
 
 	    update_screensize();
 
 	    play_bar.style.left = 'auto';
 	    vnc_screen.style.left = 'auto';
+	    vnc_records.style.left = 'auto';
+	    play_bar.style.top = 'auto';
 	    vnc_screen.style.top = 'auto';
+	    vnc_records.style.top = 'auto';
 	}
 
 	function load_records() {
@@ -483,12 +512,11 @@
 	    });
 	}
 
-	fullscreen = WebUtil.getQueryVar('f', 0);
-	if (fullscreen === 0)
-	    fullscreen = WebUtil.getQueryVar('fullscreen', 0);
-	if (fullscreen) {
-	    enter_fullscreen();
-	}
+	fullscreen_input = WebUtil.getQueryVar('f', 0);
+	if (fullscreen_input === 0)
+	    fullscreen_input = WebUtil.getQueryVar('fullscreen', 0);
+
+	fullscreen = fullscreen_input;
 
 	fname = WebUtil.getQueryVar('data', null);
 	if (fname) {
@@ -1093,8 +1121,8 @@
 	}
 
 	function update_screensize() {
-	    var target_width = window.innerWidth - 30;
-	    var target_height = window.innerHeight - play_bar.offsetHeight;
+	    var target_width = fullscreen_input ? window.innerWidth : window.innerWidth - 30;
+	    var target_height = fullscreen_input ? window.innerWidth : window.innerHeight - play_bar.offsetHeight;
 
 	    if (screen_width_input <= 0)
 		screen_width = target_width;
@@ -1121,11 +1149,10 @@
 		if (vnc_canvas.height <= default_canvas_height)
 		    return;
 
-		if (vnc_screen.style.width !== w) {
-
+		if (vnc_screen.style.width !== w || fullscreen_input) {
 		    if (vnc_canvas_backup.width !== vnc_canvas.width) {
-			vnc_canvas_backup.width = vnc_canvas.width;
-			vnc_canvas_backup.height = vnc_canvas.height;
+		        vnc_canvas_backup.width = vnc_canvas.width;
+		        vnc_canvas_backup.height = vnc_canvas.height;
 		    }
 
 		    vnc_canvas_backup.style.width = w;
@@ -1309,7 +1336,8 @@
 	    if (vnc_records.innerHTML.length < 10)
 		list_records();
 
-	    vnc_records.style.width = window.innerWidth - 30 + "px";
+	    var tmp = fullscreen_input ? window.innerWidth : window.innerWidth - 30;
+	    vnc_records.style.width = tmp + "px";
 	    vnc_records.style.height = window.innerHeight + "px";
 	    vnc_screen.style.display = "none";
 	    vnc_records.style.display = "block";
