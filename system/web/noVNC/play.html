@@ -309,18 +309,7 @@
 	    fidx.textContent = tmp + " . " + parseInt(tmp * 100 / totalframes) + "%";
 
 	    //if (mode === 'realtime' && foffset > 1000) {
-	    if (mode === 'realtime') {
-	        ftime.textContent = format_time(foffset);
-	    } else {
-	        frame = VNC_frame_data[frame_idx];
-	        if (frame) {
-		    var idx = frame.indexOf('{', 1);
-		    if (idx > -1) {
-			foffset = frame.slice(1, idx);
-			ftime.textContent = format_time(foffset);
-		    }
-	        }
-	    }
+	    ftime.textContent = format_time(foffset);
 
 	    if ((frame_idx > skipframes) && ___running())
 		track_bar.value = frame_idx;
@@ -766,10 +755,7 @@
 	    __stop_control();
 	}
 
-	function __continue(which) {
-	    if (typeof(which) === 'undefined')
-		which = 0;
-
+	function __continue() {
 	    start_btn.value = "||";
 	    vnc_status.textContent = "Continued";
 
@@ -780,16 +766,7 @@
 	    fidx.style.color = '#0a0';
 	    message("Continue play the " + frame_idx + " frame!");
 
-	    if (which) {
-		// console.info("continued with queue_next_packet()");
-		queue_next_packet();
-	    } else {
-		if (mode === 'fullspeed') {
-		    window.setImmediate(do_packet);
-		} else {
-		    setTimeout(do_packet, delay);
-		}
-	    }
+	    queue_next_packet();
 	}
 
 	function start(clean, prev_play_stats, speed) {
@@ -1261,7 +1238,7 @@
 		if (stopped_by_me && !___running()) {
 		    stopped_by_me = 0;
 		    __resume_control();
-		    __continue(1);
+		    __continue();
 		}
 	    }
 

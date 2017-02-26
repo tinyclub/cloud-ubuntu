@@ -138,10 +138,26 @@ queue_next_packet = function () {
     var frame;
 
     ___update_stats(iteration, frame_idx);
-    if (test_state !== 'running') { return; }
+
+    if (test_state !== 'running' || !___running()) { return; }
 
     if (frame_idx >= curr_frame_length && frame_idx < frame_idx_max) {
 	__stop_onload(1);
+	return;
+    }
+
+    ___speedup();
+
+    if ((mode == 'fullspeed') && (skipframes > 0) && (frame_idx >= skipframes)) {
+	___stop();
+
+	if (rfb._flushing) {
+	    rfb._display.set_onFlush(function () {
+		if (rfb._flushing)
+		    rfb._onFlush();
+	    });
+	}
+
 	return;
     }
 
@@ -171,39 +187,19 @@ queue_next_packet = function () {
         return;
     }
 
-    ___speedup();
-
-    if ((mode == 'fullspeed') && (skipframes > 0) && (frame_idx >= skipframes)) {
-	___stop();
-
-	prev_foffset = frame.slice(1, frame.indexOf('{', 1));
-
-	if (rfb._flushing) {
-	    rfb._display.set_onFlush(function () {
-		if (rfb._flushing)
-		    rfb._onFlush();
-	    });
-	}
-
-	return;
-    }
-
+    foffset = frame.slice(1, frame.indexOf('{', 1));
     if (mode === 'realtime') {
-        foffset = frame.slice(1, frame.indexOf('{', 1));
         delay = foffset - prev_foffset;
         //console.info("prev_foffset: " + prev_foffset + " foffset: " + foffset + " delay: " + (foffset - prev_foffset));
-
         if (delay < 1) {
             delay = 1;
         }
-        prev_foffset = foffset;
 
-        if (___running())
-            setTimeout(do_packet, delay);
+	setTimeout(do_packet, delay);
     } else {
-        if (___running())
-            window.setImmediate(do_packet);
+	window.setImmediate(do_packet);
     }
+    prev_foffset = foffset;
 };
 
 //var bytes_processed = 0;
