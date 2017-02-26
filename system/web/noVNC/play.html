@@ -296,7 +296,6 @@
 	    vnc_canvas_backup.style.display = 'block';
 
 	    if (fullscreen_input) {
-		fs_btn.style.display = 'none';
 		enter_fullscreen();
 	    }
 	}
@@ -429,8 +428,17 @@
 
 	var prev_screen_width = 0;
 	var prev_screen_height = 0;
+	var fs_cnt = 0;
 
 	function full_screen() {
+	    if (fs_cnt === 0 && fullscreen_input) {
+		fs_cnt = 1;
+
+		exit_fullscreen();
+		prev_screen_width = screen.width;
+		prev_screen_height = screen.height;
+	    }
+
 	    if (fullscreen) {
 		exit_fullscreen();
 		prev_screen_width = screen.width;
@@ -483,12 +491,12 @@
 	}
 
 	function show_others() {
-	    if (fullscreen_input)
-		return;
-
 	    document.body.style.background = "#eee";
-	    vnc_title.style.display = 'block';
-	    vnc_ctrl.style.display = 'block';
+
+	    if (!fullscreen_input) {
+		vnc_title.style.display = 'block';
+		vnc_ctrl.style.display = 'block';
+	    }
 
 	    play_bar.style.position = "relative";
 	    vnc_screen.style.position = 'relative';
@@ -1164,7 +1172,7 @@
 		    play_bar.style.width = w;
 		    play_bar.style.display = 'block';
 
-		    var middle_play_bar_width = parseInt(w) - left_play_bar.offsetWidth - right_play_bar.offsetWidth;
+		    var middle_play_bar_width = parseInt(w) - left_play_bar.offsetWidth - right_play_bar.offsetWidth - 4;
 		    middle_play_bar.style.width = middle_play_bar_width + "px";
 
 		    vnc_screen.style.width = w;
