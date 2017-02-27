@@ -1454,8 +1454,6 @@
 	function init_framedata() {
 	    var timestamp;
 
-	    update_frameinfo();
-
 	    if (typeof(VNC_frame_data_compressed) !== 'undefined'
 		&& typeof(VNC_frame_data_size) !== 'undefined'
 		&& typeof(VNC_frame_slice_str) !== 'undefined')
@@ -1479,7 +1477,7 @@
 	    message("VNC_frame_length: " + frame_length);
 
 	    if (typeof(VNC_frame_time) !== 'undefined')
-		ttime.textContent = VNC_frame_time;
+		frame_time = VNC_frame_time;
 	    else {
 		var frame, i, idx;
 
@@ -1491,12 +1489,16 @@
 		} while (idx < 0);
 
 		timestamp = frame.slice(1, idx);
-	        ttime.textContent = format_time(timestamp);
+	        frame_time = format_time(timestamp);
 	    }
 
 	    ftime.textContent = '00:00:00';
+	    ttime.textContent = frame_time;
+	    VNC_frame_time = frame_time;
 
-	    message("VNC_frame_time: " + ttime.textContent);
+	    update_frameinfo();
+
+	    message("VNC_frame_time: " + frame_time);
 
 	    frame_idx_max = frame_length - 2;
 	    track_bar.max = frame_idx_max;
