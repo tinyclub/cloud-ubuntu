@@ -404,8 +404,8 @@ class WebSocketRequestHandler(SimpleHTTPRequestHandler):
                 else:
                     recbuf = buf[frame['hlen']:frame['hlen'] +
                                                frame['length']]
-                self.rec.write("%s,\n" %
-                        repr("}%s}" % tdelta + recbuf))
+                #self.rec.write("%s,\n" %
+                #        repr("}%s}" % tdelta + recbuf))
 
 
             bufs.append(frame['payload'])

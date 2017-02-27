@@ -23,3 +23,4 @@
 16. Add big record list data splitting support, add sort and search support ...
 17. Record with local tools (e.g. pyvnc2swf) and generate noVNC compatiable data, no dependency on Flash player
     Type: VNCRec, Play: /usr/share/pyvnc2swf/play.py
+18. Strip the "}...}" frames out of the js data, not required for the session record.
