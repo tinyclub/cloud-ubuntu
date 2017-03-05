@@ -29,7 +29,7 @@ def main():
     record_dir = os.path.abspath(record_dir) + "/"
 
     if action == 1:
-	action = ('zb64')
+	action = ('zb64',)
     elif action == 2:
 	action = ('remove', 'zb64')
     elif action == 3:
