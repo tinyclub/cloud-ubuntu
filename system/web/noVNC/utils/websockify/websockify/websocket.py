@@ -568,23 +568,15 @@ class WebSocketRequestHandler(SimpleHTTPRequestHandler):
 
                 self.log_message("opening record file: %s", fname)
                 self.rec = open(fname, 'w+')
-                encoding = "binary"
-                if self.base64: encoding = "base64"
+                record_encoding = "binary"
+                if self.base64: record_encoding = "base64"
 
 		record_header = '';
 
-                if record_create:
-                    record_header += "var VNC_frame_create = '%s';\n" % record_create
-                if record_title:
-                    record_header += "var VNC_frame_title = '%s';\n" % record_title
-                if record_author:
-                    record_header += "var VNC_frame_author = '%s';\n" % record_author
-                if record_tags:
-                    record_header += "var VNC_frame_tags = '%s';\n" % record_tags
-                if record_desc:
-                    record_header += "var VNC_frame_desc = '%s';\n" % record_desc
-
-                record_header += "var VNC_frame_encoding = '%s';\n" % encoding
+		for r in ('create', 'title', 'author', 'tags', 'desc', 'encoding'):
+		    v = eval('record_%s' % r)
+		    if v:
+                        record_header += "var VNC_frame_%s = '%s';\n" % (r, v)
 
                 self.rec.write(record_header + "var VNC_frame_data = [\n")
 
