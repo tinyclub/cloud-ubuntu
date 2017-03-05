@@ -29,17 +29,17 @@ def main():
     record_dir = os.path.abspath(record_dir) + "/"
 
     if action == 1:
-	action = ('zb64',)
+	action = ('zb64')
     elif action == 2:
-	action = ('remove', 'zb64')
+	action = ('remove')
     elif action == 3:
-	action = ('remove', 'zb64', 'slice')
+	action = ('remove_raw')
     elif action == 4:
-	action = ('remove', 'zb64', 'slice', 'remove_raw')
+	action = ('restore_raw')
     elif action == 5:
-	action = ('remove', 'zb64', 'slice', 'restore_raw')
+	action = ('remove', 'zb64', 'remove_raw')
     elif action == 6:
-	action = ('remove', 'zb64', 'slice', 'restore_raw', 'remove_raw')
+	action = ('remove_raw', 'z64', 'slice')
     else:
 	action = ('zb64', 'slice')
 

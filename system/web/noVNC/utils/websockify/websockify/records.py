@@ -248,6 +248,16 @@ class Records:
     r.write(content);
     r.close();
 
+  def restore_raw(self):
+    rec_list = os.listdir(self.abspath())
+    rec_list.sort(self.compare)
+    for rec in rec_list:
+      if rec.find(self.suffix(self.zb64)) >= 0:
+        raw_rec = rec.replace(self.suffix(self.zb64), '')
+        if not os.path.exists(self.abspath(raw_rec)):
+          print "LOG: Restore %s" % raw_rec
+          self.generate_raw(rec)
+
   def remove_old(self):
     # list and sort by time
     rec_list = os.listdir(self.abspath())
@@ -272,6 +282,9 @@ class Records:
     # Remove old record list, .zb64 and .slice*
     if 'remove' in self.action:
       self.remove_old()
+
+    if 'restore_raw' in self.action:
+      self.restore_raw()
 
     # Flash the list 
     rec_list = os.listdir(self.abspath())
@@ -328,8 +341,12 @@ class Records:
       if 'remove_raw' in self.action:
         f = self.abspath(rec)
         if os.path.exists(f):
-          print "LOG:   Remove raw data"
-          os.remove(f)
+          zb64 = self.abspath(rec + self.suffix(self.zb64))
+          if not os.path.exists(zb64):
+            print "LOG:   .zb64 doesn't exist, not remove raw data for security"
+          else:
+            print "LOG:   Remove raw data"
+            os.remove(f)
 
     # Generate list
     if not info_list: return
