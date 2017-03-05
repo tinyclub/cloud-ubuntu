@@ -5,7 +5,7 @@ import os, re, time, base64, zlib, binascii
 class Records:
     def __init__(self, record_dir = 'recordings/', record_list = 'records.js', \
 		record_html = 'records.html', slice_size = 256, compress_level = 9, \
-		slice_str = '=-+-+=', min_frames = 35, max_frames = 45, action = ('remove', 'zb64', 'slice', 'remove_raw')):
+		slice_str = '=-+-+=', min_frames = 35, max_frames = 45, action = ('remove', 'zb64', 'slice', 'restore_raw', 'remove_raw'), time_zone='CST'):
 	self.record_dir = record_dir
 	self.record_list = record_list
 	self.record_html = record_html
@@ -17,6 +17,7 @@ class Records:
 	self.min_frames = min_frames
 	self.max_frames = max_frames
 	self.action = action
+	self.time_zone = time_zone
 
     def compare(self, x, y):
 	stat_x = os.stat(self.record_dir + "/" + x)
@@ -47,7 +48,7 @@ class Records:
 	zb_content = ""
 	if suffix.find('.slice.') < 0:
 	    for (k, v) in info.items():
-		if k in ("data", "data_compressed"): continue
+		if k in ("slices", "data", "data_compressed"): continue
 
 		if str(v).isdigit():
 		    zb_content += "var VNC_frame_%s = %s;\n" % (k, v)
@@ -131,36 +132,26 @@ class Records:
 	    unit = "G"
 	return str(size) + unit
 
+    def get_frame_time(self, frame):
+	t = '00:00:00'
+	m = re.match(r'[{}]([0-9]{1,})[{}]', frame)
+	if m and len(m.groups()):
+	    t = time.strftime("%H:%M:%S", time.gmtime(float(m.group(1))/1000))
+
+	return t
+
     def generate_raw(self, zb64):
-	info = {"create": '', "title": '', 'author': '', 'tags': '', 'desc': '', 'encoding': 'binary', \
-		'length': 0, 'time': 0, 'data': ''}
-	for (k, v) in info.items():
-	    exec("VNC_frame_%s = ''" % k)
+	info = self.get_frame_info(zb64, 'zb64')
+	if not info:
+	    print "LOG: Invalid zb64 data"
+	    return
 
-	f = zb64.replace(".zb64","")
-	t = open(zb64)
-	py_data = t.read().replace('var VNC_', 'VNC_')
-	t.close()
-
-	exec(py_data)
-
-	if not VNC_frame_data_compressed: return
-
-	info['data'] = zlib.decompress(base64.b64decode(VNC_frame_data_compressed)).split(self.slice_str)
-
-	if not info['title']: info["title"] = os.path.basename(f)
-
-	if not info['length']:
-	    info['length'] = len(info['data'])
-	    if not info['time']:
-		m = re.match(r'[{}]([0-9]{1,})[{}]', info['data'][info['length']-2])
-		if m and len(m.groups()): info['time'] = time.strftime("%H:%M:%S", time.gmtime(float(m.group(1))/1000))
-
-	if not info['create']: info['create'] = time.strftime("%a, %d %b %Y %H:%M:%S %Z", time.localtime(time.time()))
+	if info['create']:
+	    info['create'] = time.strftime("%a, %d %b %Y %H:%M:%S %Z", time.strptime(info['create'], "%Y%m%d %H:%M:%S")) + self.time_zone
 
 	raw_content = ''
 	for (k, v) in info.items():
-	    if k == 'data': continue
+	    if k in ('data', 'size', 'slice_str', 'slices', 'data_size', 'data_compressed'): continue
 
 	    if str(v).isdigit():
 		raw_content += "var VNC_frame_%s = %s;\n" % (k, v)
@@ -170,66 +161,59 @@ class Records:
 	raw_content += "var VNC_frame_%s = %r;\n" % ('data', info['data'])
 
 	# Write raw session data
+	f = os.path.abspath(self.record_dir + zb64.replace(".zb64",""))
 	s = open(f, 'w+')
 	s.write(raw_content)
 	s.close()
 
-    def get_frame_info(self, rec):
-	f = os.path.abspath(self.record_dir + rec)
-	t = open(f)
+    def init_frame_info(self):
+	info = {"create": '', "title": '', 'author': '', 'tags': '', 'desc': '', 'encoding': 'binary',
+		'length': 0, 'time': 0, 'data': '', \
+		'size': '', 'slice_str': self.slice_str, 'slices': 0, 'data_size': 0, 'data': '', 'data_compressed': ''}
+	return info
 
-	# Init the variables: VNC_frame_xxx
-	# VNC_frame_data_size/VNC_frame_data_compressed
-	#
-	# data size have different meanings:
-	#   0. the whole file size, include the header variables
-	#   1. original data size in string
-	#   2. array data size in binary
-	#   3. joined array data size for compress (required by client for decompression)
-	#   4. data size after compression
-	for k in ['data', 'data_size', 'data_compressed']:
-		if globals().has_key('VNC_frame_%s' % k) or locals().has_key('VNC_frame_%s' % k):
-		    exec("del VNC_frame_%s" % k)
+    def get_frame_info(self, rec, rtype):
+	info = self.init_frame_info()
 
-	info = {"create": '', "title": '', 'author': '', 'tags': '', 'desc': '', 'encoding': '', 'size': '',
-		'length': 0, 'time': 0, 'slice_str': self.slice_str, 'slices': 0, 'data_size': 0, 'data': '', 'data_compressed': ''}
 	for (k, v) in info.items():
 		exec("VNC_frame_%s = ''" % k)
 
-	# Convert origin novnc session record data (javascript) to python code
+	f = os.path.abspath(self.record_dir + rec)
+	t = open(f)
 	py_data = t.read().replace('var VNC_', 'VNC_')
+	t.close()
+	# Convert origin novnc session record data (javascript) to python code
 	exec(py_data)
 
-	if globals().has_key('VNC_frame_data') or locals().has_key('VNC_frame_data'):
-	    VNC_frame_length = len(VNC_frame_data)
-	    # Match strings like '{62911{\x00@' or '}304}RFB 003.008' to get out of the timestamp
-	    m = re.match(r'[{}]([0-9]{1,})[{}]',VNC_frame_data[VNC_frame_length-2])
-	    if m and len(m.groups()):
-		VNC_frame_time = time.strftime("%H:%M:%S", time.gmtime(float(m.group(1))/1000))
-	else:
-		t.close()
+	key = 'VNC_frame_encoding'
+	if globals().has_key(key) and locals().has_key(key):
+		# already compressed data, ignore it.
+		print "Invalid noVNC session data: %s" % rec
 		return ''
+
+	if rtype == 'raw':
+		key = 'VNC_frame_data'
+		if globals().has_key(key) or locals().has_key(key):
+		    VNC_frame_length = len(VNC_frame_data)
+		    VNC_frame_time = self.get_frame_time(VNC_frame_data[VNC_frame_length-2])
+		else: return ''
+	else:
+		key = 'VNC_frame_data_compressed'
+		if globals().has_key(key) or locals().has_key(key):
+		    VNC_frame_data = zlib.decompress(base64.b64decode(VNC_frame_data_compressed)).split(self.slice_str)
+		else: return ''
 
 	for (k, v) in info.items():
 		val = eval("VNC_frame_%s" % k)
 		if val: info[k] = val
 
-	if info['data_size'] or not info['encoding']:
-		# already compressed data, ignore it.
-		print "Invalid noVNC session data: %s" % rec
-		t.close()
-		return ''
-
 	if not info['create']: info['create'] = time.strftime("%Y%m%d %H:%M:%S", time.localtime(os.path.getctime(f)))
-	else: info['create'] = time.strftime("%Y%m%d %H:%M:%S", time.strptime(info['create'], "%a, %d %b %Y %H:%M:%S %Z"))
+	elif rtype == 'raw': info['create'] = time.strftime("%Y%m%d %H:%M:%S", time.strptime(info['create'], "%a, %d %b %Y %H:%M:%S %Z"))
 
-	if not info['title']: info["title"] = rec
+	if not info['title']: info["title"] = rec.replace(".zb64", "")
 	if not info['author']: info['author'] = "Unknown"
 	if not info['tags']: info['tags'] = ""
 	if not info['desc']: info['desc'] = ""
-
-	# Close the file
-	t.close()
 
 	# Get file size
 	info['size'] = self.get_size_unit(os.path.getsize(f))
@@ -255,21 +239,19 @@ class Records:
 	rec_list.sort(self.compare)
 	for rec in rec_list:
 		f = os.path.abspath(self.record_dir + rec)
-		if rec in (self.record_list, self.record_html):
+		if rec in (self.record_list, self.record_html) or rec.find(".slice") >= 0:
 		    print "LOG: Remove %s" % rec
 		    os.remove(f)
-		if rec.find(".zb64") >= 0 or rec.find(".slice") >= 0:
-		    if os.path.exists(self.record_dir + rec.replace(".zb64", "").replace(".slice", "")):
+		if rec.find(".zb64") >= 0:
+		    raw = os.path.abspath(self.record_dir + rec.replace(".zb64", ""))
+		    if os.path.exists(raw):
 		        print "LOG: Remove %s" % rec
 			os.remove(f)
-		    elif rec.find(".zb64") >= 0:
+		    elif 'restore_raw' in self.action:
 		        print "LOG: Restore %s" % rec.replace(".zb64", "")
-			self.generate_raw(f)
+			self.generate_raw(rec)
 		        #print "LOG: Remove %s" % rec
 			#os.remove(f)
-		    else:
-		        print "LOG: Remove %s" % rec
-			os.remove(f)
 
     def generate(self):
 	# Remove old record list, .zb64 and .slice*
@@ -286,13 +268,16 @@ class Records:
 	for rec in rec_list:
 	    # Ignore the .zb64 and .slice* and the record list file
 	    print "LOG: " + rec
-	    if rec in (self.record_list, self.record_html):
-		continue;
-	    if rec.find(".zb64") >= 0 or rec.find(".slice") >= 0:
-		continue
+	    rtype = 'raw'
+	    if rec in (self.record_list, self.record_html): continue;
+	    if rec.find(".slice") >= 0: continue
+	    if rec.find(".zb64") >= 0 and rec.find(".slice") < 0:
+		raw_rec = os.path.abspath(self.record_dir + rec.replace(".zb64", ""))
+		if os.path.exists(raw_rec): continue
+		rtype = 'zb64'
 
 	    # Grab frame info
-	    info = self.get_frame_info(rec)
+	    info = self.get_frame_info(rec, rtype)
 	    if not info: continue
 
 	    info_list += \
@@ -301,17 +286,22 @@ class Records:
 		     info['create'], info['author'], info['tags'], info['desc'])
 
 	    # Generate xxx.zb64
-	    info['size'] = 0
-	    if 'zb64' in self.action:
-		print "LOG:   Generate zb64"
-		f = os.path.abspath(self.record_dir + rec + ".zb64")
-		if not os.path.exists(f):
-		    info['size'] = self.generate_zb64(rec, info)
-		else:
-		    info['size'] = os.path.getsize(f)
+	    out_size = 0
+	    if rtype == 'raw':
+	        f = os.path.abspath(self.record_dir + rec + ".zb64")
+	    if rtype == 'zb64':
+	        f = os.path.abspath(self.record_dir + rec)
+
+	    if not os.path.exists(f):
+		if 'zb64' in self.action:
+		    print "LOG:   Generate zb64"
+		    out_size = self.generate_zb64(rec, info)
+	    else:
+		out_size = os.path.getsize(f)
 
 	    # Generate xxx.slice
-	    out_size = info['size']
+	    rec = rec.replace(".zb64", "")
+	    info['size'] = self.get_size_unit(out_size)
 	    if out_size and out_size > self.slice_size and 'slice' in self.action:
 		if not os.path.exists(self.record_dir + rec + ".slice"):
 		    print "LOG:   Generate slices"
@@ -321,8 +311,9 @@ class Records:
 	    # Remove raw data, save the space
 	    if 'remove_raw' in self.action:
 		f = os.path.abspath(self.record_dir + rec)
-		print "LOG:   Remove raw data"
-		os.remove(f)
+		if os.path.exists(f):
+		    print "LOG:   Remove raw data"
+		    os.remove(f)
 
 	# Generate list
 	if not info_list: return

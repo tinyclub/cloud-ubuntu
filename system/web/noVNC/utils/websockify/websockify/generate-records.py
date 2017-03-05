@@ -36,6 +36,10 @@ def main():
 	action = ('remove', 'zb64', 'slice')
     elif action == 4:
 	action = ('remove', 'zb64', 'slice', 'remove_raw')
+    elif action == 5:
+	action = ('remove', 'zb64', 'slice', 'restore_raw')
+    elif action == 6:
+	action = ('remove', 'zb64', 'slice', 'restore_raw', 'remove_raw')
     else:
 	action = ('zb64', 'slice')
 
