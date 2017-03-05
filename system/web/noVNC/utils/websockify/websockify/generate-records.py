@@ -14,11 +14,30 @@ def main():
     record_dir = ""
     if len(sys.argv) > 1:
         record_dir = sys.argv[1]
+
+    # 0: zb64 + slice
+    # 1: zb64
+    # 2: remove + zb64
+    # 3: remove + zb64 + slice
+
+    action = 0
+    if len(sys.argv) > 2:
+        action = int(sys.argv[2])
+
     if not record_dir:
         record_dir = mypath + "../../../../../../../" + "noVNC/recordings/"
     record_dir = os.path.abspath(record_dir) + "/"
 
-    r = Records(record_dir)
+    if action == 1:
+	action = ('zb64')
+    elif action == 2:
+	action = ('remove', 'zb64')
+    elif action == 3:
+	action = ('remove', 'zb64', 'slice')
+    else:
+	action = ('zb64', 'slice')
+
+    r = Records(record_dir, action = action)
 
     r.generate()
 

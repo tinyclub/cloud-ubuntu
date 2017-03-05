@@ -5,7 +5,7 @@ import os, re, time, base64, zlib, binascii
 class Records:
     def __init__(self, record_dir = 'recordings/', record_list = 'records.js', \
 		record_html = 'records.html', slice_size = 256, compress_level = 9, \
-		slice_str = '=-+-+=', min_frames = 35, max_frames = 45):
+		slice_str = '=-+-+=', min_frames = 35, max_frames = 45, action = ('remove', 'zb64', 'slice')):
 	self.record_dir = record_dir
 	self.record_list = record_list
 	self.record_html = record_html
@@ -16,6 +16,7 @@ class Records:
 	# Ensure frames eough for play several seconds
 	self.min_frames = min_frames
 	self.max_frames = max_frames
+	self.action = action
 
     def compare(self, x, y):
 	stat_x = os.stat(self.record_dir + "/" + x)
@@ -60,6 +61,65 @@ class Records:
 
 	return out_size;
 
+    def generate_slices(self, rec, data, info, slices):
+	# Write first slice
+	slice_index = 0
+	slice_frame_start = 0
+	slice_frame_end = 0
+	slice_frame_length = info['length'] / slices;
+
+	while (slice_frame_end < info['length']):
+	    _slice_frame_length = slice_frame_length
+	    if slice_index == 0:
+		if slice_frame_length < self.min_frames:
+		    _slice_frame_length = self.min_frames
+		if slice_frame_length > self.max_frames:
+		    _slice_frame_length = self.max_frames
+
+	    slice_frame_end = slice_frame_start + _slice_frame_length - 1
+	    if (slice_frame_end > info['length']):
+		slice_frame_end = info['length']
+	    #elif ((info['length'] - slice_frame_end) < self.min_frames):
+	    #    slice_frame_end = info['length']
+
+	    print "  LOG: start: %d end: %d step: %d _end: %d" % (slice_frame_start, slice_frame_end, _slice_frame_length, info['length'])
+
+	    out_size = self.generate_zb64(rec, data[slice_frame_start:slice_frame_end], info, ".slice.%d" % slice_index)
+	    print "  LOG: %s: From %s to %s" % (rec, slice_frame_start, slice_frame_end)
+
+	    slice_frame_start = slice_frame_end
+	    slice_index += 1
+
+	print "  LOG: Total: %d, slices: %d" % (info['length'], slice_index)
+	info['slices'] = slice_index
+
+	slice_content = ""
+        for (k, v) in info.items():
+	    if (k == "data_size" or k == "data_compressed"):
+		continue
+
+	    if str(v).isdigit():
+		slice_content += "var VNC_frame_%s = %s;\n" % (k, v)
+	    else:
+		slice_content += "var VNC_frame_%s = '%s';\n" % (k, v)
+
+	# Write slice index
+	f = os.path.abspath(self.record_dir + rec + ".slice")
+	s = open(f, 'w+')
+	s.write(slice_content)
+	s.close()
+
+    def get_file_size(self, fname):
+        rec_size = os.path.getsize(fname)
+	raw_size = rec_size
+	unit = ""
+	if rec_size > 1024:
+	    rec_size = round(rec_size / 1024.0, 1)
+	    unit = "K"
+	if rec_size > 1024:
+	    rec_size = round(rec_size / 1024.0, 1)
+	    unit = "M"
+	return str(rec_size) + unit
 
     def generate(self):
 	content = "var VNC_record_player = '/play.html';\n"
@@ -71,21 +131,20 @@ class Records:
 	rec_list = os.listdir(os.path.abspath(self.record_dir))
 	rec_list.sort(self.compare)
 
-	for rec in rec_list:
-	    if (rec == self.record_list or rec == self.record_html
-		or rec.find(".zb64") >= 0 or rec.find(".slice") >= 0):
-	        print "LOG: Remove %s" % rec
-		os.remove(os.path.abspath(self.record_dir + rec))
-
-	# flash the list and ignore the .zb64 and .slice* and the record list file
-	rec_list = os.listdir(os.path.abspath(self.record_dir))
-	rec_list.sort(self.compare)
+	if 'remove' in self.action:
+	    for rec in rec_list:
+		if rec in (self.record_list, self.record_html) or rec.find(".zb64") >= 0 or rec.find(".slice") >= 0:
+		    print "LOG: Remove %s" % rec
+		    os.remove(os.path.abspath(self.record_dir + rec))
+	    # flash the list and ignore the .zb64 and .slice* and the record list file
+	    rec_list = os.listdir(os.path.abspath(self.record_dir))
+	    rec_list.sort(self.compare)
 
 	# grab the records info and generate files with zlib+base64 and if the
 	# file is too big, slice it to several pieces.
 	for rec in rec_list:
 	    print "LOG: " + rec
-	    if (rec == self.record_list or rec == self.record_html):
+	    if rec in (self.record_list, self.record_html):
 		continue;
 	    if (rec.find(".zb64") >= 0 or rec.find(".slice") >= 0):
 		continue
@@ -171,76 +230,26 @@ class Records:
 	    t.close()
 
 	    # Get file size
-	    rec_size = os.path.getsize(f)
-	    raw_size = rec_size
-	    unit = ""
-	    if rec_size > 1024:
-		rec_size = round(rec_size / 1024.0, 1)
-		unit = "K"
-
-	    if rec_size > 1024:
-		rec_size = round(rec_size / 1024.0, 1)
-		unit = "M"
+	    size = self.get_file_size(f)
 
 	    content += \
-		   "  ['%s', '%s', '%s%s', '%s', '%s', '%s', '%s', '%s'],\n" \
-		   % (rec, info['title'], str(rec_size), unit, info['time'],
+		   "  ['%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'],\n" \
+		   % (rec, info['title'], size, info['time'],
 		     info['create'], info['author'], info['tags'], info['desc'])
 
 	    # Generate xxx.zb64
-	    out_size = self.generate_zb64(rec, VNC_frame_data, info)
+	    if 'zb64' in self.action:
+		f = os.path.abspath(self.record_dir + rec + ".zb64")
+		if not os.path.exists(f):
+		    out_size = self.generate_zb64(rec, VNC_frame_data, info)
+		else:
+		    out_size = os.path.getsize(f)
 
 	    # Generate xxx.slice
-	    if out_size > self.slice_size:
-		slices = out_size / self.slice_size + 1
-
-		# Write first slice
-		slice_index = 0
-		slice_frame_start = 0
-		slice_frame_end = 0
-		slice_frame_length = VNC_frame_length / slices;
-
-		while (slice_frame_end < VNC_frame_length):
-		    _slice_frame_length = slice_frame_length
-		    if slice_index == 0:
-			if slice_frame_length < self.min_frames:
-			    _slice_frame_length = self.min_frames
-			if slice_frame_length > self.max_frames:
-			    _slice_frame_length = self.max_frames
-
-		    slice_frame_end = slice_frame_start + _slice_frame_length - 1
-		    if (slice_frame_end > VNC_frame_length):
-			slice_frame_end = VNC_frame_length
-		    #elif ((VNC_frame_length - slice_frame_end) < self.min_frames):
-		    #    slice_frame_end = VNC_frame_length
-
-		    print "  LOG: start: %d end: %d step: %d _end: %d" % (slice_frame_start, slice_frame_end, _slice_frame_length, VNC_frame_length)
-
-		    out_size = self.generate_zb64(rec, VNC_frame_data[slice_frame_start:slice_frame_end], info, ".slice.%d" % slice_index)
-		    print "  LOG: %s: From %s to %s" % (rec, slice_frame_start, slice_frame_end)
-
-		    slice_frame_start = slice_frame_end
-		    slice_index += 1
-
-		slices = slice_index
-		print "  LOG: Total: %d, slices: %d" % (VNC_frame_length, slices)
-		info['slices'] = slices
-
-		slice_content = ""
-	        for (k, v) in info.items():
-		    if (k == "data_size" or k == "data_compressed"):
-			continue
-
-		    if str(v).isdigit():
-			slice_content += "var VNC_frame_%s = %s;\n" % (k, v)
-		    else:
-			slice_content += "var VNC_frame_%s = '%s';\n" % (k, v)
-
-		# Write slice index
-		f = os.path.abspath(self.record_dir + rec + ".slice")
-		s = open(f, 'w+')
-		s.write(slice_content)
-		s.close()
+	    if out_size > self.slice_size and 'slice' in self.action:
+		if not os.path.exists(self.record_dir + rec + ".slice"):
+		    slices = out_size / self.slice_size + 1
+		    self.generate_slices(rec, VNC_frame_data, info, slices)
 
 	content += "];";
 
