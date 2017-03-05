@@ -5,7 +5,7 @@ import os, re, time, base64, zlib, binascii
 class Records:
     def __init__(self, record_dir = 'recordings/', record_list = 'records.js', \
 		record_html = 'records.html', slice_size = 256, compress_level = 9, \
-		slice_str = '=-+-+=', min_frames = 35, max_frames = 45, action = ('remove', 'zb64', 'slice')):
+		slice_str = '=-+-+=', min_frames = 35, max_frames = 45, action = ('remove', 'zb64', 'slice', 'remove_raw')):
 	self.record_dir = record_dir
 	self.record_list = record_list
 	self.record_html = record_html
@@ -121,6 +121,51 @@ class Records:
 	    unit = "M"
 	return str(rec_size) + unit
 
+    def generate_raw(self, zb64):
+	info = {"create": '', "title": '', 'author': '', 'tags': '', 'desc': '', 'encoding': 'binary', \
+		'length': 0, 'time': 0, 'data': ''}
+	for (k, v) in info.items():
+	    exec("VNC_frame_%s = ''" % k)
+
+	f = zb64.replace(".zb64","")
+	t = open(zb64)
+	py_data = t.read().replace('var VNC_', 'VNC_')
+	t.close()
+
+	exec(py_data)
+	if not VNC_frame_data_compressed:
+	    return
+
+	info['data'] = zlib.decompress(base64.b64decode(VNC_frame_data_compressed)).split(self.slice_str)
+
+	if not info['title']:
+	    info["title"] = os.path.basename(f)
+
+	if not info['length']:
+	    info['length'] = len(info['data'])
+
+	    if not info['time']:
+		m = re.match(r'[{}]([0-9]{1,})[{}]', info['data'][info['length']-2])
+		if m and len(m.groups()):
+		    info['time'] = time.strftime("%H:%M:%S", time.gmtime(float(m.group(1))/1000))
+
+	if not info['create']:
+	    info['create'] = time.strftime("%a, %d %b %Y %H:%M:%S %Z", time.localtime(time.time()))
+
+	raw_content = ''
+	for (k, v) in info.items():
+	    if str(v).isdigit():
+		raw_content += "var VNC_frame_%s = %s;\n" % (k, v)
+	    elif k == 'data':
+		raw_content += "var VNC_frame_%s = %r;\n" % (k, v)
+	    else:
+		raw_content += "var VNC_frame_%s = '%s';\n" % (k, v)
+
+	# Write raw session data
+	s = open(f, 'w+')
+	s.write(raw_content)
+	s.close()
+
     def generate(self):
 	content = "var VNC_record_player = '/play.html';\n"
 	content += "var VNC_record_dir = '/%s';\n\n" % os.path.basename(self.record_dir.strip('/'))
@@ -133,9 +178,19 @@ class Records:
 
 	if 'remove' in self.action:
 	    for rec in rec_list:
-		if rec in (self.record_list, self.record_html) or rec.find(".zb64") >= 0 or rec.find(".slice") >= 0:
+		absrec = os.path.abspath(self.record_dir + rec)
+		if rec in (self.record_list, self.record_html):
 		    print "LOG: Remove %s" % rec
-		    os.remove(os.path.abspath(self.record_dir + rec))
+		    os.remove(absrec)
+		if rec.find(".zb64") >= 0 or rec.find(".slice") >= 0:
+		    if os.path.exists(self.record_dir + rec.replace(".zb64", "").replace(".slice", "")):
+		        print "LOG: Remove %s" % rec
+			os.remove(absrec)
+		    elif rec.find(".zb64") >= 0:
+		        print "LOG: Restore raw %s" % rec.replace(".zb64", "")
+			self.generate_raw(absrec)
+		        #print "LOG: Remove %s" % rec
+			#os.remove(absrec)
 	    # flash the list and ignore the .zb64 and .slice* and the record list file
 	    rec_list = os.listdir(os.path.abspath(self.record_dir))
 	    rec_list.sort(self.compare)
@@ -231,6 +286,11 @@ class Records:
 
 	    # Get file size
 	    size = self.get_file_size(f)
+
+	    # Remove raw data, save the space
+	    if 'remove_raw' in self.action:
+		print "LOG: Remove %s" % f
+		os.remove(f)
 
 	    content += \
 		   "  ['%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'],\n" \
