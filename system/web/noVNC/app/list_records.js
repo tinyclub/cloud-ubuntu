@@ -35,7 +35,7 @@ function list_records(theme) {
 	} else {
             play_url = player + "?data=" + row[0];
             data.push("<td><a href='" + play_url + "'>&gt;</a></td>\n");
-            play_url = player + "?data=" + row[0] + ".slice";
+            play_url = player + "?data=" + row[0].replace(".zb64", "") + ".slice";
             data.push("<td><a href='" + play_url + "'>&gt;</a></td>\n");
 	}
         data.push("<td><a href='" + down_url + "'>v</a></td>\n");
