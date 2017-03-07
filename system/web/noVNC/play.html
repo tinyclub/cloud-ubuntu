@@ -1374,12 +1374,13 @@
 
 	// called in record list page while the record is choosed
 	function load(index, suffix) {
-	    if (typeof(suffix) === 'undefined')
-		suffix = "";
-
 	    var record = VNC_record_data;
 	    var record_dir = VNC_record_dir;
-	    fname = record[index][0] + suffix;
+	    // before append suffix, must remove the old prefix at first
+	    if (typeof(suffix) === 'undefined')
+		fname = record[index][0];
+	    else
+		fname = record[index][0].replace(".zb64","") + suffix;
 
 	    ___finish();
 	    //console.info("Loading ...... " + fname);

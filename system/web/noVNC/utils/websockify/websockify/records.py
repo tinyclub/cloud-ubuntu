@@ -158,7 +158,7 @@ class Records:
   def generate_raw(self, zb64):
     info = self.get_frame_info(zb64, self.zb64)
     if not info:
-      print "LOG: Invalid zb64 data"
+      print "LOG:   Invalid zb64 data"
       return
 
     if info['create']:
@@ -190,6 +190,7 @@ class Records:
     info = self.init_frame_info()
 
     for (k, v) in info.items():
+      if k in ('encoding', 'data', 'data_compressed'): continue
       exec("VNC_frame_%s = ''" % k)
 
     f = self.abspath(rec)
@@ -201,9 +202,9 @@ class Records:
     exec(py_data)
 
     key = 'VNC_frame_encoding'
-    if globals().has_key(key) and locals().has_key(key):
+    if not (globals().has_key(key) or locals().has_key(key)):
       # already compressed data, ignore it.
-      print "Invalid noVNC session data: %s" % rec
+      print "LOG:   Invalid noVNC session data: %s" % rec
       return ''
 
     if rtype == 'raw':
@@ -211,6 +212,7 @@ class Records:
       if globals().has_key(key) or locals().has_key(key):
         VNC_frame_length = len(VNC_frame_data)
         VNC_frame_time = self.get_frame_time(VNC_frame_data[VNC_frame_length-2])
+        VNC_frame_data_compressed = ''
       else: return ''
     else:
       key = 'VNC_frame_data_compressed'
