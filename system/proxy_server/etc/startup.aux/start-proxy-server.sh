@@ -11,4 +11,9 @@ TOP_DIR=$(cd $(dirname $0) && pwd)/../..
 
 echo "PROXY_PWD: $PROXY_PWD"
 
-HPROXY_PASS=$PROXY_PWD ${TOP_DIR}/usr/local/bin/hev-socks5-proxy 0.0.0.0 $PROXY_PORT $PROXY_DNS
+echo -e "[Main]\nWorkers=4\nPort=${PROXY_PORT}\nListenAddress=0.0.0.0\nDNSAddress=${PROXY_DNS}\n" >> \
+	${TOP_DIR}/etc/hev-socks5-server.conf
+echo -e "[Auth]\nPassword=${PROXY_PWD}\n" >> \
+	${TOP_DIR}/etc/hev-socks5-server.conf
+
+${TOP_DIR}/usr/local/bin/hev-socks5-server ${TOP_DIR}/etc/hev-socks5-server.conf
