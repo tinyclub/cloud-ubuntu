@@ -1,7 +1,7 @@
 
 # Cloud Ubuntu
 
-This project aims to build a basic docker image with Ubuntu + ssh/gateone/noVNC, it should be accessed easily from all over the world.
+This project aims to build a basic docker image with Ubuntu + ssh/gateone/noVNC, it should be available easily from all over the world.
 
 * ssh, traditional ssh protocol, require ssh client, support graphic/console
 * noVNC, remote graphic desktop via web browser, platform independent
@@ -19,6 +19,8 @@ It is functional, scalable, minimal but with necessary security enhancement:
 
 * fail2ban for ssh login failure limitation.
 * https for noVNC: noVNC/utils/self.pem from `gen_pem.sh`
+* https for Gateone
+* https/http switch with `LAB_SECURITY`
 
 People can build their own cloud environment with:
 
@@ -44,12 +46,45 @@ are `ubuntu`.
 |gateone/webssh| 443             | 4433                 |
 |noVNC         | 6080            | 6080                 |
 
+## VNC/ssh Web Proxy
+
+To save the ports and processes resources, the original noVNC and Gateone
+support have been removed from `cloud-ubuntu` and a standalone noVNC and
+Gateone proxy image is created and named with `cloud-ubuntu-web` and it can be
+run with:
+
+    $ ./scripts/web-ubuntu.sh
+
+It provides web proxy function for the vnc and ssh services of the other
+images.
+
 ## Login
 
     $ ./login/bash
     $ ./login/ssh
     $ ./login/webssh
     $ ./login/vnc
+
+## Record and playback
+
+### Terminal record/playback
+
+A `showterm` command is added in the `cloud-ubuntu-dev` and its derivers, it
+can be used to record the terminal operations.
+
+    $ showterm
+
+### VNC record/playback
+
+noVNC can be used to record the VNC desktop operations and the record data can
+be played back, to record it:
+
+    $ VNC_RECORD=1 ./scripts/web-ubuntu.sh
+
+The data is stored in `noVNC/recordings/` and the files are named with
+`vnc.record.data.[session number]`, play back it:
+
+    $ VNC_DATA=vnc.record.data.1 ./scripts/vnc-playback.sh
 
 ## Building
 

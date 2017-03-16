@@ -6,21 +6,23 @@
     <body>
 
         Iterations: <input id='iterations' style='width:50'>&nbsp;
-        Perftest:<input type='radio' id='mode1' name='mode' checked>&nbsp;
-        Realtime:<input type='radio' id='mode2' name='mode'>&nbsp;&nbsp;
+        Perftest:<input type='radio' id='mode1' name='mode'>&nbsp;
+        Realtime:<input type='radio' id='mode2' name='mode' checked>&nbsp;&nbsp;
 
         <input id='startButton' type='button' value='Start' style='width:100px'
             onclick="start();" disabled>&nbsp;
 
-        <br><br>
+        <br>
 
+<!--
         Results:<br>
-        <textarea id="messages" style="font-size: 9;" cols=80 rows=25></textarea>
+-->
+        <textarea id="messages" style="font-size: 9; display: none;" cols=80 rows=2></textarea>
 
-        <br><br>
+        <br>
 
         <div id="VNC_screen">
-            <div id="VNC_status_bar" class="VNC_status_bar" style="margin-top: 0px;">
+            <div id="VNC_status_bar" class="VNC_status_bar" style="margin-top: 0px; display: none;">
                 <table border=0 width=100%><tr>
                     <td><div id="VNC_status">Loading</div></td>
                 </tr></table>
@@ -49,7 +51,7 @@
         function message(str) {
             console.log(str);
             var cell = document.getElementById('messages');
-            cell.innerHTML += str + "\n";
+            cell.textContent += str + "\n";
             cell.scrollTop = cell.scrollHeight;
         }
 
@@ -68,19 +70,15 @@
             message("Must specify data=FOO in query string.");
         }
 
-        updateState = function (rfb, state, oldstate, msg) {
-            switch (state) {
-                case 'failed':
-                case 'fatal':
-                    message("noVNC sent '" + state + "' state during iteration " + iteration + " frame " + frame_idx);
-                    test_state = 'failed';
-                    break;
-                case 'loaded':
-                    break;
+        disconnected = function (rfb, reason) {
+            if (reason) {
+                message("noVNC sent '" + state + "' state during iteration " + iteration + " frame " + frame_idx);
+                test_state = 'failed';
             }
-            if (typeof msg !== 'undefined') {
-                document.getElementById('VNC_status').innerHTML = msg;
-            }
+        }
+
+        notification = function (rfb, mesg, level, options) {
+            document.getElementById('VNC_status').textContent = mesg;
         }
 
         function start() {
@@ -121,18 +119,20 @@
         }
 
         window.onscriptsload = function () {
-            iterations = WebUtil.getQueryVar('iterations', 3);
+            iterations = WebUtil.getQueryVar('iterations', 1);
             document.getElementById('iterations').value = iterations;
             mode = WebUtil.getQueryVar('mode', 3);
-            if (mode === 'realtime') {
-                document.getElementById('mode2').checked = true;
-            } else {
+            if (mode === 'perftest') {
                 document.getElementById('mode1').checked = true;
+            } else {
+                document.getElementById('mode2').checked = true;
             }
             if (fname) {
                 message("VNC_frame_data.length: " + VNC_frame_data.length);
             }
-            document.getElementById('startButton').disabled = false;
+            // Play immediately after load the data
+            start();
+            //document.getElementById('startButton').disabled = false;
         }
     </script>
 </html>

@@ -24,6 +24,7 @@ try:
 except:
     from cgi import parse_qs
     from urlparse import urlparse
+import os
 
 class ProxyRequestHandler(websocket.WebSocketRequestHandler):
 
@@ -125,7 +126,20 @@ Traffic Legend:
 
         token = args['token'][0].rstrip('\n')
 
-        result_pair = target_plugin.lookup(token)
+        self.log_message("token is %s", token)
+
+        if self.public and token.find('vnc:') == 0:
+            result_pair = token.replace('vnc://','').replace('vnc:', '').split(':')
+            if len(result_pair) == 1:
+                if len(result_pair[0]) == 0:
+                    result_pair = "localhost"
+                result_pair = result_pair[0], "5900"
+        elif token == 'default':
+            result_pair = "localhost", "5900"
+        else:
+            result_pair = target_plugin.lookup(token)
+
+        self.log_message("result_pair is %s:%s", result_pair[0], result_pair[1])
 
         if result_pair is not None:
             return result_pair
@@ -367,6 +381,10 @@ def websockify_init():
             help="per frame traffic")
     parser.add_option("--record",
             help="record sessions to FILE.[session_number]", metavar="FILE")
+    parser.add_option("--record-dir",
+            help="directoy to save recorded sessions", default='recordings/', metavar="DIR")
+    parser.add_option("--record-list",
+            help="file to save the list of recorded sessions", default='records.js', metavar="FILE")
     parser.add_option("--daemon", "-D",
             dest="daemon", action="store_true",
             help="become a daemon (background process)")
@@ -411,6 +429,8 @@ def websockify_init():
     parser.add_option("--token-source", default=None, metavar="ARG",
                       help="an argument to be passed to the token plugin"
                            "on instantiation")
+    parser.add_option("--public", action="store_true",
+            help="allow to access external vnc server with 'token=vnc://host:port'")
     parser.add_option("--auth-plugin", default=None, metavar="PLUGIN",
                       help="use the given Python class to determine if "
                            "a connection is allowed")
@@ -565,10 +585,15 @@ class LibProxyServer(ForkingMixIn, HTTPServer):
         # Configuration affecting base request handler
         self.only_upgrade   = not web
         self.verbose   = kwargs.pop('verbose', False)
+
         record = kwargs.pop('record', '')
+        record_dir = kwargs.pop('record_dir', '')
+        record_list = kwargs.pop('record_list', '')
         if record:
-            self.record = os.path.abspath(record)
+            self.record = record
+
         self.run_once  = kwargs.pop('run_once', False)
+        self.public  = kwargs.pop('public', False)
         self.handler_id = 0
 
         for arg in kwargs.keys():

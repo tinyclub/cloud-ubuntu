@@ -154,7 +154,7 @@ WebUtil.initSettings = function (callback /*, ...callbackArgs */) {
     if (window.chrome && window.chrome.storage) {
         window.chrome.storage.sync.get(function (cfg) {
             WebUtil.settings = cfg;
-            console.log(WebUtil.settings);
+            //console.log(WebUtil.settings);
             if (callback) {
                 callback.apply(this, callbackArgs);
             }
@@ -384,7 +384,7 @@ WebUtil.getLanguageFileLocation = function () {
 // itself is loaded via load_scripts. Once all scripts are loaded the
 // window.onscriptsloaded handler is called (if set).
 WebUtil.get_include_uri = function (root_dir) {
-    return (typeof INCLUDE_URI !== "undefined") ? INCLUDE_URI + root_dir + '/' : root_dir + '/';
+    return (typeof INCLUDE_URI !== "undefined") ? "" + INCLUDE_URI + root_dir + '/' : root_dir + '/';
 };
 WebUtil._loading_scripts = [];
 WebUtil._pending_scripts = [];
@@ -423,11 +423,16 @@ WebUtil.load_scripts = function (files_by_dir) {
         var root_dir = root_dirs[d];
         var files = files_by_dir[root_dir];
 
+	//console.log("root_dir is " + root_dir);
+
         for (var f = 0; f < files.length; f++) {
             script = document.createElement('script');
             script.type = 'text/javascript';
-            script.src = WebUtil.get_include_uri(root_dir) + files[f];
-            //console.log("loading script: " + script.src);
+	    if (files[f].match(/^(http|https|ftp):\/\//))
+                script.src = files[f];
+	    else
+                script.src = WebUtil.get_include_uri(root_dir) + files[f];
+            // console.log("loading script: " + script.src);
             script.onload = script.onreadystatechange = loadFunc;
             // In-order script execution tricks
             if (Util.Engine.trident) {
@@ -438,7 +443,7 @@ WebUtil.load_scripts = function (files_by_dir) {
             } else {
                 // For webkit and firefox set async=false and append now
                 // https://developer.mozilla.org/en-US/docs/HTML/Element/script
-                script.async = false;
+                script.async = true;
                 head.appendChild(script);
             }
             ps.push(script);

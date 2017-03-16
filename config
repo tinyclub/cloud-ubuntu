@@ -4,6 +4,9 @@ FEATURE=base
 FEATUREFILE=${TOP_DIR}/feature
 CONTAINERFILE=${TOP_DIR}/container
 
+# debug with DEBUG=1
+[ x$DEBUG = x"1" ] && set -x
+
 if [ -n "$1" ]; then
     FEATURE=$1
     DOCKERFILE=${TOP_DIR}/dockerfiles/Dockerfile.${FEATURE}

@@ -7,11 +7,12 @@ source ${TOP_DIR}/config $*
 # 16:10: 640x480 800x480 1280x800 1440x900 1680x1050 1920x1200 2560x1600
 # 16:9: 960x540 1280x720 1920x1080 2560x1440
 which xrandr 2>&1 >/dev/null
-[ $? -eq 0 ] && SCREEN_SIZE=`xrandr --current | grep +$ | tr -s ' ' | cut -d' ' -f2`
+[ $? -eq 0 -a -z "$SCREEN_SIZE" ] && SCREEN_SIZE=`xrandr --current | grep "^ .*\*" | tr -s ' ' | cut -d' ' -f2`
 
-[ -z "$SCREEN_SIZE" ] && SCREEN_SIZE=1024x768
+[ -z "$VNC_SHARED" ] && VNC_SHARED=0
+[ -z "$SCREEN_SIZE" ] && SCREEN_SIZE=1280x720
 [ -z "$PORT_MAP" ] && PORT_MAP="$DEFAULT_PORT_MAP"
-[ -z "$ENV_ARGS" ] && ENV_ARGS=" -e UNIX_USER=$UNIX_USER -e UNIX_PWD=$UNIX_PWD -e VNC_PWD=$VNC_PWD -e SCREEN_SIZE=$SCREEN_SIZE"
+[ -z "$ENV_ARGS" ] && ENV_ARGS=" -e VNC_SHARED=$VNC_SHARED -e UNIX_USER=$UNIX_USER -e UNIX_PWD=$UNIX_PWD -e VNC_PWD=$VNC_PWD -e SCREEN_SIZE=$SCREEN_SIZE"
 [ -z "$EXTRA_ARGS" ] && EXTRA_ARGS=""
 
 docker run \

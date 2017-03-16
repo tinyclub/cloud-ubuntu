@@ -1032,6 +1032,7 @@
 
             if (!this._view_only) { this._keyboard.grab(); }
             if (!this._view_only) { this._mouse.grab(); }
+            if (this._view_only) { this._display.set_view_only(true); }
 
             if (this._true_color) {
                 this._fb_Bpp = 4;

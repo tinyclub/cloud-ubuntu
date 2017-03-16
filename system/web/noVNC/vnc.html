@@ -161,6 +161,11 @@
                 id="noVNC_fullscreen_button" class="noVNC_button noVNC_hidden"
                 title="Fullscreen" />
 
+            <!-- Toggle Replay -->
+            <a alt="Replay" href="/play.html" target="_blank" style="text-align: center; vertical-align: center; height: 25px;"
+                id="noVNC_play_button" class="noVNC_button"
+                title="Replay the recorded sessions" /><img src="app/images/play.svg"></a>
+
             <!-- Settings -->
             <input type="image" alt="Settings" src="app/images/settings.svg"
                 id="noVNC_settings_button" class="noVNC_button"
@@ -188,6 +193,31 @@
                     </li>
                     <li>
                         <label><input id="noVNC_setting_view_only" type="checkbox" /> View Only</label>
+                    </li>
+                    <li><hr></li>
+                    <li>
+                        <label><input id="noVNC_setting_record" type="checkbox" /> Record Screen</label>
+                    </li>
+                    <li><hr></li>
+                    <li>
+                        <label for="noVNC_setting_record_file">File:</label>
+                        <input id="noVNC_setting_record_file" type="input" placeholder="vnc.record.data"/>
+                    </li>
+                    <li>
+                        <label for="noVNC_setting_record_title">Title:</label>
+                        <input id="noVNC_setting_record_title" type="input"/>
+                    </li>
+                    <li>
+                        <label for="noVNC_setting_record_author">Author:</label>
+                        <input id="noVNC_setting_record_author" type="input"/>
+                    </li>
+                    <li>
+                        <label for="noVNC_setting_record_tags">Tags:</label>
+                        <input id="noVNC_setting_record_tags" type="input"/>
+                    </li>
+                    <li>
+                        <label for="noVNC_setting_record_desc">Description:</label>
+                        <textarea id="noVNC_setting_record_desc" rows=5></textarea>
                     </li>
                     <li><hr></li>
                     <li>

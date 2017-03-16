@@ -692,6 +692,12 @@ def main():
 	help=_("Enable the use of SSHFP in verifying host keys. See:  "
 	      "http://en.wikipedia.org/wiki/SSHFP#SSHFP")
     )
+    parser.add_option("--public",
+	dest="public",
+	default=False,
+	action="store_true",
+	help=_("Enable the access of the external ssh server")
+    )
     parser.add_option("--randomart",
 	dest="randomart",
 	default=False,
@@ -794,6 +800,8 @@ def main():
 	port = None
 	validated = False
 	debug = False
+	authorized_hostname_err = _(
+	    'Error:  You must enter a authorized hostname or IP address.')
 	invalid_hostname_err = _(
 	    'Error:  You must enter a valid hostname or IP address.')
 	invalid_port_err = _(
@@ -839,16 +847,16 @@ def main():
 		protocol = 'ssh'
 		host = url
 
-            from netifaces import interfaces, ifaddresses, AF_INET
+            if not options.public:
+                try:
+                    from netifaces import interfaces, ifaddresses, AF_INET
+                    netaddr=ifaddresses('eth0').setdefault(AF_INET,[{'addr':'No IP addr'}])[0]['addr'][0:6]
+                except:
+                    netaddr='10.66.33'
 
-            try:
-                netaddr=ifaddresses('eth0').setdefault(AF_INET,[{'addr':'No IP addr'}])[0]['addr'][0:6]
-            except:
-	        netaddr='10.66.33'
-
-            if host.find(netaddr) < 0:
+            if not options.public and host.find(netaddr) < 0:
 		url = None
-		raw_input(invalid_hostname_err)
+		raw_input(authorized_hostname_err)
             elif valid_hostname(host, allow_underscore=True):
 		validated = True
 	    else:

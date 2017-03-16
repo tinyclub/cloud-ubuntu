@@ -1,0 +1,1547 @@
+<!DOCTYPE html>
+<html>
+    <head>
+	<title>Tiny noVNC Player</title>
+	<link rel="stylesheet" href="./app/styles/player.css">
+	<link rel="stylesheet" href="./app/styles/records.css">
+	</style>
+    </head>
+    <body>
+	<h1 id="VNC_title"><a href="http://tinylab.org" target="_blank" title="Powered by TinyLab.org">Tiny noVNC Player</a></h1>
+
+	<div id="VNC_main">
+	<div id="VNC_control">
+	  <div id="VNC_control_status">
+	     <span id="session" title="session title"></span>&nbsp;&nbsp;
+	     <span id="loop" title="Total iterations"></span><a> . </a>
+	     <span id="iteration" title="Current iteration"></span><a> . </a>
+	     <span id="size" title="Total frames"></span><a> . </a>
+	     <span id="skipframes" title="Frames to skip"></span><a> . </a>
+	     <span id="frame_idx" title="Current frame and percentage"></span>
+	  </div>
+
+	  <div id="infoBar">
+	      <br><br>
+	      &nbsp; <a>Fullspeed: </a><input type='radio' id='mode1' name='mode' onclick='mode1_checked();'>
+	      &nbsp; <a>Realtime: </a><input type='radio' id='mode2' name='mode' checked>
+	      &nbsp; <a>Iterations: </a><input id='iterations' onchange='iters_update()'>
+	      <br><br>
+	      <textarea id="messages" cols=80 rows=10></textarea>
+	      <br><br>
+	  </div>
+	</div>
+
+	<div id="VNC_playbar">
+	  <div id="left_playbar">
+	    <input id='startBtn' type='button' value='=>' onclick="start(1);" title="Press Enter, Start/Stop/Continue" disabled>
+
+	    <input id="beginBtn" type='button' value='<<' onclick="track_click('begin');" title="Ctrl/Shift/Alt + Up, Goto the Begin">
+	    <input id="minusBtn" type='button' value='<' onclick="track_click('minus');" title="Ctrl/Shift/Alt + Left, Backfoward frames">
+
+	    <span id="current_time" title="Current time"></span>
+	  </div>
+
+	  <div id="middle_playbar">
+	    <input id="trackBar" type="range" min="0" max="10" step="1" value="0" title="Drag or Click to the target frame" ontouchstart='track_stop();' onmousedown='track_stop();' ontouchmove='track_move();' onmousemove='track_move();' ontouchend='track_start();' onmouseup='track_start();' />
+	  </div>
+
+	  <div id="right_playbar">
+	    <span id="total_time" title="Total time"></span>
+
+	    <input id="plusBtn" type='button' value='>' onclick="track_click('plus');" title="Ctrl/Shift/Alt + Right, Fastforward 10 frames">
+	    <input id="endBtn" type='button' value='>>' onclick="track_click('end');" title="Ctrl/Shift/Alt + Down, Goto the End">
+	    <input id="fsBtn" type='button' value='[ ]' onclick="full_screen();" title="Enter/Exit Fullscreen">
+	    <input id="moreBtn" type='button' value='...' onclick="op_records();" title="More noVNC Sessions">
+	  </div>
+	</div>
+
+	<div id="VNC_screen" ontouchstart='track_stop(2)' onmousedown='track_stop(1)' ontouchmove='track_move(2)' onmousemove='track_move(1)' ontouchend='track_start(2)' onmouseup='track_start(1)'>
+	    <canvas id="VNC_canvas" width="100%">
+		Canvas not supported.
+	    </canvas>
+	    <canvas id="VNC_canvas_backup" width="100%">
+		Canvas not supported.
+	    </canvas>
+	    <div id="VNC_status">Loading ...</div>
+	</div>
+
+	<div id="VNC_records">
+	</div>
+
+      </div>
+    </body>
+
+    <!--
+    <script type='text/javascript'
+	src='http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js'></script>
+    -->
+
+    <script type="text/javascript">
+	var INCLUDE_URI= "./";
+	//var INCLUDE_URI= "http://example.com/";
+    </script>
+    <script src="./core/util.js"></script>
+    <script src="./app/webutil.js"></script>
+    <script src="./app/iframeResizer.contentWindow.min.js"></script>
+    <!-- https://github.com/heyday/async-load -->
+    <script src="./app/load.js"></script>
+
+    <script>
+	// preload next slice if less than 10s left
+	// here assume the net speed is at least 256k/10s = 25.6 k/s, 256k is the biggest slice size (file size / slices)
+	var avail_timestamp = 15*1000;
+
+	var first_load = 1;
+
+	var touchable = 0;
+	// skip drawing if (skipframes - frame_idx) is big
+	// draw a text to tell users wait instead.
+	var frames_delta = 200;
+	// play Stats
+	var playStats = {
+	    INIT: 0,
+	    LOADING: 1,
+	    RUNNING: 2,
+	    STOPPED: 3,
+	    FINISH: 4,
+	};
+	var trackBarStats = {
+	    INIT: 0,
+	    DOWN: 1,
+	    MOVE: 2,
+	    UP: 3,
+	}
+	var track_bar_stats = trackBarStats.INIT;
+	var prev_track_value;
+
+	var VNC_frame_data = new Array();
+	var fname, short_fname, start_time, play_stats, frame_idx_max, totalframes, skipframes, messageon, canvas_imgdata;
+	var frame_title, frame_author, frame_create, frame_time, frame_tags, frame_desc, frame_data_slices;
+	var screen_width_input, screen_height_input, screen_width, screen_height, screen_ratio;
+
+	var fullscreen = 0, fullscreen_input = 0;
+	var vnc_screen = document.getElementById('VNC_screen');
+	var vnc_screen_disabled = 1;
+	var vnc_canvas = document.getElementById('VNC_canvas');
+	var vnc_canvas_backup = document.getElementById('VNC_canvas_backup');
+	var default_canvas_height = 20;
+	vnc_canvas.height = default_canvas_height;
+	vnc_canvas_backup.height = default_canvas_height;
+
+	var vnc_title = document.getElementById('VNC_title');
+
+	var vnc_main = document.getElementById('VNC_main');
+	var vnc_ctrl = document.getElementById('VNC_control');
+	var vnc_ctrl_status = document.getElementById('VNC_control_status');
+	var iter = document.getElementById('iteration');
+	var fidx = document.getElementById('frame_idx');
+	var ftime = document.getElementById('current_time');
+	var ttime = document.getElementById('total_time');
+	var session = document.getElementById('session');
+
+	var vnc_records = document.getElementById('VNC_records');
+	var vnc_status = document.getElementById('VNC_status');
+
+	var play_bar = document.getElementById('VNC_playbar');
+	var left_play_bar = document.getElementById('left_playbar');
+	var right_play_bar = document.getElementById('right_playbar');
+	var middle_play_bar = document.getElementById('middle_playbar');
+	var track_bar = document.getElementById('trackBar');
+	var start_btn = document.getElementById('startBtn');
+	var begin_btn = document.getElementById('beginBtn');
+	var end_btn = document.getElementById('endBtn');
+	var plus_btn = document.getElementById('plusBtn');
+	var minus_btn = document.getElementById('minusBtn');
+	var fs_btn = document.getElementById('fsBtn');
+
+	var info_bar = document.getElementById('infoBar');
+	var cell = document.getElementById('messages');
+
+	var jumpto = document.getElementById('skipframes');
+	var size = document.getElementById('size');
+	var loop = document.getElementById('loop');
+	var iters = document.getElementById('iterations');
+
+	var mode1 = document.getElementById('mode1');
+	var mode2 = document.getElementById('mode2');
+
+	var last_x = 0;
+	var last_y = 0;
+
+	play_stats = playStats.INIT;
+	prev_track_value = 0;
+	prev_play_stats = play_stats;
+	frame_idx_max = 0;
+	frame_data_slices = 0;
+	totalframes = 0;
+	canvas_imgdata = '';
+
+	function show_records() {
+	    // console.info("show_records");
+
+	    __stop();
+
+	    if (vnc_records.innerHTML.length < 10)
+		draw_records();
+
+	    vnc_records.style.width = vnc_screen.offsetWidth + 'px';
+	    vnc_records.style.height = vnc_screen.offsetHeight + 'px';
+	    vnc_screen.style.display = "none";
+	    vnc_records.style.display = "block";
+	}
+
+	function hide_records() {
+	    // console.info("hide_records");
+
+	    vnc_records.style.display = "none";
+	    vnc_screen.style.display = "block";
+	}
+
+	function op_records() {
+	    // console.info("vnc records display " + vnc_records.style.display);
+	    if (vnc_records.style.display === "block") {
+		hide_records();
+	    } else {
+		show_records();
+	    }
+	}
+
+	function iters_update() {
+	    iterations = Number(iters.value);
+	    loop.textContent = iterations;
+	}
+
+	function message(str) {
+	    if (messageon) {
+		console.info(str);
+		cell.textContent += str + "\n";
+		cell.scrollTop = cell.scrollHeight;
+	    }
+	}
+
+	function format_time(ms) {
+	    var s, m, h;
+
+	    if (!ms)
+		return '00:00:00';
+
+	    s = Math.floor(ms / 1000);
+
+	    h = Math.floor(s / 3600);
+	    m = h > 0 ? Math.floor((s - h * 3600)/60) : Math.floor(s / 60);
+	    s = m > 0 ? Math.floor((s - h * 3600 - m * 60)) : s;
+
+	    if (h < 10)
+		h = '0' + h;
+
+	    if (m < 10)
+		m = '0' + m;
+
+	    if (s < 10)
+		s = '0' + s;
+
+	    return h + ":" + m + ":" + s;
+	}
+
+	var prev_canvas_height = default_canvas_height;
+	var full_frame_found = 0;
+	var full_frame_idx = 0;
+
+	function draw_frameitem(item, desc, font, align, color, y, x) {
+	    if (item)
+	        __draw_text(vnc_canvas_backup, desc + ": " + item.substring(0, 30), font, align, color, y, x, 1, 0);
+	}
+
+	function draw_frameinfo() {
+	    var x, y = Math.round(vnc_canvas_backup.height/3);
+	    var font = "35px Tahoma";
+	    var color = "white";
+	    var align = "left";
+	    var offset = 45;
+
+	    var len = Math.max(frame_author.length, frame_create.length, frame_tags.length, frame_desc.length);
+	    tmp = 3;
+	    if (len < 10)
+		tmp = 3;
+	    else if (len < 20)
+		tmp = 4;
+	    else if (len < 30)
+		tmp = 5;
+	    else
+		tmp = 6;
+
+	    x = Math.round(vnc_canvas_backup.width/tmp);
+
+	    draw_frameitem(frame_author, "Author", font, align, color, y, x);
+	    draw_frameitem(frame_create, "Create", font, align, color, y+=offset, x);
+	    draw_frameitem(frame_time, "Length", font, align, color, y+=offset, x);
+	    draw_frameitem(frame_tags, "Tags", font, align, color, y+=offset, x);
+	    draw_frameitem(frame_desc, "Desc", font, align, color, y+=offset, x);
+	}
+
+	function draw_frame() {
+	    __draw_bg(vnc_canvas_backup);
+
+	    y = Math.round(vnc_canvas_backup.height/6);
+	    __draw_text(vnc_canvas_backup, "[ " + frame_title.substring(0,30) + " ]",
+		"50px Tahoma", "center", "#a00", y, 0, 0.8, 1, "white");
+
+	    draw_frameinfo();
+
+	    y = Math.round(vnc_canvas_backup.height*3/4);
+	    __draw_text(vnc_canvas_backup, "Tiny noVNC Player, powered by http://tinylab.org",
+		"30px Tahoma", "center", "#00a", y, 0, 0.8, 1, "white");
+
+	    vnc_canvas.style.display = 'none';
+	    vnc_canvas_backup.style.display = 'block';
+
+	    if (fullscreen) {
+		enter_fullscreen();
+	    }
+	}
+
+	function __update_stats(iteration, frame_idx) {
+	    var frame, tmp = frame_idx + 1;
+
+	    if (frame_idx > frame_idx_max)
+	        tmp = totalframes;
+
+	    fidx.textContent = tmp + " . " + parseInt(tmp * 100 / totalframes) + "%";
+
+	    //if (mode === 'realtime' && foffset > 1000) {
+	    ftime.textContent = format_time(foffset);
+
+	    if ((frame_idx > skipframes) && ___running())
+		track_bar.value = frame_idx;
+
+	    if (frame_idx === frame_idx_max || frame_idx == full_frame_idx)
+		backup_canvas();
+
+	    iter.textContent = iteration;
+
+	    if (full_frame_found) {
+		if (frame_idx < full_frame_idx) {
+		    vnc_screen_disable = 1;
+		    mode = 'fullspeed';
+		} else if (frame_idx === full_frame_idx) {
+		    if (prev_play_stats === playStats.FINISH) {
+			if (mode2.checked)
+			    mode = 'realtime';
+			if (play_stats == playStats.STOPPED)
+			    __continue();
+		    }
+		    __resume_control();
+		    vnc_screen_disable = 0;
+		}
+	    }
+	}
+
+	function ___update_stats(iteration, frame_idx) {
+	    if (full_frame_found)
+		__update_stats(iteration, frame_idx);
+	    else
+		find_full_frame(iteration, frame_idx);
+	}
+
+	function find_full_frame(iteration, frame_idx) {
+	    update_screensize();
+
+	    if (typeof(rfb) !== 'undefined' && rfb._display && vnc_canvas && vnc_canvas.height !== default_canvas_height) {
+		if (prev_canvas_height === default_canvas_height) {
+		   //console.info("draw the welcome page.");
+
+		    if (vnc_canvas_backup.width !== vnc_canvas.width) {
+			vnc_canvas_backup.width = vnc_canvas.width;
+			vnc_canvas_backup.height = vnc_canvas.height;
+		    }
+
+		    draw_frame();
+
+		    mode = "fullspeed";
+		    prev_canvas_height = vnc_canvas.height;
+		}
+
+		var w = vnc_canvas.width;
+		var h = vnc_canvas.height;
+		var imgdata = vnc_canvas.getContext('2d').getImageData(w-1, h-1, w, h);
+		// console.info("w: " + w + " h: " + h + " frame: " + frame_idx + " imgdata: " + imgdata.data[0]);
+		if (imgdata.data[0] !== 0) {
+		    __stop();
+
+		    vnc_screen_disabled = 0;
+		    full_frame_found = 1;
+		    full_frame_idx = frame_idx;
+		    track_bar.min = frame_idx;
+		    if (mode2.checked)
+			mode = "realtime";
+
+		    // Play immediately after load the data
+		    start_btn.disabled = false;
+	            vnc_status.textContent = "Loaded";
+		}
+	    }
+	}
+
+	function ___running() {
+	    return (play_stats === playStats.RUNNING)
+	}
+
+	function __exit_fullscreen() {
+	    if (document.exitFullscreen) {
+		document.exitFullscreen();
+	    } else if (document.mozCancelFullScreen) {
+		document.mozCancelFullScreen();
+	    } else if (document.webkitExitFullscreen) {
+		document.webkitExitFullscreen();
+	    }
+	}
+
+	function __enter_fullscreen() {
+	    var element = document.body;
+	    var enter = element.requestFullScreen || element.webkitRequestFullScreen || element.mozRequestFullScreen || element.msRequestFullScreen;
+	    if (enter)
+		enter.call(element);
+	}
+
+	function exit_fullscreen() {
+	    __exit_fullscreen();
+	    show_others();
+	    fullscreen = 0;
+	}
+
+	function enter_fullscreen() {
+	    hide_others();
+	    __enter_fullscreen();
+	    fullscreen = 1;
+	}
+
+	var prev_screen_width = 0;
+	var prev_screen_height = 0;
+	var fs_cnt = 0;
+
+	function full_screen() {
+	    if (fs_cnt === 0 && fullscreen_input) {
+		fs_cnt = 1;
+
+		exit_fullscreen();
+		prev_screen_width = screen.width;
+		prev_screen_height = screen.height;
+	    }
+
+	    if (fullscreen) {
+		exit_fullscreen();
+		prev_screen_width = screen.width;
+		prev_screen_height = screen.height;
+	    } else {
+		prev_screen_width = screen.width;
+		prev_screen_height = screen.height;
+		enter_fullscreen();
+	    }
+	}
+
+	function check_fullscreen() {
+	    if (window.outerWidth === screen.width && window.outerHeight === screen.height) {
+		if (screen.width >= prev_screen_width && screen.height >= prev_screen_height)
+		    hide_others();
+	    } else {
+		if (screen.width <= prev_screen_width && screen.height <= prev_screen_height)
+		    show_others();
+	    }
+	}
+
+	function hide_others() {
+	    vnc_title.style.display = 'none';
+	    vnc_ctrl.style.display = 'none';
+	    if (!fullscreen_input)
+		document.body.style.background = "black";
+
+	    play_bar.style.position = "absolute";
+
+	    update_screensize();
+
+	    var tmp = Math.round((window.innerWidth - play_bar.offsetWidth)/2);
+	    play_bar.style.left = tmp + 'px';
+	    vnc_screen.style.position = 'absolute';
+	    vnc_screen.style.left = play_bar.style.left;
+	    vnc_records.style.position = 'absolute';
+	    vnc_records.style.left = play_bar.style.left;
+
+	    tmp = play_bar.offsetHeight + vnc_screen.offsetHeight;
+
+	    if (tmp < window.innerHeight && !fullscreen_input) {
+		tmp = Math.round((window.innerHeight - tmp)/2);
+		play_bar.style.top = tmp + 'px';
+		vnc_screen.style.top = tmp + play_bar.offsetHeight - 2 + 'px';
+	    } else {
+		play_bar.style.top = '0px';
+		vnc_screen.style.top = play_bar.offsetHeight - 2 + 'px';
+	    }
+	    vnc_records.style.top = vnc_screen.style.top;
+	}
+
+	function show_others() {
+	    document.body.style.background = "#eee";
+
+	    if (!fullscreen_input) {
+		vnc_title.style.display = 'block';
+		vnc_ctrl.style.display = 'block';
+	    }
+
+	    play_bar.style.position = "relative";
+	    vnc_screen.style.position = 'relative';
+	    vnc_records.style.position = 'relative';
+
+	    update_screensize();
+
+	    play_bar.style.left = 'auto';
+	    vnc_screen.style.left = 'auto';
+	    vnc_records.style.left = 'auto';
+	    play_bar.style.top = 'auto';
+	    vnc_screen.style.top = 'auto';
+	    vnc_records.style.top = 'auto';
+	}
+
+	function load_records() {
+	    // Load supporting scripts
+	    WebUtil.load_scripts({
+	    'app': ["list_records.js"],
+	    "recordings": ["records.js"],
+	    });
+	}
+
+	fullscreen_input = WebUtil.getQueryVar('f', 0);
+	if (fullscreen_input === 0)
+	    fullscreen_input = WebUtil.getQueryVar('fullscreen', 0);
+
+	fullscreen = fullscreen_input;
+
+	fname = WebUtil.getQueryVar('data', null);
+	if (fname) {
+	    __load(fname);
+	} else {
+	    load_records();
+	    vnc_status.textContent = 'Must specify data=FOO in query string.';
+	    message("Must specify data=FOO in query string.");
+	}
+
+	disconnected = function (rfb, reason) {
+	    if (reason) {
+		message("noVNC sent '" + reason + "' state during iteration " + iteration + " frame " + frame_idx);
+		test_state = 'failed';
+	    }
+	}
+
+	notification = function (rfb, mesg, level, options) {
+	    vnc_status.textContent = mesg;
+	}
+
+	function __start() {
+	    start_btn.value = "||";
+	    vnc_status.textContent = "Running";
+	    message("Start play the " + skipframes + " Frame");
+
+	    iteration = 0;
+	    start_time = (new Date()).getTime();
+	    //recv_message = rfb.testMode(send_array, VNC_frame_encoding);
+
+	    play_stats = playStats.RUNNING;
+	    ftime.style.color = '#0a0';
+	    fidx.style.color = '#0a0';
+
+	    ___speedup();
+
+	    check_load_framedata();
+	    next_iteration();
+	}
+
+	function __stop(str) {
+	    backup_canvas();
+	    restore_canvas(str);
+
+	    play_stats = playStats.STOPPED;
+
+	    start_btn.value = '=>';
+	    vnc_status.textContent = "Stopped";
+
+	    if (ftime.style.color !== 'black') {
+		ftime.style.color = 'black';
+		jumpto.style.color = 'black';
+	        fidx.style.color = 'black';
+	    }
+	    message("Stopped at the " + frame_idx + " frame!");
+	}
+
+	function ___stop() {
+	    mode = 'realtime';
+	    ___update_stats(iteration, frame_idx);
+	    __stop();
+	    __resume();
+	}
+
+	function backup_canvas() {
+	    //console.info("backup canvas");
+	    if (!(typeof(rfb) !== 'undefined' && rfb && rfb._display))
+		return;
+
+	    update_screensize();
+
+	    canvas_imgdata = vnc_canvas.getContext('2d').getImageData(0, 0, vnc_canvas.width, vnc_canvas.height);
+	}
+
+	function restore_canvas(str) {
+	    if (!full_frame_found || frame_idx < full_frame_idx)
+		return;
+
+	    var ctx = vnc_canvas_backup.getContext('2d');
+	    if (canvas_imgdata !== '') {
+		ctx.putImageData(canvas_imgdata, 0, 0);
+	        if (str)
+		    backup_draw_text(str)
+	    }
+	}
+
+	function __draw_bg(canvas, style, transparent) {
+	    if (canvas === vnc_canvas_backup)
+		ctx = vnc_canvas_backup.getContext('2d');
+	    else
+		ctx = rfb._display.get_context();
+
+	    w = canvas.width;
+	    h = canvas.height;
+
+	    if (!style) {
+		var gradient=ctx.createLinearGradient(0, 0, w, 0);
+		gradient.addColorStop("0","green");
+		gradient.addColorStop("0.6","blue");
+		gradient.addColorStop("1.0","red");
+		style = gradient;
+	    }
+
+	    if (!transparent)
+		transparent = 0.8;
+
+	    ctx.globalAlpha = transparent;
+	    ctx.fillStyle = style;
+	    ctx.fillRect(0, 0, w, h);
+	}
+
+	function __draw_text(canvas, str, font, align, style, y, x, transparent, bg, bg_style) {
+	    if (canvas === vnc_canvas_backup)
+		ctx = vnc_canvas_backup.getContext('2d');
+	    else
+		ctx = rfb._display.get_context();
+
+	    w = canvas.width;
+	    h = canvas.height;
+
+	    if (!font)
+		font = "50px Tahoma";
+
+	    if (!align)
+		align = "center";
+
+	    if (!style)
+		style = "white";
+
+	    var font_height = parseInt(font);
+
+	    if (!x)
+		x = parseInt(w / 2);
+
+	    if (!y) {
+		var y = parseInt(h / 6);
+	    }
+
+	    if (!transparent)
+		transparent = 0.8;
+
+	    if (!bg_style) {
+		var gradient=ctx.createLinearGradient(0, 0, w, 0);
+		gradient.addColorStop("0","green");
+		gradient.addColorStop("0.5","red");
+		gradient.addColorStop("1.0","blue");
+
+		bg_style = gradient;
+	    }
+
+	    if (bg !== 0) {
+		ctx.globalAlpha = transparent;
+		ctx.fillStyle = bg_style;
+		ctx.fillRect(0, y - font_height, w, Math.floor(font_height + font_height/2));
+	    }
+
+	    ctx.font = font;
+	    ctx.textAlign = align;
+	    ctx.fillStyle = style;
+	    ctx.globalAlpha = 1;
+	    ctx.fillText(str, x, y);
+	}
+
+	function draw_text(str, font) {
+	    __draw_text(vnc_canvas, str, font);
+	}
+
+	function backup_draw_text(str, font) {
+	    __draw_text(vnc_canvas_backup, str, font);
+	}
+
+	function __resume_control() {
+	    start_btn.disabled = false;
+	    begin_btn.disabled = false;
+	    end_btn.disabled = false;
+	    plus_btn.disabled = false;
+	    minus_btn.disabled = false;
+	    track_bar.disabled = false;
+
+	    if (full_frame_found && (frame_idx >= full_frame_idx) && (frame_idx < frame_idx_max)) {
+		vnc_canvas_backup.style.display = 'none';
+		vnc_canvas.style.display = 'block';
+	    }
+	}
+
+	function __resume() {
+	    __resume_control();
+
+	    skipframes = full_frame_idx;
+	    track_bar_stats = trackBarStats.INIT;
+	    prev_track_value = frame_idx_max;
+	}
+
+	function check_load_timeout() {
+	    // Must check if really timeout...
+	    // console.info("***skipframes: " + skipframes + " curr_frame_length: " + curr_frame_length + " frame_idx: " + frame_idx);
+	    if (VNC_frame_data.length >= skipframes && VNC_frame_data.length > frame_idx)
+		return;
+
+	    restore_canvas("Loading timeout!");
+
+	    var y = Math.round(vnc_canvas_backup.height/2);
+	    __draw_text(vnc_canvas_backup, "File not found or network speed issue!",
+		"30px Tahoma", "center", "#a00", y, 0, 0.8, 1, "white");
+
+	    setTimeout(___finish, 10000);
+	}
+
+	function __stop_onload(stage) {
+	    // console.info("Stopped @stage " + stage + " @frame: " + frame_idx);
+	    __stop_control();
+	    __stop("Loading ...");
+
+	    // Need to check if the file is not found or the network speed is too slow.
+	    // May be possible to get the error info while the file is not found.
+	    var timeout = 60000;
+	    setTimeout(check_load_timeout, timeout);
+	}
+
+	function __stop_control() {
+	    start_btn.disabled = true;
+	    begin_btn.disabled = true;
+	    end_btn.disabled = true;
+	    plus_btn.disabled = true;
+	    minus_btn.disabled = true;
+	    track_bar.disabled = true;
+
+	    if (mode === 'realtime' || (mode === 'fullspeed' && skipframes - frame_idx > frames_delta)
+		|| (full_frame_found && frame_idx < full_frame_idx)) {
+		vnc_canvas.style.display = 'none';
+		vnc_canvas_backup.style.display = 'block';
+	    }
+	}
+
+	function ___speedup() {
+	    if (!(skipframes > frame_idx))
+		return;
+
+	    mode = 'fullspeed';
+	    __stop_control();
+	}
+
+	function __continue() {
+	    start_btn.value = "||";
+	    vnc_status.textContent = "Continued";
+
+	    ___speedup();
+
+	    play_stats = playStats.RUNNING;
+	    ftime.style.color = '#0a0';
+	    fidx.style.color = '#0a0';
+	    message("Continue play the " + frame_idx + " frame!");
+
+	    check_load_framedata();
+	    queue_next_packet();
+	}
+
+	function start(clean, prev_play_stats, speed) {
+	    hide_records();
+
+	    if (clean)
+		__resume();
+	    else
+		restore_canvas("Fast Forwarding ...");
+
+	    if (prev_play_stats)
+		stats = prev_play_stats;
+	    else
+		stats = play_stats;
+
+	    if (mode1.checked || speed === 'fullspeed') {
+		message("Starting performance playback (fullspeed) [" + iterations + " iteration(s)]");
+		mode = 'fullspeed';
+	    } else {
+		message("Starting realtime playback [" + iterations + " iteration(s)]");
+		mode = 'realtime';
+	    }
+
+	    if (stats !== playStats.RUNNING) {
+		vnc_status.style.display = 'none';
+
+		if (fullscreen)
+		    hide_others();
+		if (stats === playStats.STOPPED)
+		    __continue();
+		else
+		    __start();
+
+		//check_load_framedata();
+	    } else {
+		__stop();
+	    }
+	}
+
+	function mode1_checked() {
+	    skipframes = 0;
+	    jumpto.textContent = 0;
+	}
+
+	function track_stop(touch) {
+	    if (track_bar.disabled || vnc_screen_disabled)
+		return;
+
+	    if (touch === 2)
+		touchable = 1;
+
+	    if (touchable && touch === 1)
+		return;
+
+	    track_bar_stats = trackBarStats.DOWN;
+	    prev_play_stats = play_stats;
+	    if ((frame_idx < frame_idx_max) && ___running())
+		__stop();
+
+	    if (touch && window.event) {
+		var event = window.event;
+		//event.preventDefault();
+		if (event.touches) {
+		    last_x = event.touches[0].clientX;
+		    last_y = event.touches[0].clientY;
+		} else {
+		    last_x = event.clientX;
+		    last_y = event.clientY;
+		}
+		// console.log("x is " + last_x + " y is " + last_y);
+	    }
+
+	    prev_track_value = Number(track_bar.value);
+	    // console.log("prev track value is " + prev_track_value);
+	}
+
+	function track_move(touch) {
+	    if (track_bar.disabled || vnc_screen_disabled)
+		return;
+
+	    if (touch === 2)
+		touchable = 1;
+
+	    if (touchable && touch === 1)
+		return;
+
+	    if ((track_bar_stats === trackBarStats.DOWN) || (track_bar_stats === trackBarStats.MOVE)) {
+		var moved = 0;
+		var offset = 0;
+
+		if (touch && window.event) {
+			var event = window.event;
+			var x_offset, y_offset, x, y;
+			if (event.touches) {
+			    x = event.touches[0].clientX;
+			    y = event.touches[0].clientY;
+			} else {
+			    x = event.clientX;
+			    y = event.clientY;
+			}
+
+			x_offset = Math.abs(x - last_x);
+			y_offset = Math.abs(y - last_y);
+			if ((x_offset > y_offset) && (x_offset > 5)) {
+			    moved = 1;
+			    offset = Math.round((x - last_x) * track_bar.max / track_bar.offsetWidth);
+			    // console.log("x is " + x + " y is " + y + " moved is " + moved);
+			    last_x = x;
+			    last_y = y;
+			}
+		}
+
+		if (prev_track_value !== Number(track_bar.value))
+		    moved = 1;
+
+		//console.log("cur track value is " + Number(track_bar.value));
+
+		if ((track_bar_stats !== trackBarStats.MOVE) && (moved)) {
+		    start_btn.disabled = true;
+		    track_bar_stats = trackBarStats.MOVE;
+		}
+
+		if (!___running()) {
+		    var frame, tmp, idx = Number(track_bar.value) + offset;
+		    track_bar.value = idx;
+		    tmp = idx + 1;
+
+		    frame = VNC_frame_data[idx];
+		    if (frame) {
+			idx = frame.indexOf('{', 1);
+			if (idx > -1) {
+			    ftime.textContent = format_time(frame.slice(1, idx));
+			    ftime.style.color = '#f00';
+			}
+		    }
+
+		    if (tmp > frame_idx_max)
+			jumpto.textContent = totalframes;
+		    else
+			jumpto.textContent = tmp + 1;
+		    jumpto.style.color = '#f00';
+		}
+	    }
+	}
+
+	function track_start(touch) {
+	    if (track_bar.disabled || vnc_screen_disabled)
+		return;
+
+	    if (touch === 2)
+		touchable = 1;
+
+	    if (touchable && touch === 1)
+		return;
+
+	    track_move();
+
+	    skipframes = Number(track_bar.value) + 1;
+
+	    if (track_bar_stats !== trackBarStats.MOVE) {
+		track_bar_stats = trackBarStats.UP;
+
+		start(1, prev_play_stats);
+
+		return;
+	    }
+
+	    track_bar.disabled = true;
+	    track_bar_stats = trackBarStats.UP;
+	    message("Start track_start()");
+	    if (frame_idx > skipframes)
+		finish();
+	    start();
+	}
+
+	var begin_frame = 0;
+
+	function track_click(button) {
+	    var tmp;
+
+	    if (track_bar.disabled)
+		return;
+
+	    skipframes = 0;
+	    jumpto.textContent = 0;
+	    if (full_frame_found)
+		begin_frame = full_frame_idx;
+
+	    track_stop();
+
+	    tmp = Number(track_bar.value);
+
+	    switch(button) {
+		case 'begin':
+		    if (tmp > begin_frame)
+			track_bar.value = begin_frame;
+		    else {
+			__resume();
+			return;
+		    }
+		    begin_btn.disabled = true;
+		    break;
+		case 'end':
+		    if (tmp < frame_idx_max)
+			track_bar.value = frame_idx_max;
+		    else {
+			__resume();
+			return;
+		    }
+		    end_btn.disabled = true;
+		    break;
+		case 'minus':
+		    if (tmp <= begin_frame) {
+			__resume();
+			return;
+		    }
+
+		    if (tmp > 2500)
+			tmp = parseInt(tmp / 2);
+		    else if (tmp > 1500)
+			tmp = parseInt(tmp * 2 / 3);
+		    else if (tmp > 1000)
+			tmp = tmp - 500;
+		    else if (tmp > 500)
+			tmp = tmp - 200;
+		    else if (tmp > 100)
+			tmp = tmp - 100;
+		    else if (tmp > 50)
+			tmp = tmp - 50;
+		    else if (tmp > 20)
+			tmp = tmp - 20;
+		    else
+			tmp = tmp - 10;
+
+		    while (prev_track_value <= tmp)
+			tmp = tmp - 10;
+
+		    if (tmp > begin_frame)
+			track_bar.value = tmp;
+		    else
+			track_bar.value = begin_frame;
+		    minus_btn.disabled = true;
+		    break;
+		case 'plus':
+		    if (tmp === frame_idx_max) {
+			__resume();
+			return;
+		    }
+
+		    tmp = tmp + 10;
+		    if (tmp < frame_idx_max)
+			track_bar.value = tmp;
+		    else
+			track_bar.value = frame_idx_max;
+		    plus_btn.disabled = true;
+		    break;
+	    }
+	    track_start();
+	}
+
+	window.onresize = function() {
+	    check_fullscreen();
+
+	    update_screensize();
+	}
+
+	window.onblur = function() {
+	    if (!full_frame_found)
+		return;
+
+	    if (frame_idx >= frame_idx_max)
+		return;
+
+	    if (!(skipframes > frame_idx))
+		__stop();
+	}
+
+	document.onkeydown = function(e) {
+	    if (track_bar.disabled || (mode === "fullspeed"))
+		return;
+
+	    //console.info("e.keyCode is " + e.keyCode);
+	    if (!start_btn.disabled && e.keyCode === 13)
+		start();
+
+	    if (!e.ctrlKey && !e.shiftKey && !e.altKey)
+		return;
+
+	    e = window.event || e;
+
+	    switch (e.keyCode) {
+		case 37: // Left: -
+		    track_click('minus');
+		    break;
+		case 39: // Right: +
+		    track_click('plus');
+		    break;
+		case 38: // Up: begin
+		    track_click('begin');
+		    break;
+		case 40: // Down: end
+		    track_click('end');
+		    break;
+		default:
+		    break;
+	    }
+	}
+
+	function finish() {
+	    // Finished with all iterations
+	    var total_time, end_time = (new Date()).getTime();
+	    total_time = end_time - start_time;
+
+	    iter_time = parseInt(total_time / iterations, 10);
+	    message(iterations + " iterations took " + total_time + "ms, " +
+		    iter_time + "ms per iteration");
+	    // Shut-off event interception
+	    rfb.get_mouse().ungrab();
+	    rfb.get_keyboard().ungrab();
+
+	    play_stats = playStats.FINISH;
+	    start_btn.value = "=>";
+	    frame_idx = 0;
+	    //vnc_status.textContent = "Finished";
+	    //vnc_status.style.display = 'block';
+	}
+
+	function ___finish() {
+	    if ((mode == 'fullspeed') && (skipframes > 0))
+		mode = 'realtime';
+
+	    finish();
+	    __resume();
+	    draw_frame();
+	    //exit_fullscreen();
+	}
+
+	function update_screensize() {
+	    var target_width = fullscreen_input ? window.innerWidth : window.innerWidth - 30;
+	    var target_height = fullscreen_input ? window.innerWidth : window.innerHeight - play_bar.offsetHeight;
+
+	    if (screen_width_input <= 0)
+		screen_width = target_width;
+	    else if (screen_width_input > target_width)
+		screen_width = target_width;
+
+	    if (screen_height_input <= 0)
+		screen_height = target_height;
+	    else if (screen_height_input > target_height)
+		screen_height = target_height;
+
+	    if (screen_width > 0 && screen_height === 0)
+		screen_height = Math.round(screen_width / screen_ratio);
+	    if (screen_height > 0 && screen_width === 0)
+		screen_width = Math.round(screen_height * screen_ratio);
+
+	    if (typeof(rfb) !== 'undefined' && rfb._display) {
+		rfb._display.autoscale(screen_width, screen_height, 1);
+
+		var w = vnc_canvas.style.width;
+		var h = vnc_canvas.style.height;
+
+		// wait for rfb initialization
+		if (vnc_canvas.height <= default_canvas_height)
+		    return;
+
+		if (vnc_screen.style.width !== w || fullscreen_input) {
+		    if (vnc_canvas_backup.width !== vnc_canvas.width) {
+		        vnc_canvas_backup.width = vnc_canvas.width;
+		        vnc_canvas_backup.height = vnc_canvas.height;
+		    }
+
+		    vnc_canvas_backup.style.width = w;
+		    vnc_canvas_backup.style.height = h;
+
+		    vnc_records.style.width = w;
+		    vnc_records.style.height = h;
+
+		    play_bar.style.width = w;
+		    play_bar.style.display = 'block';
+
+		    var middle_play_bar_width = parseInt(w) - left_play_bar.offsetWidth - right_play_bar.offsetWidth - 4;
+		    middle_play_bar.style.width = middle_play_bar_width + "px";
+
+		    vnc_screen.style.width = w;
+		}
+	    }
+	}
+
+	function update_frameinfo() {
+	    frame_title = short_fname;
+	    frame_author = 'Unknown';
+	    frame_create = 'Unknown';
+	    frame_tags = 'Unknown';
+	    frame_desc = 'Unknown';
+	    frame_time = '00:00:00';
+
+	    if (typeof(VNC_frame_title) !== "undefined") {
+		frame_title = VNC_frame_title;
+	    }
+	    if (typeof(VNC_frame_author) !== "undefined") {
+		frame_author = VNC_frame_author;
+	    }
+	    if (typeof(VNC_frame_create) !== "undefined") {
+		frame_create = VNC_frame_create;
+	    }
+	    if (typeof(VNC_frame_time) !== "undefined") {
+		frame_time = VNC_frame_time;
+	    }
+	    if (typeof(VNC_frame_tags) !== "undefined") {
+		frame_tags = VNC_frame_tags;
+	    }
+	    if (typeof(VNC_frame_desc) !== "undefined") {
+		frame_desc = VNC_frame_desc;
+	    }
+	}
+
+	var curr_frame_length = 0;
+	var next_data_slice = 0;
+	var stopped_by_me = 0;
+
+	function handle_framedata(uri) {
+	    // console.info("uri: " + uri + " short_fname: " + short_fname);
+	    if (uri.indexOf(short_fname) < 0) {
+		console.info("The async loading data not belong to our session.");
+		return;
+	    }
+
+	    index = parseInt(uri.substring(uri.lastIndexOf(".")+1));
+
+	    console.info("part: " + index);
+
+	    if (typeof(VNC_frame_data_compressed) !== 'undefined'
+		&& typeof(VNC_frame_data_size) !== 'undefined'
+		&& typeof(VNC_frame_slice_str) !== 'undefined') {
+
+		VNC_frame_data_slice = decompress(VNC_frame_data_compressed, VNC_frame_data_size, VNC_frame_slice_str);
+	        //console.info("length: " + VNC_frame_data_slice.length);
+	    }
+
+	    if (typeof(VNC_frame_data_slice) === 'undefined' || VNC_frame_data_slice.length === 0) {
+		console.info("exit for empty data, network issue or data broken.");
+
+		___finish();
+
+		return;
+	    }
+
+	    if (index !== 0) {
+		if (frame_idx >= curr_frame_length)
+		    stopped_by_me = 1;
+	    }
+
+	    VNC_frame_data = VNC_frame_data.concat(VNC_frame_data_slice);
+	    curr_frame_length = VNC_frame_data.length - 1;
+	    VNC_frame_data_slice = undefined;
+	    VNC_frame_data_size = undefined;
+	    VNC_frame_data_compressed = undefined;
+
+	    //console.info("data.length " + VNC_frame_data.length);
+	    //console.info("curr_frame_length: " + curr_frame_length + " skipframes: " + skipframes);
+	    //console.info("stopped_by_me " + stopped_by_me);
+	    //console.info("frame_idx: " + frame_idx);
+	
+	    if (index === 0)
+		start(0, 0, 'fullspeed');
+	    else {
+		if (stopped_by_me && !___running()) {
+		    stopped_by_me = 0;
+		    __resume_control();
+		    __continue();
+		}
+	    }
+
+	    next_data_slice = index + 1;
+	    if (next_data_slice < frame_data_slices)
+		//load_framedata(next_data_slice);
+		check_load_framedata();
+	}
+
+	function check_load_framedata() {
+	    if (typeof(frame_idx) === 'undefined')
+		return;
+
+	    if (curr_frame_length >= frame_length - 1)
+		return;
+
+	    if (curr_frame_length <= skipframes || curr_frame_length <= frame_idx) {
+	        load_framedata(next_data_slice);
+		return;
+	    }
+
+	    //console.info("frame_idx: " + frame_idx + " curr_frame_length: " + curr_frame_length);
+	    if (frame_idx < curr_frame_length) {
+		var f, i, frame_timestamp, loaded_timestamp;
+
+		f = VNC_frame_data[frame_idx];
+		i = f.indexOf('{', 1);
+		i = i < 0 ? f.indexOf('}', 1) : i;
+		frame_timestamp = f.slice(1, i);
+
+		f = VNC_frame_data[curr_frame_length];
+		i = f.indexOf('{', 1);
+		i = i < 0 ? f.indexOf('}', 1) : i;
+		loaded_timestamp = f.slice(1, i);
+
+		//console.info("frame_timestamp: " + frame_timestamp +
+		//	" loaded_timestamp: " + loaded_timestamp +
+		//	" diff: " + (loaded_timestamp - frame_timestamp));
+		i = loaded_timestamp - frame_timestamp - avail_timestamp;
+		if (i > 0) {
+		   if (!___running()) {
+			console.info("Exit loading checking");
+			return;
+		   }
+
+		   setTimeout(check_load_framedata, 1000);
+		   return;
+		}
+	    }
+
+	    load_framedata(next_data_slice);
+	}
+
+	function get_uri(fname, part) {
+	    var uri;
+
+	    //console.info("short_fname: " + short_fname + " fname: " + fname);
+
+	    if (short_fname === fname)
+		uri = '' + INCLUDE_URI + '/recordings/' + fname + "." + part;
+	    else
+		uri = fname + "." + part;
+
+	    return uri;
+	}
+
+	var prev_uri = "";
+
+	function load_framedata(part) {
+	    if (typeof(part) === 'undefined')
+		part = next_data_slice;
+
+	    uri = get_uri(fname, part);
+	    if (uri === prev_uri) {
+		console.info("Ignore duplicated loading...");
+		return;
+	    }
+
+	    //console.info("data uri is " + uri);
+	    window.asyncLoad(uri, handle_framedata, 120000);
+	    prev_uri = uri;
+	}
+
+	function show_records_list() {
+	    //console.info("show_records_list");
+
+	    if (vnc_records.innerHTML.length < 10)
+		list_records();
+
+	    var tmp = fullscreen_input ? window.innerWidth : window.innerWidth - 30;
+	    vnc_records.style.width = tmp + "px";
+	    vnc_records.style.height = window.innerHeight + "px";
+	    vnc_screen.style.display = "none";
+	    vnc_records.style.display = "block";
+	    vnc_ctrl.style.display = "none";
+	}
+
+	window.onscriptsload = function () {
+	    if (fname)
+		init_framedata();
+	    else
+		show_records_list();
+	}
+
+	function __load(fname) {
+	    short_fname = fname.replace(/.*\//,"");
+	    message("Loading " + short_fname);
+
+	    session.textContent = "#"+ short_fname;
+	    vnc_status.textContent = "Loading ...";
+
+	    if (first_load === 1) {
+		// Load supporting scripts
+		WebUtil.load_scripts({
+		'core': ["base64.js", "websock.js", "des.js", "input/keysym.js",
+			 "input/keysymdef.js", "input/xtscancodes.js", "input/util.js",
+			 "input/devices.js", "display.js", "rfb.js", "inflator.js"],
+		'tests': ["playback.js"],
+		'app': ["list_records.js"],
+		"recordings": ["records.js", fname],
+		});
+		first_load = 0;
+	    } else {
+		//console.info("Reset and load a new data " + fname);
+		reset_framedata();
+		WebUtil.load_scripts({"recordings": [fname]});
+	    }
+
+	    play_stats = playStats.LOADING;
+	    vnc_ctrl.style.display = "block";
+	}
+
+	// called in record list page while the record is choosed
+	function load(index, suffix) {
+	    var record = VNC_record_data;
+	    var record_dir = VNC_record_dir;
+	    // before append suffix, must remove the old prefix at first
+	    if (typeof(suffix) === 'undefined')
+		fname = record[index][0];
+	    else
+		fname = record[index][0].replace(".zb64","") + suffix;
+
+	    ___finish();
+	    //console.info("Loading ...... " + fname);
+	    __load(fname);
+	}
+
+	function arr2str(uint8array) {
+	    var array = uint8array
+
+	    if (typeof(array.slice) === 'undefined')
+		array.slice = Array.prototype.slice;
+
+	    //array = [].slice.call(uint8array);
+
+	    var res = '';
+	    var chunk = 8 * 1024;
+	    var i;
+	    for (i = 0; i < array.length / chunk; i++) {
+		res += String.fromCharCode.apply(null, array.slice(i * chunk, (i + 1) * chunk));
+	    }
+	    res += String.fromCharCode.apply(null, array.slice(i * chunk));
+	    return res;
+	}
+
+	function decompress(data, size, slice_str) {
+	    var zlib = new Inflator.Inflate();
+
+	    //console.info("base64 encoded data size: " + data.length);
+
+	    var tmp = Base64.decode(data);
+
+	    //console.info("compressed data size: " + tmp.length);
+
+	    var tmp = zlib.inflate(tmp, true, size);
+
+	    //console.info("decompressed data size: " + tmp.length);
+
+	    zlib.reset();
+
+	    return arr2str(tmp).split(slice_str);
+	}
+
+	function reset_framedata() {
+	    VNC_frame_data = undefined;
+	    VNC_frame_data = [];
+	    VNC_frame_data_size = undefined;
+	    VNC_frame_data_compressed = undefined;
+	    VNC_frame_title = undefined;
+	    VNC_frame_author = undefined;
+	    VNC_frame_create = undefined;
+	    VNC_frame_time = undefined;
+	    VNC_frame_length = undefined;
+	    VNC_frame_slice_str = undefined
+	    VNC_frame_data_slice = undefined;
+	    VNC_frame_slices = undefined;
+
+	    frame_idx = 0;
+	    frame_length = 0;
+	    frame_data_slices = 0;
+	    jumpto.textContent = 0;
+	    skipframes = 0;
+	    prev_canvas_height = default_canvas_height;
+	    full_frame_found = 0;
+	    full_frame_idx = 0;
+	    track_bar.value = 0;
+	    curr_frame_length = 9999999;
+
+            next_data_slice = 0;
+            stopped_by_me = 0;
+	}
+
+	function init_framedata() {
+	    var timestamp;
+
+	    if (typeof(VNC_frame_data_compressed) !== 'undefined'
+		&& typeof(VNC_frame_data_size) !== 'undefined'
+		&& typeof(VNC_frame_slice_str) !== 'undefined')
+		VNC_frame_data = decompress(VNC_frame_data_compressed, VNC_frame_data_size, VNC_frame_slice_str);
+
+	    if (typeof(VNC_frame_title) !== "undefined") {
+	        session.title = frame_desc;
+	        session.textContent = "#" + VNC_frame_title;
+	    }
+
+	    if (typeof(VNC_frame_slices) !== 'undefined')
+		frame_data_slices = VNC_frame_slices;
+
+	    if (typeof(VNC_frame_length) !== 'undefined')
+		frame_length = VNC_frame_length;
+	    else
+		frame_length = VNC_frame_data.length;
+
+	    curr_frame_length = frame_length;
+
+	    message("VNC_frame_length: " + frame_length);
+
+	    if (typeof(VNC_frame_time) !== 'undefined')
+		frame_time = VNC_frame_time;
+	    else {
+		var frame, i, idx;
+
+		i = VNC_frame_data.length;
+		do {
+		    i -= 1;
+		    frame = VNC_frame_data[i];
+		    idx = frame.indexOf('{', 1);
+		} while (idx < 0);
+
+		timestamp = frame.slice(1, idx);
+	        frame_time = format_time(timestamp);
+	    }
+
+	    ftime.textContent = '00:00:00';
+	    ttime.textContent = frame_time;
+	    VNC_frame_time = frame_time;
+
+	    update_frameinfo();
+
+	    message("VNC_frame_time: " + frame_time);
+
+	    frame_idx_max = frame_length - 2;
+	    track_bar.max = frame_idx_max;
+	    track_bar.max = frame_idx_max;
+	    prev_track_value = frame_idx_max;
+	    totalframes = frame_length - 1;
+	    size.textContent = frame_length - 1;
+
+	    if (frame_data_slices) {
+		load_framedata(0);
+	    } else {
+		start(0, 0, 'fullspeed');
+	    }
+	}
+
+	// Get query variables and do initialization
+
+	iterations = WebUtil.getQueryVar('iterations', 1);
+	skipframes = WebUtil.getQueryVar('skipframes', 0);
+	frames_delta = WebUtil.getQueryVar('delta', frames_delta);
+	messageon = WebUtil.getQueryVar('message', 0);
+
+	screen_width = WebUtil.getQueryVar('width', 0);
+	screen_height = WebUtil.getQueryVar('height', 0);
+	screen_ratio = WebUtil.getQueryVar('ratio', 16/9);
+
+	screen_width_input = screen_width;
+	screen_height_input = screen_height;
+
+	update_screensize();
+
+	iters.value = iterations;
+	jumpto.textContent = skipframes;
+	loop.textContent = iterations;
+	mode = WebUtil.getQueryVar('mode', 3);
+
+	if (mode === 'fullspeed') {
+	    mode1.checked = true;
+	} else {
+	    mode2.checked = true;
+	}
+	if (messageon)
+	    info_bar.style.display = 'block';
+    </script>
+</html>
